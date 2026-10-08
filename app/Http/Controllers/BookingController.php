@@ -1,0 +1,200 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Booking;
+use App\Models\Customer;
+use App\Models\Room;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class BookingController extends Controller
+{
+    /**
+     * Tampilkan daftar pemesanan + pencarian.
+     */
+    public function index(Request $request)
+    {
+        $search = $request->query('q');
+
+        $query = Booking::with(['customer', 'room'])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_code', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('customer_name', 'like', "%{$search}%")
+                            ->orWhere('phone_number', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('room', function ($rq) use ($search) {
+                        $rq->where('room_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $bookings = $query->paginate(10);
+
+        return view('bookings.index', compact('bookings', 'search'));
+    }
+
+    /**
+     * Tampilkan form Tambah Pemesanan.
+     */
+    public function create()
+    {
+        $rooms = Room::orderBy('room_number')->get();
+
+        return view('bookings.create', compact('rooms'));
+    }
+
+    /**
+     * Simpan pemesanan baru dengan pencegahan double booking yang ketat.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'room_id' => 'required|exists:rooms,id',
+            'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
+            'check_in_time' => 'required|date',
+            'payment_method' => 'required|string',
+            'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
+            'source' => 'required|in:Offline,Website,WhatsApp',
+        ]);
+
+        $checkIn = Carbon::parse($request->check_in_time);
+
+        // Tentukan check_out_time berdasarkan booking_type
+        if ($request->booking_type === 'Short Time 5 Jam') {
+            $checkOut = (clone $checkIn)->addHours(5);
+        } elseif ($request->booking_type === 'Short Time 8 Jam') {
+            $checkOut = (clone $checkIn)->addHours(8);
+        } else {
+            // Full Day dihitung dari check-in sampai jam 12 siang hari berikutnya
+            $checkOut = (clone $checkIn)->addDay()->startOfDay()->addHours(12);
+        }
+
+        // Validasi Ketat Double Booking (Overlap waktu pada kamar yang sama)
+        $conflict = Booking::where('room_id', $request->room_id)
+            ->whereIn('booking_status', ['Pending', 'Confirmed', 'Check-in'])
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->where(function ($q) use ($checkIn, $checkOut) {
+                    $q->where('check_in_time', '<', $checkOut)
+                      ->where('check_out_time', '>', $checkIn);
+                });
+            })
+            ->exists();
+
+        if ($conflict) {
+            return back()->withInput()->withErrors(['room_id' => 'Kamar sudah dipesan atau tidak tersedia pada rentang waktu tersebut (Double Booking terdeteksi).']);
+        }
+
+        return DB::transaction(function () use ($request, $checkIn, $checkOut) {
+            // Simpan / Buat Data Customer
+            $customer = Customer::firstOrCreate(
+                ['phone_number' => $request->phone_number],
+                [
+                    'customer_name' => $request->customer_name,
+                    'email' => $request->email ?? strtolower(str_replace(' ', '', $request->customer_name)) . '@guest.com',
+                ]
+            );
+
+            // Hitung total harga
+            $room = Room::findOrFail($request->room_id);
+            $totalPrice = match ($request->booking_type) {
+                'Short Time 5 Jam' => $room->price_5_hours,
+                'Short Time 8 Jam' => $room->price_8_hours,
+                'Full Day' => $room->full_day_price,
+                default => $room->full_day_price,
+            };
+
+            $bookingStatus = ($request->payment_status === 'Paid') ? 'Confirmed' : 'Pending';
+
+            $booking = Booking::create([
+                'room_id' => $room->id,
+                'customer_id' => $customer->id,
+                'booking_code' => Booking::generateCode(),
+                'booking_type' => $request->booking_type,
+                'check_in_time' => $checkIn,
+                'check_out_time' => $checkOut,
+                'booking_status' => $bookingStatus,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_status,
+                'payment_time' => ($request->payment_status === 'Paid') ? now() : null,
+                'total_price' => $totalPrice,
+                'source' => $request->source,
+            ]);
+
+            $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
+            return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Pemesanan berhasil dibuat dengan kode ' . $booking->booking_code);
+        });
+    }
+
+    /**
+     * Tampilkan form Edit Pemesanan.
+     */
+    public function edit(Booking $booking)
+    {
+        $rooms = Room::orderBy('room_number')->get();
+
+        return view('bookings.edit', compact('booking', 'rooms'));
+    }
+
+    /**
+     * Update data pemesanan & sinkronisasi status kamar otomatis.
+     */
+    public function update(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'booking_status' => 'required|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
+            'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
+        ]);
+
+        return DB::transaction(function () use ($request, $booking) {
+            $oldRoomId = $booking->room_id;
+            $newRoomId = $request->room_id;
+            $oldStatus = $booking->booking_status;
+            $newStatus = $request->booking_status;
+
+            $booking->update([
+                'room_id' => $newRoomId,
+                'booking_status' => $newStatus,
+                'payment_status' => $request->payment_status,
+                'payment_time' => ($request->payment_status === 'Paid' && !$booking->payment_time) ? now() : $booking->payment_time,
+            ]);
+
+            // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking
+            $room = Room::findOrFail($newRoomId);
+
+            if ($newStatus === 'Check-in') {
+                $room->update(['room_status' => 'Occupied']);
+            } elseif ($newStatus === 'Check-out') {
+                $room->update(['room_status' => 'Cleaning']);
+                // Jika pindah kamar, kamar lama set ke Cleaning juga
+                if ($oldRoomId != $newRoomId) {
+                    Room::where('id', $oldRoomId)->update(['room_status' => 'Cleaning']);
+                }
+            } elseif (in_array($newStatus, ['Cancelled', 'Pending']) && $oldStatus === 'Check-in') {
+                $room->update(['room_status' => 'Cleaning']);
+            }
+
+            $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
+            return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Data pemesanan berhasil diperbarui.');
+        });
+    }
+
+    /**
+     * Hapus pemesanan.
+     */
+    public function destroy(Booking $booking)
+    {
+        $booking->delete();
+
+        $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
+        return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Pemesanan berhasil dihapus.');
+    }
+}
