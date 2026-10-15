@@ -25,7 +25,25 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::patch('/status-kamar/{room}', [RoomController::class, 'updateStatus'])->name('admin.status-kamar.update');
     Route::post('/status-kamar/{room}/extend', [RoomController::class, 'extend'])->name('admin.status-kamar.extend');
 
+    
     // Laporan & Akun
-    Route::get('/laporan-penjualan', [ReportController::class, 'index'])->name('admin.reports.index');
-    Route::get('/kelola-akun', [UserController::class, 'index'])->name('admin.users.index');
+    Route::get('/laporan-penjualan', [ReportController::class, 'index'])
+        ->name('admin.reports.index');
+
+    // Menampilkan halaman kelola akun
+    Route::get('/kelola-akun', [UserController::class, 'index'])
+        ->name('admin.users.index');
+
+    // Menambahkan akun resepsionis
+    Route::post('/kelola-akun', [UserController::class, 'store'])
+        ->name('admin.users.store');
+
+    // Memperbarui akun resepsionis
+    Route::put('/kelola-akun/{user}', [UserController::class, 'update'])
+        ->name('admin.users.update');
+
+    // Menghapus akun resepsionis
+    Route::delete('/kelola-akun/{user}', [UserController::class, 'destroy'])
+        ->name('admin.users.destroy');
+
 });
