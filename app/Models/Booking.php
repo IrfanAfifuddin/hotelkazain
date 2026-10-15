@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,12 +22,14 @@ class Booking extends Model
         'payment_time',
         'total_price',
         'source',
+        'payment_expires_at',
     ];
 
     protected $casts = [
         'check_in_time' => 'datetime',
         'check_out_time' => 'datetime',
         'payment_time' => 'datetime',
+        'payment_expires_at' => 'datetime',
     ];
 
     public function room(): BelongsTo
@@ -38,10 +42,30 @@ class Booking extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function scopeActiveOverlapping(Builder $query, CarbonInterface $start, CarbonInterface $end): void
+    {
+        $query
+            ->where('check_in_time', '<', $end)
+            ->where('check_out_time', '>', $start)
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereIn('booking_status', ['Confirmed', 'Check-in'])
+                    ->orWhere(function (Builder $query): void {
+                        $query
+                            ->where('booking_status', 'Pending')
+                            ->where(function (Builder $query): void {
+                                $query
+                                    ->whereNull('payment_expires_at')
+                                    ->orWhere('payment_expires_at', '>', now());
+                            });
+                    });
+            });
+    }
+
     public static function generateCode(): string
     {
         do {
-            $code = 'KZN-' . str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $code = 'KZN-'.str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         } while (self::query()->where('booking_code', $code)->exists());
 
         return $code;
