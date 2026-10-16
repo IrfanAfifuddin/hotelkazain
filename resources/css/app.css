@@ -6,4 +6,77 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-kazain-primary: #30483b;
+    --color-kazain-primary-hover: #263d32;
+    --color-kazain-primary-dark: #1d3027;
+    --color-kazain-accent: #c9b887;
+    --color-kazain-neutral: #f4f3ef;
+    --color-kazain-surface: #fbfcfa;
+    --color-kazain-border: #dce2db;
+    --color-kazain-text: #26332c;
+    --color-kazain-muted: #59655c;
+}
+
+:root {
+    --kazain-primary: var(--color-kazain-primary);
+    --kazain-surface: var(--color-kazain-surface);
+    --kazain-text: var(--color-kazain-text);
+}
+
+.login-panel {
+    background-color: var(--color-kazain-primary-dark);
+    background-image: linear-gradient(135deg, var(--color-kazain-primary), var(--color-kazain-primary-dark));
+}
+
+.login-panel::after {
+    position: absolute;
+    z-index: 10;
+    background-image: repeating-linear-gradient(
+        135deg,
+        transparent 0,
+        transparent 23px,
+        rgb(255 255 255 / 3%) 24px,
+        transparent 25px
+    );
+    content: '';
+    inset: 0;
+    pointer-events: none;
+}
+
+.login-form-panel {
+    background-color: #f7f8f5;
+    background-image:
+        radial-gradient(ellipse at 90% 8%, rgb(201 184 135 / 16%), transparent 36%),
+        radial-gradient(ellipse at 8% 94%, rgb(127 151 128 / 12%), transparent 42%),
+        linear-gradient(145deg, #fbfcfa 0%, #f5f7f3 100%);
+}
+
+.login-card {
+    animation: login-fade-in 180ms ease-out both;
+}
+
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--kazain-text);
+    -webkit-box-shadow: 0 0 0 1000px var(--kazain-surface) inset;
+    transition: background-color 9999s ease-out 0s;
+}
+
+@keyframes login-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-card {
+        animation: none;
+    }
 }
