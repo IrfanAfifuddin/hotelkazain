@@ -11,12 +11,12 @@
             <p class="text-sm text-gray-500 mt-1">Rekapitulasi pendapatan dan transaksi hotel.</p>
         </div>
         <div>
-            <button onclick="window.print()" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition shadow-sm">
+            <a href="{{ route('admin.reports.export', request()->query()) }}" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.725 14.406v2.481c0 .823.668 1.49 1.49 1.49h7.585c.822 0 1.49-.667 1.49-1.49v-2.481M12 2.25v12.75m0 0L8.25 11.25M12 15l3.75-3.75" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
-                <span>Cetak / Print Laporan</span>
-            </button>
+                <span>Unduh Excel</span>
+            </a>
         </div>
     </div>
 

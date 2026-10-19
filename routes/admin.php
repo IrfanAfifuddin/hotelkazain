@@ -29,6 +29,8 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     // Laporan & Akun
     Route::get('/laporan-penjualan', [ReportController::class, 'index'])
         ->name('admin.reports.index');
+    Route::get('/laporan-penjualan/export', [ReportController::class, 'export'])
+        ->name('admin.reports.export');
 
     // Menampilkan halaman kelola akun
     Route::get('/kelola-akun', [UserController::class, 'index'])

@@ -80,7 +80,7 @@
                 {{-- Action Buttons --}}
                 <div class="space-y-2 pt-2 border-t border-gray-100">
                     {{-- Form Ubah Status --}}
-                    <form action="{{ route('status-kamar.update', $room->id) }}" method="POST" class="flex items-center space-x-2">
+                    <form action="{{ route(auth()->user()->role === 'Admin' ? 'admin.status-kamar.update' : 'receptionist.status-kamar.update', $room) }}" method="POST" class="flex items-center space-x-2">
                         @csrf
                         @method('PATCH')
                         <select name="room_status" onchange="this.form.submit()" class="w-full text-xs bg-gray-50 border border-gray-300 rounded-md py-1.5 px-2 focus:outline-none focus:ring-1 focus:ring-gray-900">
@@ -139,8 +139,10 @@
     @push('scripts')
         <script>
             function openExtendModal(roomId, roomNumber) {
+                const extendUrlTemplate = "{{ route(auth()->user()->role === 'Admin' ? 'admin.status-kamar.extend' : 'receptionist.status-kamar.extend', ['room' => '__ROOM__']) }}";
+
                 document.getElementById('extendRoomLabel').innerText = 'Kamar ' + roomNumber;
-                document.getElementById('extendForm').action = '/status-kamar/' + roomId + '/extend';
+                document.getElementById('extendForm').action = extendUrlTemplate.replace('__ROOM__', roomId);
                 document.getElementById('extendModal').classList.remove('hidden');
             }
 
