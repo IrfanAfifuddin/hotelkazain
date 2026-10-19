@@ -10,7 +10,7 @@
     @endif
 </head>
 <body class="min-h-screen bg-kazain-neutral font-sans text-kazain-text antialiased">
-    <nav class="fixed inset-x-0 top-0 z-30 h-16 border-b border-kazain-border/80 bg-white/95 backdrop-blur">
+    <nav class="print:hidden fixed inset-x-0 top-0 z-30 h-16 border-b border-kazain-border/80 bg-white/95 backdrop-blur">
         <div class="flex h-full items-center justify-between px-4 sm:px-6">
             <div class="flex items-center gap-3">
                 <button
@@ -50,7 +50,7 @@
         </div>
     </nav>
 
-    <aside id="sidebar" class="fixed bottom-0 left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-72 -translate-x-full flex-col border-r border-white/10 bg-gradient-to-b from-kazain-primary to-kazain-primary-dark px-4 py-5 shadow-xl transition-transform duration-200 md:z-20 md:w-64 md:translate-x-0">
+    <aside id="sidebar" class="print:hidden fixed bottom-0 left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-72 -translate-x-full flex-col border-r border-white/10 bg-gradient-to-b from-kazain-primary to-kazain-primary-dark px-4 py-5 shadow-xl transition-transform duration-200 md:z-20 md:w-64 md:translate-x-0">
         <nav class="flex min-h-0 flex-1 flex-col" aria-label="Navigasi utama">
             <p class="px-3 pb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">Menu utama</p>
             <div class="flex-1 space-y-1">
@@ -114,9 +114,9 @@
         </nav>
     </aside>
 
-    <div id="sidebarBackdrop" class="fixed inset-0 z-30 hidden bg-[#1d3027]/35 backdrop-blur-[2px] md:hidden" aria-hidden="true"></div>
+    <div id="sidebarBackdrop" class="print:hidden fixed inset-0 z-30 hidden bg-[#1d3027]/35 backdrop-blur-[2px] md:hidden" aria-hidden="true"></div>
 
-    <div id="logoutModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+    <div id="logoutModal" class="print:hidden fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
         <button type="button" data-logout-close class="absolute inset-0 cursor-default bg-[#1d3027]/35 backdrop-blur-[2px]" aria-label="Tutup konfirmasi"></button>
         <div class="absolute inset-0 flex items-center justify-center p-4">
             <div class="relative w-full max-w-sm rounded-2xl border border-kazain-border bg-kazain-surface p-6 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)]">
@@ -139,8 +139,8 @@
         </div>
     </div>
 
-    <main class="min-h-screen pt-16 md:ml-64">
-        <div class="p-4 sm:p-6 lg:p-8">
+    <main class="min-h-screen pt-16 print:ml-0 print:pt-0 md:ml-64">
+        <div class="p-4 print:p-0 sm:p-6 lg:p-8">
             @yield('content')
         </div>
     </main>
