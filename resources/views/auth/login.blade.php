@@ -14,7 +14,7 @@
         <section class="login-card grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-[1.75rem] bg-white shadow-[0_28px_80px_-36px_rgba(29,47,37,0.3)] lg:min-h-[620px] lg:grid-cols-2">
             <aside class="login-panel relative isolate flex items-center justify-between gap-4 overflow-hidden px-5 py-4 text-white lg:min-h-[620px] lg:flex-col lg:items-stretch lg:px-12 lg:py-12">
                 <img
-                    src="{{ asset('images/hotel-login.jpg') }}"
+                    src="{{ asset('images/foto_login1.jpg') }}"
                     alt=""
                     aria-hidden="true"
                     class="absolute inset-0 z-0 h-full w-full object-cover object-center"

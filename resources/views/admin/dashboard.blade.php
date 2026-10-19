@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard Admin')
+
 @section('content')
-    <h1>Admin Dashboard</h1>
-    <p>Ringkasan operasional hotel.</p>
+    @include('partials.dashboard-content')
 @endsection
