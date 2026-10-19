@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard Resepsionis')
+
 @section('content')
-    <h1>Receptionist Dashboard</h1>
+    @include('partials.dashboard-content')
 @endsection
