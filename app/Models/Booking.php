@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
@@ -38,10 +39,15 @@ class Booking extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function extensions(): HasMany
+    {
+        return $this->hasMany(BookingExtension::class);
+    }
+
     public static function generateCode(): string
     {
         do {
-            $code = 'KZN-' . str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $code = 'KZN-'.str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         } while (self::query()->where('booking_code', $code)->exists());
 
         return $code;
