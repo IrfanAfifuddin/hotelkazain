@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\BookingExtension;
 use App\Services\SalesReportExportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,9 +23,10 @@ class ReportController extends Controller
 
         $query = $this->buildReportQuery($startDate, $endDate);
         $bookings = $query->get();
-        $totalRevenue = (float) $bookings->sum('total_price');
+        $extensions = $this->buildExtensionReportQuery($startDate, $endDate)->get();
+        $totalRevenue = (float) $bookings->sum('total_price') + (float) $extensions->sum('amount');
 
-        return view('admin.reports.index', compact('bookings', 'totalRevenue', 'startDate', 'endDate'));
+        return view('admin.reports.index', compact('bookings', 'extensions', 'totalRevenue', 'startDate', 'endDate'));
     }
 
     /**
@@ -37,7 +39,8 @@ class ReportController extends Controller
 
         $query = $this->buildReportQuery($startDate, $endDate);
         $bookings = $query->get();
-        $totalRevenue = (float) $bookings->sum('total_price');
+        $extensions = $this->buildExtensionReportQuery($startDate, $endDate)->get();
+        $totalRevenue = (float) $bookings->sum('total_price') + (float) $extensions->sum('amount');
 
         $excelContent = $exportService->generate($bookings, $totalRevenue, $startDate, $endDate);
 
@@ -45,7 +48,7 @@ class ReportController extends Controller
 
         return response($excelContent, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Content-Length' => strlen($excelContent),
             'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
             'Pragma' => 'public',
@@ -55,6 +58,24 @@ class ReportController extends Controller
     /**
      * Susun query pemesanan sukses/lunas dengan filter rentang tanggal.
      */
+    private function buildExtensionReportQuery(?string $startDate, ?string $endDate): Builder
+    {
+        $query = BookingExtension::query()
+            ->with('booking.room', 'booking.customer')
+            ->where('payment_status', 'Paid')
+            ->latest('payment_time');
+
+        if ($startDate) {
+            $query->whereDate('payment_time', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('payment_time', '<=', $endDate);
+        }
+
+        return $query;
+    }
+
     private function buildReportQuery(?string $startDate, ?string $endDate): Builder
     {
         $query = Booking::query()
@@ -86,4 +107,3 @@ class ReportController extends Controller
         return $query;
     }
 }
-

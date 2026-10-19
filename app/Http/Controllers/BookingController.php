@@ -52,7 +52,7 @@ class BookingController extends Controller
                     'payment_method' => $b->payment_method ?? 'Belum ada data',
                     'payment_status' => $b->payment_status ?? 'Pending',
                     'total_price' => $b->total_price,
-                    'total_price_formatted' => 'Rp ' . number_format($b->total_price, 0, ',', '.'),
+                    'total_price_formatted' => 'Rp '.number_format($b->total_price, 0, ',', '.'),
                     'check_in_date' => Carbon::parse($b->check_in_time)->format('Y-m-d'),
                     'check_out_date' => Carbon::parse($b->check_out_time)->format('Y-m-d'),
                     'check_in_formatted' => Carbon::parse($b->check_in_time)->format('d M Y H:i'),
@@ -84,7 +84,7 @@ class BookingController extends Controller
             'email' => 'nullable|email|max:255',
             'room_id' => 'required|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
-            'check_in_time' => 'required|date',
+            'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'nullable|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
             'payment_method' => 'required|string',
             'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
@@ -109,7 +109,7 @@ class BookingController extends Controller
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->where(function ($q) use ($checkIn, $checkOut) {
                     $q->where('check_in_time', '<', $checkOut)
-                      ->where('check_out_time', '>', $checkIn);
+                        ->where('check_out_time', '>', $checkIn);
                 });
             })
             ->exists();
@@ -133,7 +133,7 @@ class BookingController extends Controller
                 ['phone_number' => $request->phone_number],
                 [
                     'customer_name' => $request->customer_name,
-                    'email' => $request->email ?? strtolower(str_replace(' ', '', $request->customer_name)) . '@guest.com',
+                    'email' => $request->email ?? strtolower(str_replace(' ', '', $request->customer_name)).'@guest.com',
                 ]
             );
 
@@ -178,7 +178,7 @@ class BookingController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Pemesanan berhasil dibuat dengan kode ' . $booking->booking_code,
+                    'message' => 'Pemesanan berhasil dibuat dengan kode '.$booking->booking_code,
                     'booking_code' => $booking->booking_code,
                     'booking' => [
                         'id' => $booking->id,
@@ -189,7 +189,7 @@ class BookingController extends Controller
                         'check_in_formatted' => $booking->check_in_time->format('d M Y H:i'),
                         'check_out_formatted' => $booking->check_out_time->format('d M Y H:i'),
                         'booking_status' => $booking->booking_status,
-                        'total_price_formatted' => 'Rp ' . number_format($booking->total_price, 0, ',', '.'),
+                        'total_price_formatted' => 'Rp '.number_format($booking->total_price, 0, ',', '.'),
                     ],
                     'stats' => [
                         'available' => Room::where('room_status', 'Available')->count(),
@@ -201,7 +201,8 @@ class BookingController extends Controller
             }
 
             $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-            return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Pemesanan berhasil dibuat dengan kode ' . $booking->booking_code);
+
+            return redirect()->route($prefix.'.pemesanan.index')->with('success', 'Pemesanan berhasil dibuat dengan kode '.$booking->booking_code);
         });
     }
 
@@ -236,7 +237,7 @@ class BookingController extends Controller
                 'room_id' => $newRoomId,
                 'booking_status' => $newStatus,
                 'payment_status' => $request->payment_status,
-                'payment_time' => ($request->payment_status === 'Paid' && !$booking->payment_time) ? now() : $booking->payment_time,
+                'payment_time' => ($request->payment_status === 'Paid' && ! $booking->payment_time) ? now() : $booking->payment_time,
             ]);
 
             // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking
@@ -255,7 +256,8 @@ class BookingController extends Controller
             }
 
             $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-            return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Data pemesanan berhasil diperbarui.');
+
+            return redirect()->route($prefix.'.pemesanan.index')->with('success', 'Data pemesanan berhasil diperbarui.');
         });
     }
 
@@ -267,6 +269,7 @@ class BookingController extends Controller
         $booking->delete();
 
         $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-        return redirect()->route($prefix . '.pemesanan.index')->with('success', 'Pemesanan berhasil dihapus.');
+
+        return redirect()->route($prefix.'.pemesanan.index')->with('success', 'Pemesanan berhasil dihapus.');
     }
 }

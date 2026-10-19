@@ -114,7 +114,7 @@
             <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                     <div class="flex items-center gap-2.5">
-                        <h2 class="text-base font-semibold text-kazain-text">Rincian transaksi</h2>
+                        <h2 class="text-base font-semibold text-kazain-text">Rincian Transaksi Sukses</h2>
                     </div>
                     <p class="mt-1 text-sm text-kazain-muted">Daftar pembayaran yang berhasil diterima.</p>
                 </div>
@@ -179,5 +179,12 @@
                 </table>
             </div>
         </section>
+
+        @if ($extensions->isNotEmpty())
+            <section class="overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-sm">
+                <div class="border-b border-kazain-border px-5 py-5 sm:px-6"><h2 class="text-base font-semibold text-kazain-text">Rincian extend lunas</h2><p class="mt-1 text-sm text-kazain-muted">Pembayaran perpanjangan tercatat terpisah dari transaksi awal.</p></div>
+                <div class="overflow-x-auto"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-[#f7f8f5]"><tr><th class="px-6 py-3 text-xs text-kazain-muted">Kode booking</th><th class="px-6 py-3 text-xs text-kazain-muted">Kamar</th><th class="px-6 py-3 text-xs text-kazain-muted">Durasi</th><th class="px-6 py-3 text-xs text-kazain-muted">Metode</th><th class="px-6 py-3 text-right text-xs text-kazain-muted">Nominal</th></tr></thead><tbody class="divide-y divide-kazain-border/70">@foreach ($extensions as $extension)<tr><td class="px-6 py-4 font-semibold text-kazain-text">{{ $extension->booking->booking_code }}</td><td class="px-6 py-4">{{ $extension->booking->room->room_number }}</td><td class="px-6 py-4">{{ $extension->extension_type }} · {{ $extension->duration_hours }} Jam</td><td class="px-6 py-4">{{ $extension->payment_method }}</td><td class="px-6 py-4 text-right font-semibold">Rp {{ number_format($extension->amount, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
+            </section>
+        @endif
     </div>
 @endsection

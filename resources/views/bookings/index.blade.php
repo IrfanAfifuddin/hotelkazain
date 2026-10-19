@@ -264,6 +264,9 @@
 
                             <td class="px-6 py-4 font-semibold text-gray-900">Rp {{ number_format($b->total_price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-right space-x-2">
+                                @if ($b->booking_status === 'Check-in')
+                                    <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.extend.create', $b) : route('receptionist.pemesanan.extend.create', $b) }}" class="inline-flex items-center text-xs font-medium text-emerald-700 hover:text-emerald-900">Extend</a>
+                                @endif
                                 <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.edit', $b->id) : route('receptionist.pemesanan.edit', $b->id) }}" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-900">
                                     Edit
                                 </a>

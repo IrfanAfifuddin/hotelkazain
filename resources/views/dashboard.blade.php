@@ -338,9 +338,11 @@
                                     type="datetime-local"
                                     name="check_in_time"
                                     id="modal_check_in_time"
-                                    value="{{ now()->format('Y-m-d\TH:i') }}"
+                                    value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
+                                    min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
                                     required
-                                    onchange="updateRoomCalculations()"
+                                    onchange="validateDashboardCheckIn(this); updateRoomCalculations()"
+                                    oninput="validateDashboardCheckIn(this)"
                                     class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
                                 >
                             </div>
@@ -595,6 +597,13 @@
     function hideModalError() {
         const errorBox = document.getElementById('modalErrorBox');
         errorBox.classList.add('hidden');
+    }
+
+    function validateDashboardCheckIn(input) {
+        const selected = new Date(input.value);
+        const valid = input.value && !Number.isNaN(selected.getTime()) && selected >= new Date();
+        input.setCustomValidity(valid ? '' : 'Waktu check-in tidak boleh sudah berlalu.');
+        return valid;
     }
 
     // Perubahan Status Pembayaran -> Sinkronkan Status Pemesanan
