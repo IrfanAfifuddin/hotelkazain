@@ -63,7 +63,7 @@
 @section('content')
 
     {{-- ===================== HERO ===================== --}}
-    <section class="relative bg-gray-100 overflow-hidden">
+    <section id="hero" class="relative bg-gray-100 overflow-hidden">
         @if ($heroImage)
             <img src="{{ $heroImage }}" alt="Kazain Hotel" class="absolute inset-0 w-full h-full object-cover opacity-20">
         @endif
@@ -81,12 +81,14 @@
                 Rasakan pengalaman menginap yang tenang dan ramah bersama Kazain Hotel, penginapan bernuansa homey di kawasan wisata Yogyakarta.
             </p>
 
-            <a href="{{ route('customer.availability') }}" class="mt-8 inline-flex items-center px-10 py-3 border border-gray-400 rounded-lg bg-white text-base font-semibold text-gray-900 hover:bg-gray-50 transition">
-                Pesan Kamar
-            </a>
+            <div class="mt-8">
+                <a href="{{ route('customer.availability') }}" class="inline-flex items-center px-10 py-3 border border-gray-400 rounded-lg bg-white text-base font-semibold text-gray-900 hover:bg-gray-50 transition">
+                    Pesan Kamar
+                </a>
+            </div>
 
             {{-- Statistik singkat --}}
-            <div class="mt-12 inline-grid grid-cols-2 bg-white border border-gray-200 rounded-lg divide-x divide-gray-200">
+            <div class="mt-12 mx-auto w-fit grid grid-cols-2 bg-white border border-gray-200 rounded-lg divide-x divide-gray-200">
                 <div class="px-6 sm:px-12 py-4">
                     <p class="text-lg font-bold text-gray-900">5,0 &#9733;</p>
                     <p class="text-sm text-gray-500">Rating Tamu</p>
