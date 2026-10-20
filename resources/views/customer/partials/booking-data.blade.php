@@ -20,7 +20,10 @@
         const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const pad = (n) => String(n).padStart(2, '0');
         const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+        const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const formatDateTime = (d) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())} WIB`;
+        // Contoh: "Selasa, 21 Juli 2026, 09:00 WIB"
+        const formatDateTimeLong = (d) => `${DAYS[d.getDay()]}, ${formatDateTime(d)}`;
 
         // Baca & validasi parameter pemesanan dari URL
         function parse(search = window.location.search) {
@@ -74,6 +77,6 @@
             return q;
         }
 
-        return { ROOM_TYPES, rupiah, formatDateTime, parse, bookingQuery, pad };
+        return { ROOM_TYPES, rupiah, formatDateTime, formatDateTimeLong, parse, bookingQuery, pad };
     })();
 </script>
