@@ -11,156 +11,153 @@
         $todayCheckInCount = $todayCheckInCount ?? \App\Models\Booking::whereDate('check_in_time', today())->count();
         $todayCheckOutCount = $todayCheckOutCount ?? \App\Models\Booking::whereDate('check_out_time', today())->count();
         $recentBookings = $recentBookings ?? \App\Models\Booking::with(['customer', 'room'])->latest()->take(5)->get();
+        $roomStatusRoute = auth()->user()->role === 'Admin' ? 'admin.status-kamar.index' : 'receptionist.status-kamar.index';
+        $bookingIndexRoute = auth()->user()->role === 'Admin' ? 'admin.pemesanan.index' : 'receptionist.pemesanan.index';
     @endphp
 
-    {{-- Header --}}
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-sm text-gray-500 mt-1">Selamat datang, {{ auth()->user()->user_name }}.</p>
-        </div>
-        <div>
-            <button
-                type="button"
-                id="btnOpenCreateBookingModal"
-                onclick="openCreateBookingModal()"
-                class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition shadow-sm"
-            >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span>Tambah Pemesanan</span>
-            </button>
-        </div>
-    </div>
-
-    {{-- Statistik Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-
-        {{-- Total Kamar Tersedia --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
-            <div class="flex items-center justify-between">
+    <div class="mx-auto max-w-7xl space-y-7">
+        <header class="relative isolate overflow-hidden rounded-3xl bg-kazain-primary px-6 py-7 text-white shadow-[0_20px_50px_-32px_rgba(29,48,39,0.65)] sm:px-8 sm:py-9">
+            <div aria-hidden="true" class="absolute -right-16 -top-28 -z-10 h-72 w-72 rounded-full border border-white/10"></div>
+            <div aria-hidden="true" class="absolute -right-2 -top-14 -z-10 h-52 w-52 rounded-full border border-white/10"></div>
+            <div aria-hidden="true" class="absolute -bottom-28 right-36 -z-10 h-52 w-52 rounded-full bg-kazain-accent/10 blur-3xl"></div>
+            <div class="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="text-sm text-gray-500">Kamar Tersedia</p>
-                    <p id="stat-available" class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ $availableCount }}
+                    <p class="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#d9c99d]"></span>
+                        {{ now()->locale('id')->translatedFormat('l, d F Y') }}
                     </p>
+                    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                        Selamat datang, {{ auth()->user()->user_name }}
+                    </h1>
+                    <p class="mt-2 max-w-xl text-sm leading-6 text-white/75">Semua yang Anda perlukan untuk melayani tamu dengan lebih mudah.</p>
                 </div>
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                <button
+                    type="button"
+                    id="btnOpenCreateBookingModal"
+                    onclick="openCreateBookingModal()"
+                    class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d8c89c] px-4 text-sm font-semibold text-[#26332c] shadow-sm transition hover:bg-[#e3d6b5] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                </div>
+                    <span>Tambah Pemesanan</span>
+                </button>
             </div>
-        </div>
+        </header>
 
-        {{-- Total Kamar Terisi --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
-            <div class="flex items-center justify-between">
+        {{-- Statistik Cards --}}
+        <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan hotel">
+
+            {{-- Total Kamar Tersedia --}}
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
-                    <p class="text-sm text-gray-500">Kamar Terisi</p>
-                    <p id="stat-occupied" class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ $occupiedCount }}
-                    </p>
+                    <p class="text-sm font-medium text-kazain-muted">Kamar tersedia</p>
+                    <p id="stat-available" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $availableCount }}</p>
                 </div>
-                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Check-in Hari Ini --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Check-in Hari Ini</p>
-                    <p id="stat-checkin" class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ $todayCheckInCount }}
-                    </p>
-                </div>
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        {{-- Check-out Hari Ini --}}
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-500">Check-out Hari Ini</p>
-                    <p id="stat-checkout" class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ $todayCheckOutCount }}
-                    </p>
-                </div>
-                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- Pemesanan Terbaru --}}
-    <div class="bg-white border border-gray-200 rounded-xl shadow-xs">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Pemesanan Terbaru</h2>
-            <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="text-xs font-semibold text-gray-600 hover:text-gray-900 transition">
-                Lihat Semua &rarr;
             </a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Booking Code</th>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Kamar</th>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</th>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</th>
-                        <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="recentBookingsTableBody" class="divide-y divide-gray-200">
-                    @forelse($recentBookings as $booking)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ $booking->booking_code }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ $booking->customer->customer_name ?? '-' }}</td>
-                            <td class="px-6 py-4 text-gray-600">Kamar {{ $booking->room->room_number ?? '-' }} ({{ $booking->room->room_type ?? '-' }})</td>
-                            <td class="px-6 py-4 text-gray-600">{{ \Carbon\Carbon::parse($booking->check_in_time)->format('d M Y H:i') }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ \Carbon\Carbon::parse($booking->check_out_time)->format('d M Y H:i') }}</td>
-                            <td class="px-6 py-4">
-                                @php
-                                    $statusColor = match($booking->booking_status) {
-                                        'Confirmed' => 'bg-green-100 text-green-800',
-                                        'Pending' => 'bg-yellow-100 text-yellow-800',
-                                        'Check-in' => 'bg-blue-100 text-blue-800',
-                                        'Check-out' => 'bg-gray-100 text-gray-800',
-                                        'Cancelled' => 'bg-red-100 text-red-800',
-                                        default => 'bg-gray-100 text-gray-800',
-                                    };
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
-                                    {{ $booking->booking_status }}
-                                </span>
+
+            {{-- Total Kamar Terisi --}}
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+                <div>
+                    <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
+                    <p id="stat-occupied" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $occupiedCount }}</p>
+                </div>
+            </a>
+
+            {{-- Check-in Hari Ini --}}
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+                <div>
+                    <p class="text-sm font-medium text-kazain-muted">Check-in hari ini</p>
+                    <p id="stat-checkin" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckInCount }}</p>
+                </div>
+            </a>
+
+            {{-- Check-out Hari Ini --}}
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+                <div>
+                    <p class="text-sm font-medium text-kazain-muted">Check-out hari ini</p>
+                    <p id="stat-checkout" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckOutCount }}</p>
+                </div>
+            </a>
+
+        </section>
+
+        {{-- Pemesanan Terbaru --}}
+        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h2 class="text-base font-semibold text-kazain-text">Pemesanan terbaru</h2>
+                        <span class="rounded-full bg-[#edf1ec] px-2.5 py-1 text-xs font-medium text-kazain-primary">{{ number_format($recentBookings->count(), 0, ',', '.') }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-kazain-muted">Aktivitas reservasi terakhir di Kazain Hotel.</p>
+                </div>
+                <label class="relative block w-full sm:max-w-sm sm:flex-1 lg:max-w-lg">
+                    <span class="sr-only">Cari pemesanan terbaru</span>
+                    <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-kazain-muted" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7.25" />
+                        <path stroke-linecap="round" d="m16.5 16.5 4.25 4.25" />
+                    </svg>
+                    <input
+                        type="search"
+                        id="recentBookingsSearch"
+                        placeholder="Cari nama, nomor telepon, kamar, tipe, atau pembayaran..."
+                        class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface pl-10 pr-4 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10"
+                    >
+                </label>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1120px] table-fixed text-left text-sm">
+                    <thead class="border-b border-kazain-border bg-[#f7f8f5]">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Nama customer</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No. telepon</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No kamar</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Tipe</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Jam check-in</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Jam check-out</th>
+                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentBookingsTableBody" class="divide-y divide-kazain-border">
+                        @forelse($recentBookings as $booking)
+                            @php
+                                $paymentMethodLabel = in_array($booking->payment_method, ['Transfer', 'Virtual Account', 'QRIS'], true)
+                                    ? 'TF'
+                                    : ($booking->payment_method ?? 'Belum ada data');
+                                $paymentBadge = $booking->payment_method === 'Cash'
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-blue-200 bg-blue-50 text-blue-700';
+                            @endphp
+                            <tr data-booking-row class="transition hover:bg-[#f7f8f5]">
+                                <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">{{ $booking->customer->customer_name ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->customer->phone_number ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <span class="rounded-lg bg-[#f4f5f1] px-2.5 py-1 font-mono text-xs text-kazain-muted">{{ $booking->room->room_number ?? '-' }}</span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-kazain-text">{{ $booking->room->room_type ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 font-medium tabular-nums text-kazain-text">{{ \Carbon\Carbon::parse($booking->check_in_time)->format('H:i') }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 font-medium tabular-nums text-kazain-text">{{ \Carbon\Carbon::parse($booking->check_out_time)->format('H:i') }}</td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <span class="inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium {{ $paymentBadge }}">{{ $paymentMethodLabel }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr id="emptyRecentRow">
+                                <td colspan="7" class="px-6 py-14 text-center text-sm text-kazain-muted">
+                                    Belum ada data pemesanan.
+                                </td>
+                            </tr>
+                        @endforelse
+                        <tr id="noRecentBookingsMatch" class="hidden">
+                            <td colspan="7" class="px-6 py-14 text-center text-sm text-kazain-muted">
+                                Tidak ada pemesanan yang cocok dengan pencarian.
                             </td>
                         </tr>
-                    @empty
-                        <tr id="emptyRecentRow">
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-400">
-                                Belum ada data pemesanan.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     {{-- MODAL TAMBAH PEMESANAN (LANGSUNG DARI DASHBOARD) --}}
@@ -514,6 +511,29 @@
 
 @push('scripts')
 <script>
+    const recentBookingsSearch = document.getElementById('recentBookingsSearch');
+    if (recentBookingsSearch) {
+        recentBookingsSearch.addEventListener('input', filterRecentBookings);
+    }
+
+    function filterRecentBookings() {
+        const tbody = document.getElementById('recentBookingsTableBody');
+        const query = recentBookingsSearch.value.trim().toLocaleLowerCase();
+        const bookingRows = Array.from(tbody.querySelectorAll('[data-booking-row]'));
+        let visibleRows = 0;
+
+        bookingRows.forEach(row => {
+            const matches = row.textContent.toLocaleLowerCase().includes(query);
+            row.classList.toggle('hidden', !matches);
+            if (matches) {
+                visibleRows += 1;
+            }
+        });
+
+        const noMatchesRow = document.getElementById('noRecentBookingsMatch');
+        noMatchesRow.classList.toggle('hidden', bookingRows.length === 0 || visibleRows > 0);
+    }
+
     // Buka Modal Tambah Pemesanan
     function openCreateBookingModal() {
         const modal = document.getElementById('createBookingModal');
@@ -777,27 +797,29 @@
             emptyRow.remove();
         }
 
-        let statusColor = 'bg-gray-100 text-gray-800';
-        if (booking.booking_status === 'Confirmed') statusColor = 'bg-green-100 text-green-800';
-        else if (booking.booking_status === 'Pending') statusColor = 'bg-yellow-100 text-yellow-800';
-        else if (booking.booking_status === 'Check-in') statusColor = 'bg-blue-100 text-blue-800';
-        else if (booking.booking_status === 'Check-out') statusColor = 'bg-gray-100 text-gray-800';
-        else if (booking.booking_status === 'Cancelled') statusColor = 'bg-red-100 text-red-800';
-
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition bg-green-50/50';
-        tr.innerHTML = `
-            <td class="px-6 py-4 font-medium text-gray-900">${booking.booking_code}</td>
-            <td class="px-6 py-4 text-gray-600">${booking.customer_name || '-'}</td>
-            <td class="px-6 py-4 text-gray-600">Kamar ${booking.room_number || '-'} (${booking.room_type || '-'})</td>
-            <td class="px-6 py-4 text-gray-600">${booking.check_in_formatted || '-'}</td>
-            <td class="px-6 py-4 text-gray-600">${booking.check_out_formatted || '-'}</td>
-            <td class="px-6 py-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
-                    ${booking.booking_status}
-                </span>
-            </td>
-        `;
+        tr.dataset.bookingRow = '';
+        tr.className = 'transition bg-[#edf1ec] hover:bg-[#f7f8f5]';
+
+        appendRecentBookingCell(tr, booking.customer_name || '-', 'whitespace-nowrap px-6 py-4 font-semibold text-kazain-text');
+        appendRecentBookingCell(tr, booking.phone_number || '-', 'whitespace-nowrap px-6 py-4 text-kazain-muted');
+        appendRecentBookingCell(tr, booking.room_number || '-', 'whitespace-nowrap px-6 py-4', 'rounded-lg bg-[#f4f5f1] px-2.5 py-1 font-mono text-xs text-kazain-muted');
+        appendRecentBookingCell(tr, booking.room_type || '-', 'whitespace-nowrap px-6 py-4 text-kazain-text');
+        appendRecentBookingCell(tr, booking.check_in_clock || '-', 'whitespace-nowrap px-6 py-4 font-medium tabular-nums text-kazain-text');
+        appendRecentBookingCell(tr, booking.check_out_clock || '-', 'whitespace-nowrap px-6 py-4 font-medium tabular-nums text-kazain-text');
+
+        const paymentMethodLabel = booking.payment_method === 'Cash'
+            ? 'Cash'
+            : (booking.payment_method ? 'TF' : 'Belum ada data');
+        const paymentBadgeClasses = booking.payment_method === 'Cash'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            : 'border-blue-200 bg-blue-50 text-blue-700';
+        appendRecentBookingCell(
+            tr,
+            paymentMethodLabel,
+            'whitespace-nowrap px-6 py-4',
+            `inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${paymentBadgeClasses}`
+        );
 
         // Sisipkan di baris teratas
         if (tbody.firstChild) {
@@ -805,11 +827,28 @@
         } else {
             tbody.appendChild(tr);
         }
+        filterRecentBookings();
 
         // Hilangkan highlight hijau setelah 3 detik
         setTimeout(() => {
-            tr.classList.remove('bg-green-50/50');
+            tr.classList.remove('bg-[#edf1ec]');
         }, 3000);
+    }
+
+    function appendRecentBookingCell(row, value, cellClasses, badgeClasses = null) {
+        const cell = document.createElement('td');
+        cell.className = cellClasses;
+
+        if (badgeClasses) {
+            const badge = document.createElement('span');
+            badge.className = badgeClasses;
+            badge.textContent = value;
+            cell.appendChild(badge);
+        } else {
+            cell.textContent = value;
+        }
+
+        row.appendChild(cell);
     }
 </script>
 @endpush
