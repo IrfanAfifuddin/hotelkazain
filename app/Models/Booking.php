@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
@@ -60,6 +61,11 @@ class Booking extends Model
                             });
                     });
             });
+    }
+
+    public function extensions(): HasMany
+    {
+        return $this->hasMany(BookingExtension::class);
     }
 
     public static function generateCode(): string
