@@ -108,8 +108,40 @@
 
             {{-- Tombol simulasi: hanya untuk demo sebelum payment gateway tersambung --}}
             <div class="text-center">
-                <a id="demoSuccessLink" href="{{ route('customer.success') }}" class="text-sm text-gray-400 underline hover:text-gray-600">
+                <button type="button" id="demoSuccessLink" class="text-sm text-gray-400 underline hover:text-gray-600">
                     [Demo] Simulasikan pembayaran berhasil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ===================== POPUP PEMBAYARAN BERHASIL ===================== --}}
+    <div id="paymentSuccessModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="paymentSuccessTitle">
+        <div class="absolute inset-0 bg-gray-900/40"></div>
+
+        <div class="relative w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div class="bg-[#1e293b] px-6 pt-8 pb-6 text-center text-white">
+                <span class="mx-auto w-14 h-14 rounded-full border-2 border-white/70 flex items-center justify-center">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m8.5 12 2.5 2.5 4.5-5" /></svg>
+                </span>
+                <h2 id="paymentSuccessTitle" class="mt-4 text-xl font-bold">Pembayaran Berhasil!</h2>
+                <p class="mt-1 text-sm text-gray-300">Transaksi telah dikonfirmasi.</p>
+            </div>
+
+            <div class="p-6">
+                <div class="flex items-start gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                    <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                    <p>Kode booking telah <strong class="text-gray-900">otomatis dikirimkan ke email</strong> Anda. Silakan cek inbox atau folder spam.</p>
+                </div>
+
+                <dl class="mt-5 space-y-2 text-sm">
+                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Total dibayar</dt><dd id="modalTotal" class="font-bold text-gray-900">-</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Metode</dt><dd id="modalMethod" class="font-semibold text-gray-900">-</dd></div>
+                </dl>
+
+                <a id="viewBookingCode" href="{{ route('customer.success') }}"
+                   class="mt-6 flex items-center justify-center gap-2 w-full py-3 bg-[#1e293b] hover:bg-gray-800 text-white rounded-lg font-semibold transition">
+                    Lihat Kode Booking &rarr;
                 </a>
             </div>
         </div>
@@ -205,6 +237,38 @@
 
             const timer = setInterval(tick, 1000);
             tick();
+
+            // ---------- Pembayaran berhasil ----------
+            // TODO (backend): popup ini nanti muncul otomatis saat status pembayaran = Paid
+            // (cek berkala ke server / callback payment gateway). Sekarang dipicu tombol demo.
+            const modal = document.getElementById('paymentSuccessModal');
+
+            function showPaymentSuccess() {
+                clearInterval(timer);
+
+                // Kode booking sementara, format sama dengan Booking::generateCode() di backend
+                const bookingCode = 'KZN-' + String(100000 + (h % 900000));
+                const method = booking.query.get('payment_method') || 'Virtual Account';
+
+                // Data untuk halaman Kode Booking (disimpan di browser, bukan di URL)
+                try {
+                    sessionStorage.setItem('kazain_last_booking', JSON.stringify({
+                        booking_code: bookingCode,
+                        query: query.toString(),
+                        customer: customer,
+                        payment_method: method,
+                    }));
+                    sessionStorage.removeItem(DEADLINE_KEY);
+                } catch (e) { /* abaikan */ }
+
+                set('modalTotal', KB.rupiah(booking.total));
+                set('modalMethod', method);
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                document.getElementById('viewBookingCode').focus();
+            }
+
+            document.getElementById('demoSuccessLink').addEventListener('click', showPaymentSuccess);
         })();
     </script>
 @endpush
