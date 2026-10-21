@@ -82,17 +82,7 @@
                             <span class="block font-semibold text-gray-900">Transfer / Virtual Account</span>
                             <span class="block text-sm text-gray-500">Transfer via m-banking, internet banking, atau ATM</span>
                         </span>
-                    </label>
-                                        <label class="mt-3 flex items-center gap-4 border-2 border-gray-200 rounded-lg p-5 cursor-pointer transition has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-                        <input type="radio" name="payment_method" value="QRIS" class="w-4 h-4 accent-gray-900">
-                        <span class="w-11 h-11 shrink-0 border border-gray-300 rounded-md bg-white flex items-center justify-center text-gray-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-gray-900">QRIS</span>
-                            <span class="block text-sm text-gray-500">Scan QR via GoPay, OVO, Dana, ShopeePay, atau m-banking</span>
-                        </span>
-                    </label>
+            
                 </div>
 
                 <button type="submit" id="submitButton" disabled
