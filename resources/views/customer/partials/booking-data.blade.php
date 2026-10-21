@@ -3,20 +3,10 @@
     Membaca parameter pemesanan dari URL (dikirim dari halaman Cek Ketersediaan).
     Pakai di dalam @push('scripts'):  @include('customer.partials.booking-data')
 
-    TODO (backend): harga & tipe kamar nanti diambil dari database.
-    Sementara harus SAMA dengan $roomTypes di customer/availability.blade.php.
 --}}
-@php
-    $bookingRoomTypes = [
-        ['type' => 'King', 'short_name' => 'King Bed', 'prices' => ['5' => 150000, '8' => 200000, 'full' => 350000],
-         'image' => file_exists(public_path('images/kamar-king.jpg')) ? asset('images/kamar-king.jpg') : null],
-        ['type' => 'Twin', 'short_name' => 'Twin Bed', 'prices' => ['5' => 130000, '8' => 175000, 'full' => 300000],
-         'image' => file_exists(public_path('images/kamar-twin.jpg')) ? asset('images/kamar-twin.jpg') : null],
-    ];
-@endphp
 <script>
     window.KazainBooking = (function () {
-        const ROOM_TYPES = @json($bookingRoomTypes);
+        const ROOM_TYPES = @json($roomTypes);
         const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const pad = (n) => String(n).padStart(2, '0');
         const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
@@ -30,10 +20,11 @@
             const p = new URLSearchParams(search);
             const date = p.get('check_in_date');
             const time = p.get('check_in_time');
+            const roomId = Number(p.get('room_id'));
             const bookingType = p.get('booking_type');
             const guests = Math.max(1, parseInt(p.get('guests') || '1', 10));
 
-            if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time || !/^\d{2}:\d{2}$/.test(time)) return null;
+            if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time || !/^\d{2}:\d{2}$/.test(time) || !Number.isInteger(roomId) || roomId < 1) return null;
             if (!['Full Day', 'Short Time 5 Jam', 'Short Time 8 Jam'].includes(bookingType)) return null;
 
             const isFull = bookingType === 'Full Day';
@@ -60,6 +51,7 @@
 
             return {
                 query: p,
+                roomId,
                 date, time, bookingType, isFull, duration, guests, rooms, start, end, total,
                 roomsText: rooms.map((r) => `${r.qty}× ${r.room.short_name}`).join(', '),
                 durationText: isFull ? 'Full Day (1 malam)' : `${duration} Jam`,
@@ -70,7 +62,7 @@
         // Query string pemesanan saja (tanpa data pribadi) untuk diteruskan antarhalaman
         function bookingQuery(booking) {
             const q = new URLSearchParams();
-            ['check_in_date', 'check_in_time', 'booking_type', 'duration_hours', 'guests'].forEach((k) => {
+            ['check_in_date', 'check_in_time', 'booking_type', 'duration_hours', 'guests', 'room_id'].forEach((k) => {
                 if (booking.query.get(k)) q.set(k, booking.query.get(k));
             });
             booking.rooms.forEach((r) => q.set(`rooms[${r.room.type}]`, String(r.qty)));

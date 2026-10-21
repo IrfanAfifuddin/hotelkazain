@@ -6,11 +6,21 @@ use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CustomerBookingTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('services.midtrans.server_key', 'test-server-key');
+        config()->set('services.midtrans.is_production', false);
+    }
 
     public function test_customer_can_fetch_room_availability(): void
     {
@@ -18,7 +28,7 @@ class CustomerBookingTest extends TestCase
 
         $room = $this->createRoom('101', 'King');
 
-        $response = $this->getJson('/customer/availability?date=2026-10-16');
+        $response = $this->getJson('/availability?date=2026-10-16');
 
         $response->assertOk()
             ->assertJsonPath('date', '2026-10-16')
@@ -32,9 +42,10 @@ class CustomerBookingTest extends TestCase
     {
         $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
 
+        $this->fakeMidtransPayment();
         $room = $this->createRoom('102', 'Twin');
 
-        $response = $this->postJson('/customer/bookings', $this->bookingPayload($room, [
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
             'booking_type' => 'Full Day',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '14:00',
@@ -45,25 +56,35 @@ class CustomerBookingTest extends TestCase
             'source' => 'Offline',
         ]));
 
-        $response->assertStatus(201)
-            ->assertJsonPath('data.customer.email', 'andi@example.com')
-            ->assertJsonPath('data.booking.booking_type', 'Full Day')
-            ->assertJsonPath('data.booking.booking_status', 'Pending')
-            ->assertJsonPath('data.booking.payment_status', 'Pending')
-            ->assertJsonPath('data.booking.total_price', 300000)
-            ->assertJsonPath('data.booking.source', 'Website');
+        $response->assertCreated()
+            ->assertJsonPath('data.payment.redirect_url', 'https://app.sandbox.midtrans.com/snap/v2/vtweb/snap-token')
+            ->assertJsonMissingPath('data.booking')
+            ->assertJsonMissingPath('data.payment.order_id');
 
-        $booking = Booking::query()
-            ->where('booking_code', $response->json('data.booking.booking_code'))
-            ->firstOrFail();
+        $booking = Booking::query()->where('customer_id', Customer::query()
+            ->where('email', 'andi@example.com')
+            ->value('id'))->firstOrFail();
 
         $this->assertMatchesRegularExpression('/^KZN-\d{6}$/', $booking->booking_code);
+        $this->assertStringStartsWith('KZN-PAY-', $booking->midtrans_order_id);
+        $this->assertNotSame($booking->booking_code, $booking->midtrans_order_id);
         $this->assertSame('2026-10-17 12:00:00', $booking->check_out_time->format('Y-m-d H:i:s'));
         $this->assertSame('2026-10-15 10:20:00', $booking->payment_expires_at->format('Y-m-d H:i:s'));
 
         $this->assertDatabaseHas('customers', [
             'email' => 'andi@example.com',
         ]);
+        $this->assertDatabaseHas('bookings', [
+            'id' => $booking->id,
+            'booking_status' => 'Pending',
+            'payment_status' => 'Pending',
+            'total_price' => 300000,
+            'source' => 'Website',
+            'midtrans_snap_token' => 'snap-token',
+        ]);
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://app.sandbox.midtrans.com/snap/v1/transactions'
+            && $request['transaction_details']['gross_amount'] === 300000
+            && $request['transaction_details']['order_id'] === $booking->midtrans_order_id);
     }
 
     public function test_booking_conflict_is_rejected(): void
@@ -94,7 +115,7 @@ class CustomerBookingTest extends TestCase
             'booking_code' => 'KZN-000001',
         ]);
 
-        $response = $this->postJson('/customer/bookings', $this->bookingPayload($room, [
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
             'customer_name' => 'Budi',
             'phone_number' => '081234567891',
             'email' => 'budi@example.com',
@@ -150,7 +171,7 @@ class CustomerBookingTest extends TestCase
             'total_price' => 350000,
         ]);
 
-        $response = $this->getJson('/customer/availability?date=2026-10-16');
+        $response = $this->getJson('/availability?date=2026-10-16');
 
         $response->assertOk()
             ->assertJsonPath('data.0.room_status', 'Available')
@@ -166,7 +187,7 @@ class CustomerBookingTest extends TestCase
 
         $room = $this->createRoom('105', 'King');
 
-        $response = $this->postJson('/customer/bookings', $this->bookingPayload($room, [
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
             'booking_type' => 'Short Time',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '14:00',
@@ -177,6 +198,58 @@ class CustomerBookingTest extends TestCase
             ->assertJsonPath('errors.duration_hours.0', 'Short Time bookings must be 5 or 8 hours.');
 
         $this->assertDatabaseCount('bookings', 0);
+    }
+
+    public function test_rejected_midtrans_request_cancels_booking_and_releases_room(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://app.sandbox.midtrans.com/snap/v1/transactions' => Http::response([
+                'message' => 'Invalid server key',
+            ], 401),
+        ]);
+        $room = $this->createRoom('107', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room));
+
+        $response->assertServiceUnavailable()
+            ->assertJsonMissingPath('data.booking.booking_code');
+        $this->assertDatabaseHas('bookings', [
+            'room_id' => $room->id,
+            'booking_status' => 'Cancelled',
+            'payment_status' => 'Failed',
+        ]);
+    }
+
+    public function test_ambiguous_midtrans_connection_failure_keeps_temporary_room_hold(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://app.sandbox.midtrans.com/snap/v1/transactions' => Http::failedConnection(),
+        ]);
+        $room = $this->createRoom('108', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room));
+
+        $response->assertServiceUnavailable();
+        $this->assertDatabaseHas('bookings', [
+            'room_id' => $room->id,
+            'booking_status' => 'Pending',
+            'payment_status' => 'Pending',
+        ]);
+    }
+
+    private function fakeMidtransPayment(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake([
+            'https://app.sandbox.midtrans.com/snap/v1/transactions' => Http::response([
+                'token' => 'snap-token',
+                'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/snap-token',
+            ]),
+        ]);
     }
 
     private function createRoom(string $roomNumber, string $roomType): Room
