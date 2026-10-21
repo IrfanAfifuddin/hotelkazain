@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('customer.home');
 Route::get('/availability', [BookingController::class, 'availability'])->name('customer.availability');
+Route::post('/bookings', [BookingController::class, 'store'])->name('customer.bookings.store');
 Route::get('/checkout', [BookingController::class, 'checkout'])->name('customer.checkout');
 Route::get('/success', [BookingController::class, 'success'])->name('customer.success');
 Route::get('/payment', [PaymentController::class, 'index'])->name('customer.payment');
