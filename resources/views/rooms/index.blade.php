@@ -80,7 +80,7 @@
                 {{-- Action Buttons --}}
                 <div class="space-y-2 pt-2 border-t border-gray-100">
                     {{-- Form Ubah Status --}}
-                    <form action="{{ route('status-kamar.update', $room->id) }}" method="POST" class="flex items-center space-x-2">
+                    <form action="{{ route(auth()->user()->role === 'Admin' ? 'admin.status-kamar.update' : 'receptionist.status-kamar.update', $room) }}" method="POST" class="flex items-center space-x-2">
                         @csrf
                         @method('PATCH')
                         <select name="room_status" onchange="this.form.submit()" class="w-full text-xs bg-gray-50 border border-gray-300 rounded-md py-1.5 px-2 focus:outline-none focus:ring-1 focus:ring-gray-900">
@@ -92,62 +92,14 @@
 
                     {{-- Tombol Extend if Occupied --}}
                     @if($room->room_status === 'Occupied' && $activeBooking)
-                        <button type="button" onclick="openExtendModal({{ $room->id }}, '{{ $room->room_number }}')" class="w-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium py-1.5 rounded-md transition">
+                        <a href="{{ route(auth()->user()->role === 'Admin' ? 'admin.pemesanan.extend.create' : 'receptionist.pemesanan.extend.create', $activeBooking) }}" class="block w-full rounded-md bg-gray-900 py-1.5 text-center text-xs font-medium text-white transition hover:bg-gray-800">
                             Extend
-                        </button>
+                        </a>
                     @endif
                 </div>
             </div>
         @endforeach
     </div>
 
-    {{-- Extend Modal --}}
-    <div id="extendModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/40" onclick="closeExtendModal()"></div>
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 relative">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Extend Masa Menginap</h3>
-                <p class="text-xs text-gray-500 mb-4" id="extendRoomLabel">Kamar --</p>
-
-                <form id="extendForm" method="POST" action="">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Tambah Durasi (Jam)</label>
-                        <select name="hours" class="w-full text-sm bg-gray-50 border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-gray-900">
-                            <option value="1">1 Jam</option>
-                            <option value="2">2 Jam</option>
-                            <option value="3">3 Jam</option>
-                            <option value="5">5 Jam</option>
-                            <option value="8">8 Jam</option>
-                            <option value="24">24 Jam (1 Hari)</option>
-                        </select>
-                    </div>
-
-                    <div class="flex space-x-3">
-                        <button type="button" onclick="closeExtendModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Batal
-                        </button>
-                        <button type="submit" class="flex-1 px-4 py-2 bg-gray-900 rounded-lg text-sm font-medium text-white hover:bg-gray-800">
-                            Simpan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    @push('scripts')
-        <script>
-            function openExtendModal(roomId, roomNumber) {
-                document.getElementById('extendRoomLabel').innerText = 'Kamar ' + roomNumber;
-                document.getElementById('extendForm').action = '/status-kamar/' + roomId + '/extend';
-                document.getElementById('extendModal').classList.remove('hidden');
-            }
-
-            function closeExtendModal() {
-                document.getElementById('extendModal').classList.add('hidden');
-            }
-        </script>
-    @endpush
 
 @endsection

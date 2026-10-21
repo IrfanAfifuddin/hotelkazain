@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingExtensionController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,16 +19,19 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/pemesanan/{booking}/edit', [BookingController::class, 'edit'])->name('admin.pemesanan.edit');
     Route::put('/pemesanan/{booking}', [BookingController::class, 'update'])->name('admin.pemesanan.update');
     Route::delete('/pemesanan/{booking}', [BookingController::class, 'destroy'])->name('admin.pemesanan.destroy');
+    Route::get('/pemesanan/{booking}/extend', [BookingExtensionController::class, 'create'])->name('admin.pemesanan.extend.create');
+    Route::post('/pemesanan/{booking}/extend', [BookingExtensionController::class, 'store'])->name('admin.pemesanan.extend.store');
 
     // Manajemen Status Kamar
     Route::get('/status-kamar', [RoomController::class, 'index'])->name('admin.status-kamar.index');
     Route::patch('/status-kamar/{room}', [RoomController::class, 'updateStatus'])->name('admin.status-kamar.update');
     Route::post('/status-kamar/{room}/extend', [RoomController::class, 'extend'])->name('admin.status-kamar.extend');
 
-    
     // Laporan & Akun
     Route::get('/laporan-penjualan', [ReportController::class, 'index'])
         ->name('admin.reports.index');
+    Route::get('/laporan-penjualan/export', [ReportController::class, 'export'])
+        ->name('admin.reports.export');
 
     // Menampilkan halaman kelola akun
     Route::get('/kelola-akun', [UserController::class, 'index'])

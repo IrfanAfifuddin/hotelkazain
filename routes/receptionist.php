@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Reception\DashboardController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingExtensionController;
+use App\Http\Controllers\Reception\DashboardController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,8 @@ Route::middleware(['auth', 'role:Receptionist'])->group(function () {
     Route::get('/pemesanan/{booking}/edit', [BookingController::class, 'edit'])->name('receptionist.pemesanan.edit');
     Route::put('/pemesanan/{booking}', [BookingController::class, 'update'])->name('receptionist.pemesanan.update');
     Route::delete('/pemesanan/{booking}', [BookingController::class, 'destroy'])->name('receptionist.pemesanan.destroy');
+    Route::get('/pemesanan/{booking}/extend', [BookingExtensionController::class, 'create'])->name('receptionist.pemesanan.extend.create');
+    Route::post('/pemesanan/{booking}/extend', [BookingExtensionController::class, 'store'])->name('receptionist.pemesanan.extend.store');
 
     // Manajemen Status Kamar
     Route::get('/status-kamar', [RoomController::class, 'index'])->name('receptionist.status-kamar.index');

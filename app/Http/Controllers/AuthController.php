@@ -57,7 +57,21 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        return view('dashboard');
+        $availableRooms = \App\Models\Room::where('room_status', 'Available')->orderBy('room_number')->get();
+        $availableCount = $availableRooms->count();
+        $occupiedCount = \App\Models\Room::where('room_status', 'Occupied')->count();
+        $todayCheckInCount = \App\Models\Booking::whereDate('check_in_time', today())->count();
+        $todayCheckOutCount = \App\Models\Booking::whereDate('check_out_time', today())->count();
+        $recentBookings = \App\Models\Booking::with(['customer', 'room'])->latest()->take(5)->get();
+
+        return view('dashboard', compact(
+            'availableRooms',
+            'availableCount',
+            'occupiedCount',
+            'todayCheckInCount',
+            'todayCheckOutCount',
+            'recentBookings'
+        ));
     }
 
     /**
