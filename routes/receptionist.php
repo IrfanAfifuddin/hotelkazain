@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingExtensionController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Reception\DashboardController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,8 @@ Route::middleware(['auth', 'role:Receptionist'])->group(function () {
     Route::get('/pemesanan', [BookingController::class, 'index'])->name('receptionist.pemesanan.index');
     Route::get('/pemesanan/create', [BookingController::class, 'create'])->name('receptionist.pemesanan.create');
     Route::post('/pemesanan', [BookingController::class, 'store'])->name('receptionist.pemesanan.store');
+    Route::get('/pemesanan/{booking}/payment', [PaymentController::class, 'show'])->name('receptionist.pemesanan.payment.show');
+    Route::post('/pemesanan/{booking}/payment', [PaymentController::class, 'createSnapTransaction'])->name('receptionist.pemesanan.payment.create');
     Route::get('/pemesanan/{booking}/edit', [BookingController::class, 'edit'])->name('receptionist.pemesanan.edit');
     Route::put('/pemesanan/{booking}', [BookingController::class, 'update'])->name('receptionist.pemesanan.update');
     Route::delete('/pemesanan/{booking}', [BookingController::class, 'destroy'])->name('receptionist.pemesanan.destroy');

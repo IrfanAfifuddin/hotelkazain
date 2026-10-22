@@ -208,7 +208,7 @@
             // ---------- Submit ----------
             // Data pribadi disimpan di sessionStorage (tidak ditaruh di URL).
             // TODO (backend): nanti diganti POST ke /customer/bookings sesuai CustomerBookingTest.
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!validate(true)) return;
 
@@ -220,9 +220,37 @@
                 };
                 try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(customer)); } catch (e) { /* abaikan */ }
 
-                const next = KB.bookingQuery(booking);
-                next.set('payment_method', form.querySelector('input[name="payment_method"]:checked').value);
-                window.location.href = `${PAYMENT_URL}?${next}`;
+                submitButton.disabled = true;
+                submitButton.textContent = 'Menyiapkan booking...';
+                try {
+                    const availabilityResponse = await fetch(`${@json(route('customer.availability'))}?date=${encodeURIComponent(booking.date)}`, { headers: { 'Accept': 'application/json' } });
+                    const availability = await availabilityResponse.json();
+                    const selectedType = booking.rooms[0].room.type;
+                    const availableRoom = availability.data.find((room) => room.room_type === selectedType && room.is_available);
+                    if (!availableRoom) throw new Error('Kamar tidak lagi tersedia.');
+                    const response = await fetch(@json(route('customer.bookings.store')), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()) },
+                        body: JSON.stringify({
+                            room_id: availableRoom.room_id,
+                            ...customer,
+                            booking_type: booking.isFull ? 'Full Day' : 'Short Time',
+                            check_in_date: booking.date,
+                            check_in_time: booking.time,
+                            duration_hours: booking.duration,
+                            payment_method: form.querySelector('input[name="payment_method"]:checked').value,
+                        }),
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.message || 'Booking gagal dibuat.');
+                    const next = KB.bookingQuery(booking);
+                    next.set('booking', result.data.booking.booking_code);
+                    window.location.href = `${PAYMENT_URL}?${next}`;
+                } catch (error) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Lanjut ke Pembayaran →';
+                    alert(error.message);
+                }
             });
         })();
     </script>

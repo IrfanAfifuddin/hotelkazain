@@ -53,8 +53,10 @@ class BookingController extends Controller
         return view('customer.checkout');
     }
 
-    public function success(): View
+    public function success(Request $request): View
     {
-        return view('customer.success');
+        return view('customer.success', [
+            'bookingCode' => $request->query('booking'),
+        ]);
     }
 }

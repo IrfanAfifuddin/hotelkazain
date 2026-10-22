@@ -723,7 +723,10 @@
                 params.set('booking_type', state.bookingType === 'full' ? 'Full Day' : `Short Time ${state.duration} Jam`);
                 params.set('duration_hours', state.bookingType === 'full' ? '24' : String(state.duration));
                 params.set('guests', String(state.guests));
-                selectedRooms().forEach((r) => params.set(`rooms[${r.type}]`, String(state.quantities[r.type])));
+                selectedRooms().forEach((r) => {
+                    params.set(`rooms[${r.type}]`, String(state.quantities[r.type]));
+                    params.set(`room_id[${r.type}]`, String(r.id));
+                });
 
                 window.location.href = `${CHECKOUT_URL}?${params.toString()}`;
             });

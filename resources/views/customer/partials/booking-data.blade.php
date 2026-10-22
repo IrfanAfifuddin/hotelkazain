@@ -41,7 +41,7 @@
             const priceKey = isFull ? 'full' : String(duration);
 
             const rooms = ROOM_TYPES
-                .map((room) => ({ room, qty: Math.max(0, parseInt(p.get(`rooms[${room.type}]`) || '0', 10)) }))
+                .map((room) => ({ room, room_id: parseInt(p.get(`room_id[${room.type}]`) || '0', 10), qty: Math.max(0, parseInt(p.get(`rooms[${room.type}]`) || '0', 10)) }))
                 .filter((r) => r.qty > 0);
             if (!rooms.length) return null;
 

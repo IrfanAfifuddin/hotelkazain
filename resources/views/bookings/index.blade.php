@@ -267,6 +267,9 @@
                                 @if ($b->booking_status === 'Check-in')
                                     <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.extend.create', $b) : route('receptionist.pemesanan.extend.create', $b) }}" class="inline-flex items-center text-xs font-medium text-emerald-700 hover:text-emerald-900">Extend</a>
                                 @endif
+                                @if (auth()->user()->role === 'Receptionist' && $b->payment_method === 'Midtrans' && $b->payment_status === 'Pending')
+                                    <a href="{{ route('receptionist.pemesanan.payment.show', $b) }}" class="inline-flex items-center text-xs font-medium text-purple-700 hover:text-purple-900">Bayar</a>
+                                @endif
                                 <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.edit', $b->id) : route('receptionist.pemesanan.edit', $b->id) }}" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-900">
                                     Edit
                                 </a>

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingExtensionController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,8 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/pemesanan', [BookingController::class, 'index'])->name('admin.pemesanan.index');
     Route::get('/pemesanan/create', [BookingController::class, 'create'])->name('admin.pemesanan.create');
     Route::post('/pemesanan', [BookingController::class, 'store'])->name('admin.pemesanan.store');
+    Route::get('/pemesanan/{booking}/payment', [PaymentController::class, 'show'])->name('admin.pemesanan.payment.show');
+    Route::post('/pemesanan/{booking}/payment', [PaymentController::class, 'createSnapTransaction'])->name('admin.pemesanan.payment.create');
     Route::get('/pemesanan/{booking}/edit', [BookingController::class, 'edit'])->name('admin.pemesanan.edit');
     Route::put('/pemesanan/{booking}', [BookingController::class, 'update'])->name('admin.pemesanan.update');
     Route::delete('/pemesanan/{booking}', [BookingController::class, 'destroy'])->name('admin.pemesanan.destroy');

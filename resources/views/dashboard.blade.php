@@ -209,6 +209,8 @@
                 {{-- Form Tambah Pemesanan --}}
                 <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="p-6 space-y-5">
                     @csrf
+                    <input type="hidden" name="payment_status" id="modal_payment_status_hidden" value="Paid">
+                    <input type="hidden" name="booking_status" id="modal_booking_status_hidden" value="Check-in">
 
                     {{-- Section 1: Data Customer --}}
                     <div>
@@ -378,11 +380,13 @@
                                     name="payment_method"
                                     id="modal_payment_method"
                                     required
+                                    onchange="handlePaymentMethodChange()"
                                     class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
                                 >
                                     <option value="Cash" selected>Cash / Tunai</option>
                                     <option value="QRIS">QRIS</option>
                                     <option value="Virtual Account">Virtual Account</option>
+                                    <option value="Midtrans">Midtrans Snap</option>
                                 </select>
                             </div>
 
@@ -610,12 +614,31 @@
     function handlePaymentStatusChange() {
         const paymentStatus = document.getElementById('modal_payment_status').value;
         const bookingStatusSelect = document.getElementById('modal_booking_status');
+        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
+        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
 
-        if (paymentStatus === 'Paid') {
-            bookingStatusSelect.value = 'Check-in';
-        } else {
+        bookingStatusSelect.value = paymentStatus === 'Paid' ? 'Check-in' : 'Pending';
+        hiddenPaymentStatus.value = paymentStatus;
+        hiddenBookingStatus.value = bookingStatusSelect.value;
+    }
+
+    function handlePaymentMethodChange() {
+        const isMidtrans = document.getElementById('modal_payment_method').value === 'Midtrans';
+        const paymentStatusSelect = document.getElementById('modal_payment_status');
+        const bookingStatusSelect = document.getElementById('modal_booking_status');
+        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
+        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
+
+        paymentStatusSelect.disabled = isMidtrans;
+        bookingStatusSelect.disabled = isMidtrans;
+
+        if (isMidtrans) {
+            paymentStatusSelect.value = 'Pending';
             bookingStatusSelect.value = 'Pending';
         }
+
+        hiddenPaymentStatus.value = paymentStatusSelect.value;
+        hiddenBookingStatus.value = bookingStatusSelect.value;
     }
 
     // Perhitungan Realtime Tipe Kamar, Total Harga, dan Waktu Check-out
@@ -724,6 +747,12 @@
             }
 
             // SUKSES
+            if (formData.get('payment_method') === 'Midtrans') {
+                const paymentBaseUrl = @json(auth()->user()->role === 'Admin' ? url('/admin/pemesanan') : url('/receptionist/pemesanan'));
+                window.location.href = `${paymentBaseUrl}/${encodeURIComponent(data.booking.id)}/payment`;
+                return;
+            }
+
             // 1. Reset form & tutup modal form
             const bookedRoomId = formData.get('room_id');
             const bookedBookingStatus = formData.get('booking_status');
@@ -745,6 +774,8 @@
                 if (statCheckin) statCheckin.textContent = data.stats.today_check_in;
                 if (statCheckout) statCheckout.textContent = data.stats.today_check_out;
             }
+
+            handlePaymentMethodChange();
 
             // 4. Perbarui tabel Pemesanan Terbaru di Dashboard
             if (data.booking) {
