@@ -28,7 +28,9 @@
             if (!['Full Day', 'Short Time 5 Jam', 'Short Time 8 Jam'].includes(bookingType)) return null;
 
             const isFull = bookingType === 'Full Day';
-            const duration = isFull ? 24 : parseInt(bookingType.match(/\d+/)[0], 10);
+            // Full Day bisa lebih dari 1 malam: duration_hours = 24 × jumlah malam
+            const nights = isFull ? Math.min(30, Math.max(1, Math.round(parseInt(p.get('duration_hours') || '24', 10) / 24))) : 0;
+            const duration = isFull ? 24 * nights : parseInt(bookingType.match(/\d+/)[0], 10);
             const priceKey = isFull ? 'full' : String(duration);
 
             const rooms = ROOM_TYPES
@@ -41,20 +43,21 @@
             const start = new Date(y, m - 1, d, hh, mm);
             const end = new Date(start);
             if (isFull) {
-                end.setDate(end.getDate() + 1);
+                end.setDate(end.getDate() + nights);
                 end.setHours(12, 0, 0, 0);
             } else {
                 end.setHours(end.getHours() + duration);
             }
 
-            const total = rooms.reduce((sum, r) => sum + r.room.prices[priceKey] * r.qty, 0);
+            // Perkiraan untuk ditampilkan; total yang ditagih tetap dihitung ulang oleh server
+            const total = rooms.reduce((sum, r) => sum + r.room.prices[priceKey] * r.qty, 0) * (isFull ? nights : 1);
 
             return {
                 query: p,
                 roomId,
-                date, time, bookingType, isFull, duration, guests, rooms, start, end, total,
+                date, time, bookingType, isFull, nights, duration, guests, rooms, start, end, total,
                 roomsText: rooms.map((r) => `${r.qty}× ${r.room.short_name}`).join(', '),
-                durationText: isFull ? 'Full Day (1 malam)' : `${duration} Jam`,
+                durationText: isFull ? `Full Day (${nights} malam)` : `${duration} Jam`,
                 image: rooms[0].room.image,
             };
         }
