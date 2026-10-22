@@ -8,6 +8,7 @@ use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
 {
@@ -68,7 +69,10 @@ class BookingController extends Controller
      */
     public function create()
     {
-        $rooms = Room::orderBy('room_number')->get();
+        $rooms = Room::query()
+            ->where('room_status', 'Available')
+            ->orderBy('room_number')
+            ->get();
 
         return view('bookings.create', compact('rooms'));
     }
@@ -86,8 +90,8 @@ class BookingController extends Controller
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'nullable|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
-            'payment_method' => 'required|string',
-            'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
+            'payment_method' => ['required', Rule::in(['Cash', 'Transfer', 'QRIS', 'Virtual Account', 'Midtrans'])],
+            'payment_status' => ['required', Rule::in(['Pending', 'Paid', 'Failed', 'Cancelled'])],
             'source' => 'required|in:Offline,Website,WhatsApp',
         ]);
 
@@ -151,7 +155,9 @@ class BookingController extends Controller
                 default => $room->full_day_price,
             };
 
-            $bookingStatus = $request->booking_status ?? (($request->payment_status === 'Paid') ? 'Confirmed' : 'Pending');
+            $isMidtransPayment = $request->payment_method === 'Midtrans';
+            $paymentStatus = $isMidtransPayment ? 'Pending' : $request->payment_status;
+            $bookingStatus = $paymentStatus === 'Paid' ? 'Confirmed' : 'Pending';
 
             $booking = Booking::create([
                 'room_id' => $room->id,
@@ -162,8 +168,9 @@ class BookingController extends Controller
                 'check_out_time' => $checkOut,
                 'booking_status' => $bookingStatus,
                 'payment_method' => $request->payment_method,
-                'payment_status' => $request->payment_status,
-                'payment_time' => ($request->payment_status === 'Paid') ? now() : null,
+                'payment_status' => $paymentStatus,
+                'payment_time' => ($paymentStatus === 'Paid') ? now() : null,
+                'payment_expires_at' => $isMidtransPayment ? now()->addMinutes(20) : null,
                 'total_price' => $totalPrice,
                 'source' => $request->source,
             ]);

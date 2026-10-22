@@ -80,8 +80,8 @@
 
             // TODO (backend): nanti data diambil dari database berdasarkan kode booking,
             // misalnya route('customer.success', ['code' => 'KZN-123456']).
-            let saved = null;
-            try { saved = JSON.parse(sessionStorage.getItem('kazain_last_booking') || 'null'); } catch (e) { /* abaikan */ }
+            let saved = @json($bookingCode ? ['booking_code' => $bookingCode] : null);
+            try { saved = saved || JSON.parse(sessionStorage.getItem('kazain_last_booking') || 'null'); } catch (e) { /* abaikan */ }
 
             const booking = saved ? KB.parse('?' + saved.query) : null;
             if (!saved || !booking) {
