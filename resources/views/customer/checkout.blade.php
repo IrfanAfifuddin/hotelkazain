@@ -229,6 +229,7 @@
                 } catch (error) {
                     serverError.textContent = error.message || 'Booking gagal dibuat. Silakan coba kembali.';
                     serverError.classList.remove('hidden');
+                    serverError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     submitButton.disabled = false;
                     submitButton.textContent = 'Lanjut ke Pembayaran →';
                 }

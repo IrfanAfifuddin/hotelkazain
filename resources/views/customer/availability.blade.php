@@ -3,6 +3,16 @@
 @section('title', 'Cek Ketersediaan')
 @section('step', '1')
 
+@php
+    // Foto slider per tipe kamar (file di public/images/). Foto yang filenya belum ada dilewati.
+    $foto = fn (array $files) => array_values(array_filter(array_map(
+        fn ($f) => file_exists(public_path('images/' . $f)) ? asset('images/' . $f) : null, $files)));
+    $roomPhotos = [
+        'King' => $foto(['kamar-king.jpg', 'kamar-mandi.jpg', 'hotel.jpg']),
+        'Twin' => $foto(['kamar-twin.jpg', 'kamar-mandi.jpg', 'taman.jpg']),
+    ];
+@endphp
+
 @section('content')
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
 
@@ -13,6 +23,8 @@
             </svg>
             <p>
                 <strong class="text-gray-900">Perhatian:</strong> Kazain Hotel <strong class="text-gray-900">tidak menyediakan parkir untuk kendaraan roda empat (mobil)</strong>. Area parkir hanya tersedia untuk sepeda motor. Untuk tamu yang membawa mobil, silakan gunakan area parkir umum di sekitar lokasi.
+                Saat check-in, tamu wajib <strong class="text-gray-900">menitipkan KTP asli kepada resepsionis sebagai deposit</strong>, yang akan dikembalikan saat check-out.
+                Pemesanan yang sudah dibayar <strong class="text-gray-900">tidak dapat dibatalkan</strong>.
             </p>
         </div>
 
@@ -133,9 +145,20 @@
 
                     <div id="hourGrid" class="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
 
-                    <p id="fullDayTimeInfo" class="hidden mt-3 text-gray-600">
-                        Untuk Full Day, check-in mulai pukul <strong class="text-gray-900">14:00 WIB</strong> dan check-out pukul <strong class="text-gray-900">12:00 WIB</strong> keesokan harinya.
-                    </p>
+                    <div id="fullDayTimeInfo" class="hidden">
+                        <p class="mt-3 text-gray-600">
+                            Untuk Full Day, check-in mulai pukul <strong class="text-gray-900">14:00 WIB</strong> dan check-out pukul <strong class="text-gray-900">12:00 WIB</strong> setelah malam terakhir.
+                        </p>
+
+                        {{-- Jumlah malam --}}
+                        <p class="mt-5 text-sm font-medium tracking-wider text-gray-400 uppercase">Jumlah Malam</p>
+                        <div class="mt-3 flex items-center gap-4">
+                            <button type="button" id="nightsMinus" class="w-12 h-12 bg-white border border-gray-300 rounded-md text-xl text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Kurangi malam">&minus;</button>
+                            <span id="nightsCount" class="w-8 text-center text-2xl font-semibold">1</span>
+                            <button type="button" id="nightsPlus" class="w-12 h-12 bg-white border border-gray-300 rounded-md text-xl text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Tambah malam">+</button>
+                            <span class="text-gray-600">malam</span>
+                        </div>
+                    </div>
 
                     <div id="hourLegend" class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
                         <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded border border-gray-300 bg-white"></span>Tersedia</span>
@@ -169,8 +192,7 @@
             </div>
 
             {{-- Pilih kamar --}}
-            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(satu kamar per booking)</span></h2>
-            <p class="mt-2 text-sm text-gray-500">Satu transaksi berlaku untuk satu kamar.</p>
+            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(satu kamar per pemesanan)</span></h2>
             <div id="roomCards" class="mt-4 space-y-4"></div>
 
             {{-- Total --}}
@@ -206,6 +228,8 @@
             // DATA
             // =====================================================
             const ROOM_TYPES = @json($roomTypes);
+            const ROOM_PHOTOS = @json($roomPhotos);
+            const photoIndex = {}; // posisi foto per tipe kamar, supaya tidak reset saat render ulang
             const CHECKOUT_URL = @json(route('customer.checkout'));
             const AVAILABILITY_URL = @json(route('customer.availability'));
 
@@ -257,6 +281,7 @@
                 selectedDate: null,
                 bookingType: 'short', // 'short' | 'full'
                 duration: 5,
+                nights: 1, // jumlah malam untuk Full Day (backend menerima 1–30 malam)
                 hour: null,
                 guests: 1,
                 quantities: Object.fromEntries(ROOM_TYPES.map((r) => [r.type, 0])),
@@ -287,6 +312,9 @@
                 hourGrid: $('hourGrid'),
                 hourLegend: $('hourLegend'),
                 fullDayTimeInfo: $('fullDayTimeInfo'),
+                nightsMinus: $('nightsMinus'),
+                nightsPlus: $('nightsPlus'),
+                nightsCount: $('nightsCount'),
                 timeSummary: $('timeSummary'),
                 checkInLabel: $('checkInLabel'),
                 checkOutLabel: $('checkOutLabel'),
@@ -306,7 +334,9 @@
             // HELPER PERHITUNGAN
             // =====================================================
             const priceKey = () => (state.bookingType === 'full' ? 'full' : String(state.duration));
-            const durationText = () => (state.bookingType === 'full' ? '1 malam' : `${state.duration} jam`);
+            const durationText = () => (state.bookingType === 'full' ? `${state.nights} malam` : `${state.duration} jam`);
+            const MAX_NIGHTS = 30;
+            const durationHours = () => (state.bookingType === 'full' ? 24 * state.nights : state.duration);
             const checkInHour = () => (state.bookingType === 'full' ? 14 : state.hour);
 
             function getCheckOut() {
@@ -316,7 +346,7 @@
                 start.setHours(hour, 0, 0, 0);
                 const end = new Date(start);
                 if (state.bookingType === 'full') {
-                    end.setDate(end.getDate() + 1);
+                    end.setDate(end.getDate() + state.nights);
                     end.setHours(12, 0, 0, 0);
                 } else {
                     end.setHours(end.getHours() + state.duration);
@@ -335,7 +365,7 @@
             const selectedRooms = () => ROOM_TYPES.filter((r) => state.quantities[r.type] > 0);
             const totalRoomsSelected = () => Object.values(state.quantities).reduce((a, b) => a + b, 0);
             const totalCapacity = () => ROOM_TYPES.reduce((sum, r) => sum + r.capacity * state.quantities[r.type], 0);
-            const totalPrice = () => ROOM_TYPES.reduce((sum, r) => sum + r.prices[priceKey()] * state.quantities[r.type], 0);
+            const totalPrice = () => ROOM_TYPES.reduce((sum, r) => sum + r.prices[priceKey()] * state.quantities[r.type], 0) * (state.bookingType === 'full' ? state.nights : 1);
 
             function statusLabel(status) {
                 return {
@@ -452,6 +482,9 @@
                 el.hourGrid.classList.toggle('hidden', isFull);
                 el.hourLegend.classList.toggle('hidden', isFull);
                 el.fullDayTimeInfo.classList.toggle('hidden', !isFull);
+                el.nightsCount.textContent = state.nights;
+                el.nightsMinus.disabled = state.nights <= 1;
+                el.nightsPlus.disabled = state.nights >= MAX_NIGHTS;
 
                 document.querySelectorAll('.duration-btn').forEach((btn) => {
                     const active = Number(btn.dataset.duration) === state.duration;
@@ -532,8 +565,19 @@
                     if (soldOut) description = 'Tidak tersedia pada tanggal ini';
                     else if (remaining <= 2) description = `${room.description.split('·')[0].trim()} · hanya ${remaining} kamar tersedia`;
 
-                    const photo = room.image
-                        ? `<img src="${room.image}" alt="${room.name}" class="w-full h-full object-cover">`
+                    const photos = ROOM_PHOTOS[room.type]?.length ? ROOM_PHOTOS[room.type] : (room.image ? [room.image] : []);
+                    const photo = photos.length
+                        ? `<div class="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar" data-photo-track="${room.type}">
+                               ${photos.map((src, i) => `<img src="${src}" alt="${room.name} – foto ${i + 1}" class="w-full h-full shrink-0 snap-center object-cover" loading="lazy">`).join('')}
+                           </div>
+                           ${photos.length > 1 ? `
+                           <button type="button" data-photo-nav="-1" data-photo-type="${room.type}" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto sebelumnya">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+                           </button>
+                           <button type="button" data-photo-nav="1" data-photo-type="${room.type}" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto berikutnya">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                           </button>
+                           <span class="absolute left-2 bottom-2 px-2 py-0.5 rounded bg-black/55 text-white text-xs font-semibold tabular-nums" data-photo-counter="${room.type}">${(photoIndex[room.type] || 0) + 1} / ${photos.length}</span>` : ''}`
                         : `<span class="flex flex-col items-center justify-center gap-2 h-full text-gray-400">
                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
                                <span class="text-sm tracking-wider">FOTO</span>
@@ -541,7 +585,7 @@
 
                     return `
                     <div class="border-2 rounded-lg p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 transition ${selected ? 'border-gray-900' : 'border-gray-200'} ${soldOut ? 'opacity-60' : ''}">
-                        <div class="w-full sm:w-36 h-32 sm:h-28 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
+                        <div class="relative w-full sm:w-72 h-52 sm:h-48 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
@@ -605,7 +649,15 @@
                 renderPrices();
                 renderGuests();
                 renderRooms();
+                restorePhotoSliders();
                 renderTotal();
+            }
+
+            function restorePhotoSliders() {
+                el.roomCards.querySelectorAll('[data-photo-track]').forEach((track) => {
+                    const index = photoIndex[track.dataset.photoTrack] || 0;
+                    if (index) track.scrollLeft = index * track.clientWidth;
+                });
             }
 
             // =====================================================
@@ -626,6 +678,9 @@
                 const params = new URLSearchParams({
                     date: dateKey(state.selectedDate),
                     booking_type: state.bookingType === 'full' ? 'Full Day' : 'Short Time',
+                    // Endpoint ketersediaan backend hanya menerima 5, 8, atau 24 jam.
+                    // Untuk Full Day lebih dari 1 malam, cek malam pertama di sini;
+                    // seluruh malam dicek ulang oleh backend saat pesanan disimpan.
                     duration_hours: state.bookingType === 'full' ? '24' : String(state.duration),
                 });
                 const hour = state.bookingType === 'full' ? 14 : state.hour;
@@ -696,6 +751,19 @@
                 });
             });
 
+            function changeNights(delta) {
+                const next = Math.min(MAX_NIGHTS, Math.max(1, state.nights + delta));
+                if (next === state.nights) return;
+                state.nights = next;
+                // Kamar perlu dicek ulang untuk rentang malam yang baru
+                state.selectedRoomId = null;
+                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                refreshAvailability();
+                render();
+            }
+            el.nightsMinus.addEventListener('click', () => changeNights(-1));
+            el.nightsPlus.addEventListener('click', () => changeNights(1));
+
             document.querySelectorAll('.duration-btn').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     state.duration = Number(btn.dataset.duration);
@@ -720,7 +788,24 @@
             el.guestMinus.addEventListener('click', () => { state.guests = Math.max(1, state.guests - 1); render(); });
             el.guestPlus.addEventListener('click', () => { state.guests = Math.min(10, state.guests + 1); render(); });
 
+            el.roomCards.addEventListener('scroll', (e) => {
+                const track = e.target.closest?.('[data-photo-track]');
+                if (!track) return;
+                const type = track.dataset.photoTrack;
+                const total = track.children.length;
+                photoIndex[type] = Math.min(total - 1, Math.round(track.scrollLeft / track.clientWidth));
+                const counter = el.roomCards.querySelector(`[data-photo-counter="${type}"]`);
+                if (counter) counter.textContent = `${photoIndex[type] + 1} / ${total}`;
+            }, true);
+
             el.roomCards.addEventListener('click', (e) => {
+                const nav = e.target.closest('[data-photo-nav]');
+                if (nav) {
+                    const track = el.roomCards.querySelector(`[data-photo-track="${nav.dataset.photoType}"]`);
+                    track?.scrollBy({ left: Number(nav.dataset.photoNav) * track.clientWidth, behavior: 'smooth' });
+                    return;
+                }
+
                 const btn = e.target.closest('[data-room]');
                 if (!btn || btn.disabled) return;
                 const type = btn.dataset.room;
@@ -744,7 +829,7 @@
                 params.set('check_in_date', dateKey(state.selectedDate));
                 params.set('check_in_time', `${pad(checkInHour())}:00`);
                 params.set('booking_type', state.bookingType === 'full' ? 'Full Day' : `Short Time ${state.duration} Jam`);
-                params.set('duration_hours', state.bookingType === 'full' ? '24' : String(state.duration));
+                params.set('duration_hours', String(durationHours()));
                 params.set('guests', String(state.guests));
                 params.set('room_id', String(state.selectedRoomId));
                 selectedRooms().forEach((r) => params.set(`rooms[${r.type}]`, String(state.quantities[r.type])));
@@ -767,6 +852,9 @@
                     const type = prev.get('booking_type') || '';
                     state.bookingType = type === 'Full Day' ? 'full' : 'short';
                     if (type === 'Short Time 8 Jam') state.duration = 8;
+                    if (state.bookingType === 'full') {
+                        state.nights = Math.min(MAX_NIGHTS, Math.max(1, Math.round((parseInt(prev.get('duration_hours') || '24', 10)) / 24)));
+                    }
                     state.guests = Math.max(1, parseInt(prev.get('guests') || '1', 10));
                     const hour = parseInt((prev.get('check_in_time') || '').split(':')[0], 10);
                     if (state.bookingType === 'short' && !isNaN(hour) && isHourAvailable(d, hour, state.duration)) {
