@@ -4,34 +4,12 @@
 @section('step', '1')
 
 @php
-    // ================= DATA TIPE KAMAR (SEMENTARA STATIS) =================
-    // Nanti diganti data dari database (tabel rooms) oleh tim backend.
-    // Harga sesuai PRD (BR-04).
-    $fasilitasKamar = ['Kamar Mandi Dalam', 'Air Panas', 'AC', 'Wi-Fi Gratis', 'Smart TV'];
-
-    $roomTypes = [
-        [
-            'type' => 'King',
-            'name' => 'Kamar King Bed',
-            'short_name' => 'King Bed',
-            'description' => 'Tempat tidur King ukuran besar · cocok untuk 1–2 orang',
-            'capacity' => 2,
-            'total_rooms' => 5,
-            'prices' => ['5' => 150000, '8' => 200000, 'full' => 350000],
-            'facilities' => $fasilitasKamar,
-            'image' => file_exists(public_path('images/kamar-king.jpg')) ? asset('images/kamar-king.jpg') : null,
-        ],
-        [
-            'type' => 'Twin',
-            'name' => 'Kamar Twin Bed',
-            'short_name' => 'Twin Bed',
-            'description' => 'Dua tempat tidur terpisah · cocok untuk 1–2 orang',
-            'capacity' => 2,
-            'total_rooms' => 3,
-            'prices' => ['5' => 130000, '8' => 175000, 'full' => 300000],
-            'facilities' => $fasilitasKamar,
-            'image' => file_exists(public_path('images/kamar-twin.jpg')) ? asset('images/kamar-twin.jpg') : null,
-        ],
+    // Foto slider per tipe kamar (file di public/images/). Foto yang filenya belum ada dilewati.
+    $foto = fn (array $files) => array_values(array_filter(array_map(
+        fn ($f) => file_exists(public_path('images/' . $f)) ? asset('images/' . $f) : null, $files)));
+    $roomPhotos = [
+        'King' => $foto(['kamar-king.jpg', 'kamar-mandi.jpg', 'hotel.jpg']),
+        'Twin' => $foto(['kamar-twin.jpg', 'kamar-mandi.jpg', 'taman.jpg']),
     ];
 @endphp
 
@@ -45,6 +23,8 @@
             </svg>
             <p>
                 <strong class="text-gray-900">Perhatian:</strong> Kazain Hotel <strong class="text-gray-900">tidak menyediakan parkir untuk kendaraan roda empat (mobil)</strong>. Area parkir hanya tersedia untuk sepeda motor. Untuk tamu yang membawa mobil, silakan gunakan area parkir umum di sekitar lokasi.
+                Saat check-in, tamu wajib <strong class="text-gray-900">menitipkan KTP asli kepada resepsionis sebagai deposit</strong>, yang akan dikembalikan saat check-out.
+                Pemesanan yang sudah dibayar <strong class="text-gray-900">tidak dapat dibatalkan</strong>.
             </p>
         </div>
 
@@ -165,9 +145,20 @@
 
                     <div id="hourGrid" class="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
 
-                    <p id="fullDayTimeInfo" class="hidden mt-3 text-gray-600">
-                        Untuk Full Day, check-in mulai pukul <strong class="text-gray-900">14:00 WIB</strong> dan check-out pukul <strong class="text-gray-900">12:00 WIB</strong> keesokan harinya.
-                    </p>
+                    <div id="fullDayTimeInfo" class="hidden">
+                        <p class="mt-3 text-gray-600">
+                            Untuk Full Day, check-in mulai pukul <strong class="text-gray-900">14:00 WIB</strong> dan check-out pukul <strong class="text-gray-900">12:00 WIB</strong> setelah malam terakhir.
+                        </p>
+
+                        {{-- Jumlah malam --}}
+                        <p class="mt-5 text-sm font-medium tracking-wider text-gray-400 uppercase">Jumlah Malam</p>
+                        <div class="mt-3 flex items-center gap-4">
+                            <button type="button" id="nightsMinus" class="w-12 h-12 bg-white border border-gray-300 rounded-md text-xl text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Kurangi malam">&minus;</button>
+                            <span id="nightsCount" class="w-8 text-center text-2xl font-semibold">1</span>
+                            <button type="button" id="nightsPlus" class="w-12 h-12 bg-white border border-gray-300 rounded-md text-xl text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Tambah malam">+</button>
+                            <span class="text-gray-600">malam</span>
+                        </div>
+                    </div>
 
                     <div id="hourLegend" class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-500">
                         <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded border border-gray-300 bg-white"></span>Tersedia</span>
@@ -201,7 +192,7 @@
             </div>
 
             {{-- Pilih kamar --}}
-            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(bisa lebih dari satu)</span></h2>
+            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(satu kamar per pemesanan)</span></h2>
             <div id="roomCards" class="mt-4 space-y-4"></div>
 
             {{-- Total --}}
@@ -237,7 +228,10 @@
             // DATA
             // =====================================================
             const ROOM_TYPES = @json($roomTypes);
+            const ROOM_PHOTOS = @json($roomPhotos);
+            const photoIndex = {}; // posisi foto per tipe kamar, supaya tidak reset saat render ulang
             const CHECKOUT_URL = @json(route('customer.checkout'));
+            const AVAILABILITY_URL = @json(route('customer.availability'));
 
             const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -251,48 +245,31 @@
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-            // =====================================================
-            // DATA DUMMY KETERSEDIAAN
-            // TODO (backend): ganti dengan data dari endpoint ketersediaan,
-            // misalnya GET /customer/availability?date=YYYY-MM-DD
-            // =====================================================
-            function hash(text) {
-                let h = 2166136261;
-                for (let i = 0; i < text.length; i++) {
-                    h ^= text.charCodeAt(i);
-                    h = Math.imul(h, 16777619);
-                }
-                return h >>> 0;
-            }
-
             const totalOf = (type) => ROOM_TYPES.find((r) => r.type === type).total_rooms;
 
             function getDayInfo(date) {
                 if (date < today) return { status: 'past', remaining: {} };
 
-                const r = hash(dateKey(date)) % 100;
-                if (r < 12) {
-                    return { status: 'full', remaining: { King: 0, Twin: 0 } };
+                if (state.availability && state.availability.date === dateKey(date)) {
+                    const remaining = Object.fromEntries(
+                        Object.entries(state.availability.summary.by_room_type)
+                            .map(([type, summary]) => [type, summary.available]),
+                    );
+                    const available = state.availability.summary.available_rooms;
+
+                    return {
+                        status: available === 0 ? 'full' : available <= 2 ? 'almost' : 'available',
+                        remaining,
+                    };
                 }
-                if (r < 35) {
-                    let king = r % 3 === 0 ? 0 : 1;
-                    const twin = r % 2 === 0 ? 1 : 0;
-                    if (king + twin === 0) king = 1;
-                    return { status: 'almost', remaining: { King: king, Twin: twin } };
-                }
-                return {
-                    status: 'available',
-                    remaining: {
-                        King: Math.min(totalOf('King'), 3 + (r % 3)),
-                        Twin: Math.min(totalOf('Twin'), 1 + ((r >> 1) % 3)),
-                    },
-                };
+
+                return { status: 'unknown', remaining: {} };
             }
 
             function isHourAvailable(date, hour, duration) {
                 const sameDay = dateKey(date) === dateKey(today);
                 if (sameDay && hour <= now.getHours()) return false;
-                return hash(`${dateKey(date)}-${hour}-${duration}`) % 100 >= 18;
+                return true;
             }
 
             // =====================================================
@@ -304,9 +281,14 @@
                 selectedDate: null,
                 bookingType: 'short', // 'short' | 'full'
                 duration: 5,
+                nights: 1, // jumlah malam untuk Full Day (backend menerima 1–30 malam)
                 hour: null,
                 guests: 1,
                 quantities: Object.fromEntries(ROOM_TYPES.map((r) => [r.type, 0])),
+                availability: @json($availability),
+                selectedRoomId: null,
+                availabilityError: null,
+                availabilityRequestId: 0,
             };
 
             // =====================================================
@@ -330,6 +312,9 @@
                 hourGrid: $('hourGrid'),
                 hourLegend: $('hourLegend'),
                 fullDayTimeInfo: $('fullDayTimeInfo'),
+                nightsMinus: $('nightsMinus'),
+                nightsPlus: $('nightsPlus'),
+                nightsCount: $('nightsCount'),
                 timeSummary: $('timeSummary'),
                 checkInLabel: $('checkInLabel'),
                 checkOutLabel: $('checkOutLabel'),
@@ -349,7 +334,9 @@
             // HELPER PERHITUNGAN
             // =====================================================
             const priceKey = () => (state.bookingType === 'full' ? 'full' : String(state.duration));
-            const durationText = () => (state.bookingType === 'full' ? '1 malam' : `${state.duration} jam`);
+            const durationText = () => (state.bookingType === 'full' ? `${state.nights} malam` : `${state.duration} jam`);
+            const MAX_NIGHTS = 30;
+            const durationHours = () => (state.bookingType === 'full' ? 24 * state.nights : state.duration);
             const checkInHour = () => (state.bookingType === 'full' ? 14 : state.hour);
 
             function getCheckOut() {
@@ -359,7 +346,7 @@
                 start.setHours(hour, 0, 0, 0);
                 const end = new Date(start);
                 if (state.bookingType === 'full') {
-                    end.setDate(end.getDate() + 1);
+                    end.setDate(end.getDate() + state.nights);
                     end.setHours(12, 0, 0, 0);
                 } else {
                     end.setHours(end.getHours() + state.duration);
@@ -378,10 +365,15 @@
             const selectedRooms = () => ROOM_TYPES.filter((r) => state.quantities[r.type] > 0);
             const totalRoomsSelected = () => Object.values(state.quantities).reduce((a, b) => a + b, 0);
             const totalCapacity = () => ROOM_TYPES.reduce((sum, r) => sum + r.capacity * state.quantities[r.type], 0);
-            const totalPrice = () => ROOM_TYPES.reduce((sum, r) => sum + r.prices[priceKey()] * state.quantities[r.type], 0);
+            const totalPrice = () => ROOM_TYPES.reduce((sum, r) => sum + r.prices[priceKey()] * state.quantities[r.type], 0) * (state.bookingType === 'full' ? state.nights : 1);
 
             function statusLabel(status) {
-                return { available: 'Tersedia', almost: 'Terbatas', full: 'Penuh' }[status] || '-';
+                return {
+                    available: 'Tersedia',
+                    almost: 'Terbatas',
+                    full: 'Penuh',
+                    unknown: 'Cek ketersediaan',
+                }[status] || '-';
             }
 
             // =====================================================
@@ -433,8 +425,12 @@
                         continue;
                     }
 
-                    const label = info.status === 'almost' ? 'Hampir Penuh' : 'Tersedia';
-                    let color = info.status === 'almost' ? 'bg-gray-100 hover:bg-gray-200 text-gray-900' : 'bg-white hover:bg-gray-50 text-gray-900';
+                    const label = info.status === 'almost'
+                        ? 'Hampir Penuh'
+                        : info.status === 'unknown' ? 'Cek ketersediaan' : 'Tersedia';
+                    let color = info.status === 'almost'
+                        ? 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                        : 'bg-white hover:bg-gray-50 text-gray-900';
                     if (isSelected) color = 'bg-gray-900 text-white';
 
                     html += `<button type="button" data-date="${dateKey(date)}" class="${base} ${color} transition" aria-pressed="${isSelected}">
@@ -486,6 +482,9 @@
                 el.hourGrid.classList.toggle('hidden', isFull);
                 el.hourLegend.classList.toggle('hidden', isFull);
                 el.fullDayTimeInfo.classList.toggle('hidden', !isFull);
+                el.nightsCount.textContent = state.nights;
+                el.nightsMinus.disabled = state.nights <= 1;
+                el.nightsPlus.disabled = state.nights >= MAX_NIGHTS;
 
                 document.querySelectorAll('.duration-btn').forEach((btn) => {
                     const active = Number(btn.dataset.duration) === state.duration;
@@ -551,19 +550,34 @@
             function renderRooms() {
                 const info = state.selectedDate ? getDayInfo(state.selectedDate) : { remaining: {} };
                 const unit = state.bookingType === 'full' ? 'malam' : `${state.duration} jam`;
+                const selectedRoom = state.availability?.data.find((room) => room.room_id === state.selectedRoomId);
 
                 el.roomCards.innerHTML = ROOM_TYPES.map((room) => {
                     const remaining = info.remaining[room.type] ?? 0;
                     const qty = state.quantities[room.type];
                     const selected = qty > 0;
-                    const soldOut = remaining === 0;
+                    const availableRooms = state.availability?.date === dateKey(state.selectedDate)
+                        ? state.availability.data.filter((availableRoom) => availableRoom.room_type === room.type && availableRoom.is_available)
+                        : [];
+                    const soldOut = !availableRooms.length;
 
                     let description = room.description;
                     if (soldOut) description = 'Tidak tersedia pada tanggal ini';
                     else if (remaining <= 2) description = `${room.description.split('·')[0].trim()} · hanya ${remaining} kamar tersedia`;
 
-                    const photo = room.image
-                        ? `<img src="${room.image}" alt="${room.name}" class="w-full h-full object-cover">`
+                    const photos = ROOM_PHOTOS[room.type]?.length ? ROOM_PHOTOS[room.type] : (room.image ? [room.image] : []);
+                    const photo = photos.length
+                        ? `<div class="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar" data-photo-track="${room.type}">
+                               ${photos.map((src, i) => `<img src="${src}" alt="${room.name} – foto ${i + 1}" class="w-full h-full shrink-0 snap-center object-cover" loading="lazy">`).join('')}
+                           </div>
+                           ${photos.length > 1 ? `
+                           <button type="button" data-photo-nav="-1" data-photo-type="${room.type}" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto sebelumnya">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+                           </button>
+                           <button type="button" data-photo-nav="1" data-photo-type="${room.type}" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto berikutnya">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                           </button>
+                           <span class="absolute left-2 bottom-2 px-2 py-0.5 rounded bg-black/55 text-white text-xs font-semibold tabular-nums" data-photo-counter="${room.type}">${(photoIndex[room.type] || 0) + 1} / ${photos.length}</span>` : ''}`
                         : `<span class="flex flex-col items-center justify-center gap-2 h-full text-gray-400">
                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
                                <span class="text-sm tracking-wider">FOTO</span>
@@ -571,7 +585,7 @@
 
                     return `
                     <div class="border-2 rounded-lg p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 transition ${selected ? 'border-gray-900' : 'border-gray-200'} ${soldOut ? 'opacity-60' : ''}">
-                        <div class="w-full sm:w-36 h-32 sm:h-28 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
+                        <div class="relative w-full sm:w-72 h-52 sm:h-48 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
@@ -587,13 +601,14 @@
                                 <div>
                                     <p class="text-gray-400">Harga / ${unit}</p>
                                     <p class="text-xl font-bold text-gray-900">${rupiah(room.prices[priceKey()])}</p>
+                                    ${selected && selectedRoom ? `<p class="mt-1 text-sm font-medium text-gray-700">Kamar ${selectedRoom.room_number}</p>` : ''}
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <span class="text-gray-400">Sisa: <strong class="text-gray-600">${remaining}</strong></span>
                                     <button type="button" data-room="${room.type}" data-action="minus" ${qty <= 0 ? 'disabled' : ''}
                                         class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Kurangi ${room.name}">&minus;</button>
                                     <span class="w-6 text-center text-lg font-semibold">${qty}</span>
-                                    <button type="button" data-room="${room.type}" data-action="plus" ${qty >= remaining ? 'disabled' : ''}
+                                    <button type="button" data-room="${room.type}" data-action="plus" ${soldOut || (totalRoomsSelected() > 0 && !selected) || (state.bookingType === 'short' && state.hour === null) ? 'disabled' : ''}
                                         class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Tambah ${room.name}">+</button>
                                 </div>
                             </div>
@@ -606,6 +621,8 @@
                 if (!state.selectedDate) return 'Pilih tanggal terlebih dahulu.';
                 if (state.bookingType === 'short' && state.hour === null) return 'Pilih jam check-in.';
                 if (totalRoomsSelected() === 0) return 'Pilih minimal satu kamar.';
+                if (!state.selectedRoomId) return 'Pilih kamar yang tersedia.';
+                if (state.availabilityError) return state.availabilityError;
                 if (state.guests > totalCapacity()) return 'Jumlah tamu melebihi kapasitas kamar.';
                 return null;
             }
@@ -614,14 +631,14 @@
                 const rooms = selectedRooms();
                 el.totalPrice.textContent = rupiah(totalPrice());
                 el.totalDetail.textContent = rooms.length
-                    ? rooms.map((r) => `${state.quantities[r.type]}× ${r.short_name}`).join(', ') + ` · ${durationText()}`
+                    ? `${rooms[0].short_name}${state.selectedRoomId ? ` (Kamar ${state.availability.data.find((room) => room.room_id === state.selectedRoomId)?.room_number ?? ''})` : ''} · ${durationText()}`
                     : 'Belum ada kamar dipilih';
 
                 const missing = getMissingStep();
                 el.submitButton.disabled = !!missing;
                 el.submitButton.className = 'mt-6 w-full py-4 rounded-lg text-lg font-semibold transition ' +
                     (missing ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 text-white');
-                el.submitHint.textContent = missing || '';
+                el.submitHint.textContent = state.availabilityError || missing || '';
             }
 
             function render() {
@@ -632,7 +649,15 @@
                 renderPrices();
                 renderGuests();
                 renderRooms();
+                restorePhotoSliders();
                 renderTotal();
+            }
+
+            function restorePhotoSliders() {
+                el.roomCards.querySelectorAll('[data-photo-track]').forEach((track) => {
+                    const index = photoIndex[track.dataset.photoTrack] || 0;
+                    if (index) track.scrollLeft = index * track.clientWidth;
+                });
             }
 
             // =====================================================
@@ -641,11 +666,49 @@
             function selectDate(date) {
                 state.selectedDate = date;
                 state.hour = null;
-                // Sesuaikan jumlah kamar dengan sisa kamar di tanggal baru
-                const info = getDayInfo(date);
-                ROOM_TYPES.forEach((r) => {
-                    state.quantities[r.type] = Math.min(state.quantities[r.type], info.remaining[r.type] ?? 0);
+                state.selectedRoomId = null;
+                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                refreshAvailability();
+            }
+
+            async function refreshAvailability() {
+                if (!state.selectedDate) return;
+
+                const requestId = ++state.availabilityRequestId;
+                const params = new URLSearchParams({
+                    date: dateKey(state.selectedDate),
+                    booking_type: state.bookingType === 'full' ? 'Full Day' : 'Short Time',
+                    // Endpoint ketersediaan backend hanya menerima 5, 8, atau 24 jam.
+                    // Untuk Full Day lebih dari 1 malam, cek malam pertama di sini;
+                    // seluruh malam dicek ulang oleh backend saat pesanan disimpan.
+                    duration_hours: state.bookingType === 'full' ? '24' : String(state.duration),
                 });
+                const hour = state.bookingType === 'full' ? 14 : state.hour;
+                if (hour !== null) params.set('check_in_time', `${pad(hour)}:00`);
+
+                state.availabilityError = null;
+                try {
+                    const response = await fetch(`${AVAILABILITY_URL}?${params}`, {
+                        headers: { Accept: 'application/json' },
+                    });
+                    const result = await response.json();
+                    if (requestId !== state.availabilityRequestId) return;
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Ketersediaan kamar gagal dimuat.');
+                    }
+
+                    state.availability = result;
+                    if (state.selectedRoomId && !result.data.some((room) => room.room_id === state.selectedRoomId && room.is_available)) {
+                        state.selectedRoomId = null;
+                        ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    }
+                } catch (error) {
+                    if (requestId !== state.availabilityRequestId) return;
+                    state.availabilityError = error.message || 'Ketersediaan kamar gagal dimuat.';
+                }
+
+                render();
             }
 
             el.prevMonth.addEventListener('click', () => {
@@ -681,14 +744,33 @@
                 card.addEventListener('click', () => {
                     state.bookingType = card.dataset.bookingType;
                     state.hour = null;
+                    state.selectedRoomId = null;
+                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    refreshAvailability();
                     render();
                 });
             });
+
+            function changeNights(delta) {
+                const next = Math.min(MAX_NIGHTS, Math.max(1, state.nights + delta));
+                if (next === state.nights) return;
+                state.nights = next;
+                // Kamar perlu dicek ulang untuk rentang malam yang baru
+                state.selectedRoomId = null;
+                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                refreshAvailability();
+                render();
+            }
+            el.nightsMinus.addEventListener('click', () => changeNights(-1));
+            el.nightsPlus.addEventListener('click', () => changeNights(1));
 
             document.querySelectorAll('.duration-btn').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     state.duration = Number(btn.dataset.duration);
                     state.hour = null;
+                    state.selectedRoomId = null;
+                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    refreshAvailability();
                     render();
                 });
             });
@@ -697,18 +779,44 @@
                 const btn = e.target.closest('[data-hour]');
                 if (!btn) return;
                 state.hour = Number(btn.dataset.hour);
+                state.selectedRoomId = null;
+                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                refreshAvailability();
                 render();
             });
 
             el.guestMinus.addEventListener('click', () => { state.guests = Math.max(1, state.guests - 1); render(); });
             el.guestPlus.addEventListener('click', () => { state.guests = Math.min(10, state.guests + 1); render(); });
 
+            el.roomCards.addEventListener('scroll', (e) => {
+                const track = e.target.closest?.('[data-photo-track]');
+                if (!track) return;
+                const type = track.dataset.photoTrack;
+                const total = track.children.length;
+                photoIndex[type] = Math.min(total - 1, Math.round(track.scrollLeft / track.clientWidth));
+                const counter = el.roomCards.querySelector(`[data-photo-counter="${type}"]`);
+                if (counter) counter.textContent = `${photoIndex[type] + 1} / ${total}`;
+            }, true);
+
             el.roomCards.addEventListener('click', (e) => {
+                const nav = e.target.closest('[data-photo-nav]');
+                if (nav) {
+                    const track = el.roomCards.querySelector(`[data-photo-track="${nav.dataset.photoType}"]`);
+                    track?.scrollBy({ left: Number(nav.dataset.photoNav) * track.clientWidth, behavior: 'smooth' });
+                    return;
+                }
+
                 const btn = e.target.closest('[data-room]');
                 if (!btn || btn.disabled) return;
                 const type = btn.dataset.room;
-                state.quantities[type] += btn.dataset.action === 'plus' ? 1 : -1;
-                state.quantities[type] = Math.max(0, state.quantities[type]);
+                if (btn.dataset.action === 'plus') {
+                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    state.quantities[type] = 1;
+                    state.selectedRoomId = state.availability.data.find((room) => room.room_type === type && room.is_available)?.room_id ?? null;
+                } else {
+                    state.quantities[type] = 0;
+                    state.selectedRoomId = null;
+                }
                 render();
             });
 
@@ -721,12 +829,17 @@
                 params.set('check_in_date', dateKey(state.selectedDate));
                 params.set('check_in_time', `${pad(checkInHour())}:00`);
                 params.set('booking_type', state.bookingType === 'full' ? 'Full Day' : `Short Time ${state.duration} Jam`);
-                params.set('duration_hours', state.bookingType === 'full' ? '24' : String(state.duration));
+                params.set('duration_hours', String(durationHours()));
                 params.set('guests', String(state.guests));
+<<<<<<< HEAD
                 selectedRooms().forEach((r) => {
                     params.set(`rooms[${r.type}]`, String(state.quantities[r.type]));
                     params.set(`room_id[${r.type}]`, String(r.id));
                 });
+=======
+                params.set('room_id', String(state.selectedRoomId));
+                selectedRooms().forEach((r) => params.set(`rooms[${r.type}]`, String(state.quantities[r.type])));
+>>>>>>> cc2fe8b5e6e50b5784ed816a5189653272dd07fe
 
                 window.location.href = `${CHECKOUT_URL}?${params.toString()}`;
             });
@@ -746,15 +859,19 @@
                     const type = prev.get('booking_type') || '';
                     state.bookingType = type === 'Full Day' ? 'full' : 'short';
                     if (type === 'Short Time 8 Jam') state.duration = 8;
+                    if (state.bookingType === 'full') {
+                        state.nights = Math.min(MAX_NIGHTS, Math.max(1, Math.round((parseInt(prev.get('duration_hours') || '24', 10)) / 24)));
+                    }
                     state.guests = Math.max(1, parseInt(prev.get('guests') || '1', 10));
-                    selectDate(d);
-                    const info = getDayInfo(d);
-                    ROOM_TYPES.forEach((r) => {
-                        const q = parseInt(prev.get(`rooms[${r.type}]`) || '0', 10) || 0;
-                        state.quantities[r.type] = Math.min(q, info.remaining[r.type] ?? 0);
-                    });
                     const hour = parseInt((prev.get('check_in_time') || '').split(':')[0], 10);
-                    if (state.bookingType === 'short' && !isNaN(hour) && isHourAvailable(d, hour, state.duration)) state.hour = hour;
+                    if (state.bookingType === 'short' && !isNaN(hour) && isHourAvailable(d, hour, state.duration)) {
+                        state.hour = hour;
+                    }
+                    state.selectedDate = d;
+                    state.selectedRoomId = Number(prev.get('room_id')) || null;
+                    const selectedType = ROOM_TYPES.find((room) => Number(prev.get(`rooms[${room.type}]`)) > 0);
+                    if (selectedType && state.selectedRoomId) state.quantities[selectedType.type] = 1;
+                    refreshAvailability();
                     state.viewYear = d.getFullYear();
                     state.viewMonth = d.getMonth();
                 }
