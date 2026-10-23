@@ -1,23 +1,16 @@
 @extends('layouts.customer')
 
 @php
-    // Support both flows:
-    // 1. Legacy Snap flow: $bookingCode (string), $booking may be null
-    // 2. Redirect flow: $booking (Booking model) with payment_status
-    $isRedirectFlow = isset($booking) && $booking instanceof \App\Models\Booking;
-    $paymentPending = $isRedirectFlow && $booking->payment_status === 'Pending';
-    $paymentStatusUnavailable = $paymentStatusUnavailable ?? false;
+    $paymentPending = $booking->payment_status === 'Pending';
 
-    if ($isRedirectFlow && $booking) {
-        $checkIn = $booking->check_in_time?->copy()->locale('id');
-        $checkOut = $booking->check_out_time?->copy()->locale('id');
+    $checkIn = $booking->check_in_time?->copy()->locale('id');
+    $checkOut = $booking->check_out_time?->copy()->locale('id');
 
-        if ($booking->booking_type === 'Full Day' && $checkIn && $checkOut) {
-            $nights = max(1, (int) ceil($checkIn->diffInHours($checkOut) / 24));
-            $durasi = $nights . ' Malam';
-        } else {
-            $durasi = ($checkIn && $checkOut) ? round($checkIn->diffInMinutes($checkOut) / 60) . ' Jam' : '-';
-        }
+    if ($booking->booking_type === 'Full Day' && $checkIn && $checkOut) {
+        $nights = max(1, (int) ceil($checkIn->diffInHours($checkOut) / 24));
+        $durasi = $nights . ' Malam';
+    } else {
+        $durasi = ($checkIn && $checkOut) ? round($checkIn->diffInMinutes($checkOut) / 60) . ' Jam' : '-';
     }
 @endphp
 
@@ -26,7 +19,7 @@
 @section('content')
     <div class="max-w-xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
 
-        @if ($isRedirectFlow && $booking && $booking->payment_status === 'Paid')
+        @if ($booking->payment_status === 'Paid')
             {{-- ===================== BERHASIL ===================== --}}
             <div class="text-center">
                 <span class="mx-auto w-16 h-16 rounded-full border-2 border-gray-800 flex items-center justify-center text-gray-800" aria-hidden="true">
@@ -99,17 +92,10 @@
                 </div>
             @endif
 
-            @if ($isRedirectFlow && $booking)
-                <a href="{{ route('customer.payment.redirect', $booking->midtrans_order_id) }}"
-                   class="mt-8 block w-full py-4 rounded-lg bg-gray-900 hover:bg-gray-800 text-center text-lg font-semibold text-white transition">
-                    Kembali ke Pembayaran
-                </a>
-            @elseif ($bookingCode)
-                <a href="{{ route('customer.payment', ['booking' => $bookingCode]) }}"
-                   class="mt-8 block w-full py-4 rounded-lg bg-gray-900 hover:bg-gray-800 text-center text-lg font-semibold text-white transition">
-                    Kembali ke Pembayaran
-                </a>
-            @endif
+            <a href="{{ route('customer.payment.redirect', $booking->midtrans_order_id) }}"
+               class="mt-8 block w-full py-4 rounded-lg bg-gray-900 hover:bg-gray-800 text-center text-lg font-semibold text-white transition">
+                Kembali ke Pembayaran
+            </a>
 
             <button type="button" onclick="window.location.reload()"
                     class="mt-3 block w-full py-3.5 border border-gray-300 rounded-lg text-center font-semibold text-gray-900 hover:bg-gray-50 transition">
@@ -138,7 +124,7 @@
     </div>
 @endsection
 
-@if ($isRedirectFlow && $booking && $booking->payment_status === 'Paid')
+@if ($booking->payment_status === 'Paid')
     @push('scripts')
         <script>
             (function () {

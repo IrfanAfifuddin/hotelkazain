@@ -19,6 +19,10 @@ class PaymentService
      */
     public function createPayment(Booking $booking): array
     {
+        if ($booking->payment_method !== 'Virtual Account') {
+            throw new PaymentGatewayException('Customer Midtrans payments are only available by bank transfer.');
+        }
+
         // If both token and redirect_url already exist, reuse them
         if (
             $booking->midtrans_snap_token
@@ -41,9 +45,6 @@ class PaymentService
             $booking->forceFill(['midtrans_order_id' => $orderId])->save();
         }
 
-        $enabledPayments = $booking->payment_method === 'QRIS'
-            ? ['qris']
-            : ['bank_transfer'];
         $expiry = $booking->payment_expires_at ?? now()->addMinutes(20);
 
         try {
@@ -67,7 +68,7 @@ class PaymentService
                         'email' => $booking->customer->email,
                         'phone' => $booking->customer->phone_number,
                     ],
-                    'enabled_payments' => $enabledPayments,
+                    'enabled_payments' => ['bank_transfer'],
                     'expiry' => [
                         'start_time' => $booking->created_at->format('Y-m-d H:i:s O'),
                         'unit' => 'minute',
