@@ -82,6 +82,7 @@ class AdminDashboardBookingTest extends TestCase
         $response->assertSee('Kamar 101 — King Bed (Tersedia)');
         // Kamar 102 yang Occupied tidak boleh ada di dropdown kamar tersedia
         $response->assertDontSee('Kamar 102 — Twin Bed (Tersedia)');
+        $response->assertDontSee('<option value="QRIS">QRIS</option>', false);
     }
 
     public function test_admin_can_create_booking_via_ajax_from_dashboard(): void
@@ -162,7 +163,7 @@ class AdminDashboardBookingTest extends TestCase
             'booking_type' => 'Full Day',
             'check_in_time' => now()->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
-            'payment_method' => 'QRIS',
+            'payment_method' => 'Virtual Account',
             'payment_status' => 'Paid',
             'source' => 'WhatsApp',
         ];
@@ -178,6 +179,26 @@ class AdminDashboardBookingTest extends TestCase
             'customer_id' => $existingCustomer->id,
             'total_price' => 350000,
         ]);
+    }
+
+    public function test_admin_cannot_create_booking_with_qris(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson(route('admin.pemesanan.store'), [
+            'customer_name' => 'Ahmad Dani',
+            'phone_number' => '081987654321',
+            'email' => 'ahmad@example.com',
+            'room_id' => $this->room1->id,
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
+            'booking_status' => 'Check-in',
+            'payment_method' => 'QRIS',
+            'payment_status' => 'Paid',
+            'source' => 'Offline',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('payment_method');
+        $this->assertDatabaseCount('bookings', 0);
     }
 
     public function test_prevent_double_booking_overlap_returns_json_422(): void

@@ -6,6 +6,8 @@ use App\Mail\BookingCodeMail;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
+use App\PaymentGatewayException;
+use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -160,6 +162,41 @@ class CustomerPaymentTest extends TestCase
         $response->assertOk()
             ->assertDontSeeText($booking->booking_code)
             ->assertSeeText('Lanjutkan pembayaran di Midtrans');
+    }
+
+    public function test_payment_service_rejects_qris_even_when_a_redirect_url_is_cached(): void
+    {
+        $booking = $this->createPendingBooking();
+        $booking->forceFill([
+            'payment_method' => 'QRIS',
+            'midtrans_snap_token' => 'cached-token',
+            'midtrans_redirect_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/cached-token',
+        ])->save();
+
+        $this->expectException(PaymentGatewayException::class);
+
+        app(PaymentService::class)->createPayment($booking);
+    }
+
+    public function test_legacy_booking_code_payment_and_status_routes_are_not_found(): void
+    {
+        $booking = $this->createPendingBooking();
+
+        $this->get('/payment?booking='.$booking->booking_code)->assertNotFound();
+        $this->postJson('/bookings/'.$booking->booking_code.'/payment')->assertNotFound();
+        $this->getJson('/bookings/'.$booking->booking_code.'/payment-status')->assertNotFound();
+        $this->postJson('/midtrans/notification')->assertNotFound();
+    }
+
+    public function test_success_page_rejects_booking_code_as_a_lookup_reference(): void
+    {
+        $booking = $this->createPendingBooking();
+
+        $response = $this->getJson('/success?booking='.$booking->booking_code);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('order_id')
+            ->assertDontSee($booking->booking_code);
     }
 
     public function test_notification_returns_503_when_midtrans_server_key_is_missing(): void

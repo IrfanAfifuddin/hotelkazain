@@ -90,7 +90,7 @@ class BookingController extends Controller
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'nullable|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
-            'payment_method' => ['required', Rule::in(['Cash', 'Transfer', 'QRIS', 'Virtual Account', 'Midtrans'])],
+            'payment_method' => ['required', Rule::in(['Cash', 'Transfer', 'Virtual Account', 'Midtrans'])],
             'payment_status' => ['required', Rule::in(['Pending', 'Paid', 'Failed', 'Cancelled'])],
             'source' => 'required|in:Offline,Website,WhatsApp',
         ]);

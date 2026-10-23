@@ -71,7 +71,6 @@
                     <select name="payment_method" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm">
                         <option value="Cash">Cash / Tunai</option>
                         <option value="Transfer">Transfer</option>
-                        <option value="QRIS">QRIS</option>
                         <option value="Virtual Account">Virtual Account</option>
                         <option value="Midtrans">Midtrans Snap</option>
                     </select>

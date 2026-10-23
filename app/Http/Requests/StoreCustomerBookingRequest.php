@@ -24,7 +24,7 @@ class StoreCustomerBookingRequest extends FormRequest
             'check_in_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'check_in_time' => ['required', 'date_format:H:i'],
             'duration_hours' => ['required', 'integer', 'min:1', 'max:720'],
-            'payment_method' => ['required', 'in:Virtual Account,QRIS'],
+            'payment_method' => ['required', 'in:Virtual Account'],
             'agree_terms' => ['accepted'],
         ];
     }
@@ -77,7 +77,7 @@ class StoreCustomerBookingRequest extends FormRequest
     {
         return [
             'agree_terms.accepted' => 'You must accept the terms and conditions to continue.',
-            'payment_method.in' => 'Choose Virtual Account or QRIS as the payment method.',
+            'payment_method.in' => 'Customer payments are only available by bank transfer / Virtual Account.',
             'phone_number.regex' => 'Enter a valid phone number.',
         ];
     }

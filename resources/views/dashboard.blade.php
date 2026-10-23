@@ -403,7 +403,6 @@ onchange="handlePaymentMethodChange()"
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Cash" selected>Cash / Tunai</option>
-                                    <option value="QRIS">QRIS</option>
                                     <option value="Virtual Account">Virtual Account</option>
                                     <option value="Midtrans">Midtrans Snap</option>
                                 </select>

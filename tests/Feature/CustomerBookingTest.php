@@ -84,7 +84,23 @@ class CustomerBookingTest extends TestCase
         ]);
         Http::assertSent(fn (Request $request): bool => $request->url() === 'https://app.sandbox.midtrans.com/snap/v1/transactions'
             && $request['transaction_details']['gross_amount'] === 300000
+            && $request['enabled_payments'] === ['bank_transfer']
             && $request['transaction_details']['order_id'] === $booking->midtrans_order_id);
+    }
+
+    public function test_customer_cannot_create_booking_with_qris(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        Http::preventStrayRequests();
+        $room = $this->createRoom('109', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
+            'payment_method' => 'QRIS',
+        ]));
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('errors.payment_method.0', 'Customer payments are only available by bank transfer / Virtual Account.');
+        $this->assertDatabaseCount('bookings', 0);
     }
 
     public function test_booking_conflict_is_rejected(): void
