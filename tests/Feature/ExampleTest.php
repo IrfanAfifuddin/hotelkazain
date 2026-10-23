@@ -7,13 +7,20 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_root_displays_the_customer_hotel_homepage(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertOk()
+            ->assertSeeText('Menginap Nyaman di Jantung Prawirotaman')
+            ->assertSee(route('customer.availability', absolute: false), false)
+            ->assertSee('<link rel="icon" href="data:,">', false);
+    }
+
+    public function test_old_customer_homepage_url_redirects_to_the_root(): void
+    {
+        $response = $this->get('/customer');
+
+        $response->assertRedirect('/');
     }
 }

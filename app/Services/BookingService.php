@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Room;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
@@ -69,10 +70,12 @@ class BookingService
             $totalPrice = $data['booking_type'] === 'Short Time'
                 ? (int) $room->{'price_'.(int) $data['duration_hours'].'_hours'}
                 : (int) $room->full_day_price * $nights;
+            $bookingCode = Booking::generateCode();
 
             $booking = $room->bookings()->create([
                 'customer_id' => $customer->id,
-                'booking_code' => Booking::generateCode(),
+                'booking_code' => $bookingCode,
+                'midtrans_order_id' => 'KZN-PAY-'.Str::uuid(),
                 'booking_type' => $data['booking_type'],
                 'check_in_time' => $checkIn,
                 'check_out_time' => $checkOut,
@@ -89,5 +92,13 @@ class BookingService
                 'booking' => $booking,
             ];
         }, 3);
+    }
+
+    public function markPaymentSetupFailed(Booking $booking): void
+    {
+        $booking->forceFill([
+            'booking_status' => 'Cancelled',
+            'payment_status' => 'Failed',
+        ])->save();
     }
 }

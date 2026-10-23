@@ -20,6 +20,7 @@
 
             {{-- ===================== FORM ===================== --}}
             <form id="checkoutForm" novalidate class="space-y-6">
+                <p id="serverError" class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></p>
 
                 <div class="border border-gray-200 rounded-lg">
                     <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
@@ -81,17 +82,6 @@
                             <span class="block font-semibold text-gray-900">Transfer / Virtual Account</span>
                             <span class="block text-sm text-gray-500">Transfer via m-banking, internet banking, atau ATM</span>
                         </span>
-                    </label>
-                                        <label class="mt-3 flex items-center gap-4 border-2 border-gray-200 rounded-lg p-5 cursor-pointer transition has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-                        <input type="radio" name="payment_method" value="QRIS" class="w-4 h-4 accent-gray-900">
-                        <span class="w-11 h-11 shrink-0 border border-gray-300 rounded-md bg-white flex items-center justify-center text-gray-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3" /><path d="M21 21v.01" /><path d="M12 7v3a2 2 0 0 1-2 2H7" /><path d="M3 12h.01" /><path d="M12 3h.01" /><path d="M12 16v.01" /><path d="M16 12h1" /><path d="M21 12v.01" /><path d="M12 21v-1" /></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-gray-900">QRIS</span>
-                            <span class="block text-sm text-gray-500">Scan QR via GoPay, OVO, Dana, ShopeePay, atau m-banking</span>
-                        </span>
-                    </label>
                 </div>
 
                 <button type="submit" id="submitButton" disabled
@@ -132,9 +122,8 @@
     <script>
         (function () {
             const KB = window.KazainBooking;
-            const PAYMENT_URL = @json(route('customer.payment'));
             const AVAILABILITY_URL = @json(route('customer.availability'));
-            const STORAGE_KEY = 'kazain_customer';
+            const BOOKING_URL = @json(route('customer.bookings.store'));
 
             const booking = KB.parse();
             if (!booking) {
@@ -190,14 +179,6 @@
                 return valid;
             }
 
-            // Isi ulang data jika sebelumnya sudah pernah diisi
-            try {
-                const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
-                if (saved) {
-                    ['customer_name', 'phone_number', 'email'].forEach((k) => { if (saved[k]) form.elements[k].value = saved[k]; });
-                }
-            } catch (e) { /* abaikan */ }
-
             Object.keys(rules).forEach((name) => {
                 form.elements[name].addEventListener('blur', () => { touched[name] = true; validate(); });
                 form.elements[name].addEventListener('input', () => validate());
@@ -206,50 +187,50 @@
             validate();
 
             // ---------- Submit ----------
-            // Data pribadi disimpan di sessionStorage (tidak ditaruh di URL).
-            // TODO (backend): nanti diganti POST ke /customer/bookings sesuai CustomerBookingTest.
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!validate(true)) return;
 
-                const customer = {
-                    customer_name: form.elements.customer_name.value.trim(),
-                    phone_number: form.elements.phone_number.value.replace(/[\s-]/g, ''),
-                    email: form.elements.email.value.trim(),
-                    agree_terms: true,
-                };
-                try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(customer)); } catch (e) { /* abaikan */ }
-
+                const serverError = document.getElementById('serverError');
+                serverError.classList.add('hidden');
                 submitButton.disabled = true;
-                submitButton.textContent = 'Menyiapkan booking...';
+                submitButton.textContent = 'Menyiapkan pembayaran...';
+
                 try {
-                    const availabilityResponse = await fetch(`${@json(route('customer.availability'))}?date=${encodeURIComponent(booking.date)}`, { headers: { 'Accept': 'application/json' } });
-                    const availability = await availabilityResponse.json();
-                    const selectedType = booking.rooms[0].room.type;
-                    const availableRoom = availability.data.find((room) => room.room_type === selectedType && room.is_available);
-                    if (!availableRoom) throw new Error('Kamar tidak lagi tersedia.');
-                    const response = await fetch(@json(route('customer.bookings.store')), {
+                    const response = await fetch(BOOKING_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': @json(csrf_token()) },
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
                         body: JSON.stringify({
-                            room_id: availableRoom.room_id,
-                            ...customer,
+                            room_id: booking.roomId,
+                            customer_name: form.elements.customer_name.value.trim(),
+                            phone_number: form.elements.phone_number.value.replace(/[\s-]/g, ''),
+                            email: form.elements.email.value.trim(),
                             booking_type: booking.isFull ? 'Full Day' : 'Short Time',
                             check_in_date: booking.date,
                             check_in_time: booking.time,
                             duration_hours: booking.duration,
                             payment_method: form.querySelector('input[name="payment_method"]:checked').value,
+                            agree_terms: form.elements.agree_terms.checked,
                         }),
                     });
                     const result = await response.json();
-                    if (!response.ok) throw new Error(result.message || 'Booking gagal dibuat.');
-                    const next = KB.bookingQuery(booking);
-                    next.set('booking', result.data.booking.booking_code);
-                    window.location.href = `${PAYMENT_URL}?${next}`;
+
+                    if (!response.ok) {
+                        const validationMessages = Object.values(result.errors || {}).flat();
+                        throw new Error(validationMessages.join(' ') || result.message || 'Booking gagal dibuat.');
+                    }
+
+                    window.location.assign(result.data.payment.redirect_url);
                 } catch (error) {
+                    serverError.textContent = error.message || 'Booking gagal dibuat. Silakan coba kembali.';
+                    serverError.classList.remove('hidden');
+                    serverError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     submitButton.disabled = false;
                     submitButton.textContent = 'Lanjut ke Pembayaran →';
-                    alert(error.message);
                 }
             });
         })();

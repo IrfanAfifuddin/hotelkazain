@@ -1,12 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Customer\HomeController;
 use Illuminate\Support\Facades\Route;
 
-// Halaman utama Customer (publik)
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('customer.home');
+Route::redirect('/customer', '/')->name('customer.legacy-home');
 
 // ROUTE AUTENTIKASI
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -20,15 +19,12 @@ Route::middleware('auth')->group(function () {
 
 // Route Admin
 Route::prefix('admin')->group(function () {
-    require __DIR__ . '/admin.php';
+    require __DIR__.'/admin.php';
 });
 
 // Route Resepsionis
 Route::prefix('receptionist')->group(function () {
-    require __DIR__ . '/receptionist.php';
+    require __DIR__.'/receptionist.php';
 });
 
-// Route Customer
-Route::prefix('customer')->group(function () {
-    require __DIR__ . '/customer.php';
-});
+require __DIR__.'/customer.php';

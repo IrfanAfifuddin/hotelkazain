@@ -8,10 +8,21 @@ use Carbon\CarbonImmutable;
 
 class AvailabilityService
 {
-    public function checkAvailability(string $date): array
-    {
+    public function checkAvailability(
+        string $date,
+        ?string $checkInTime = null,
+        ?string $bookingType = null,
+        ?int $durationHours = null,
+    ): array {
         $start = CarbonImmutable::parse($date)->startOfDay();
-        $end = $start->addDay();
+        $start = $checkInTime === null
+            ? $start
+            : CarbonImmutable::parse($date.' '.$checkInTime);
+        $end = match (true) {
+            $checkInTime === null => $start->addDay(),
+            $bookingType === 'Full Day' => $start->addDays(intdiv((int) $durationHours, 24))->setTime(12, 0),
+            default => $start->addHours((int) $durationHours),
+        };
         $bookedRoomIds = Booking::query()
             ->activeOverlapping($start, $end)
             ->distinct()
@@ -62,5 +73,45 @@ class AvailabilityService
                 'by_room_type' => $roomTypes->all(),
             ],
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function roomTypes(): array
+    {
+        return Room::query()
+            ->orderBy('room_number')
+            ->get([
+                'room_type',
+                'price_5_hours',
+                'price_8_hours',
+                'full_day_price',
+            ])
+            ->groupBy('room_type')
+            ->map(function ($rooms, string $type): array {
+                $room = $rooms->first();
+                $shortName = $type === 'King' ? 'King Bed' : $type.' Bed';
+
+                return [
+                    'type' => $type,
+                    'name' => 'Kamar '.$shortName,
+                    'short_name' => $shortName,
+                    'description' => 'Kamar '.$type.' untuk 1–2 orang',
+                    'capacity' => 2,
+                    'total_rooms' => $rooms->count(),
+                    'prices' => [
+                        '5' => (int) $room->price_5_hours,
+                        '8' => (int) $room->price_8_hours,
+                        'full' => (int) $room->full_day_price,
+                    ],
+                    'facilities' => ['Kamar Mandi Dalam', 'Air Panas', 'AC', 'Wi-Fi Gratis'],
+                    'image' => file_exists(public_path('images/kamar-'.strtolower($type).'.jpg'))
+                        ? asset('images/kamar-'.strtolower($type).'.jpg')
+                        : null,
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

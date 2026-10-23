@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="data:,">
     <title>@yield('title', 'Pemesanan') — Kazain Hotel</title>
 
-    {{-- Font Inter (sesuai Figma) --}}
+    {{-- Inter untuk teks, Playfair Display untuk judul --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -17,6 +18,7 @@
         body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
     </style>
     @stack('styles')
+    @include('customer.partials.theme')
 </head>
 <body class="bg-white text-gray-900 antialiased min-h-screen flex flex-col">
 
@@ -34,31 +36,26 @@
         ];
     @endphp
 
-    {{-- ===================== HEADER ===================== --}}
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    {{-- ===================== HEADER (senada dengan Beranda) ===================== --}}
+    <header class="bg-ink text-white sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-4">
-            <a href="{{ $backUrl }}" id="backLink" class="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <a href="{{ $backUrl }}" id="backLink" class="flex items-center gap-1.5 text-white/75 hover:text-white transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="m15 18-6-6 6-6" />
                 </svg>
                 <span>{{ $backLabel }}</span>
             </a>
 
-            <span class="h-6 w-px bg-gray-200"></span>
+            <span class="h-6 w-px bg-white/20"></span>
 
-            <a href="{{ route('customer.home') }}" class="flex items-center gap-3">
-                <span class="w-9 h-9 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                        <path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />
-                    </svg>
-                </span>
-                <span class="font-semibold text-gray-900">Kazain Hotel</span>
+            <a href="{{ route('customer.home') }}" class="font-display text-xl sm:text-2xl font-semibold tracking-wide">
+                Kazain Hotel
             </a>
         </div>
     </header>
 
     {{-- ===================== STEPPER ===================== --}}
-    <div class="bg-gray-50 border-b border-gray-200">
+    <div class="bg-sand border-b border-gray-200">
         <ol class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
             @foreach ($steps as $number => $label)
                 @php
@@ -91,7 +88,7 @@
         @yield('content')
     </main>
 
-    <footer class="border-t border-gray-200 py-6 text-center text-sm text-gray-500">
+    <footer class="bg-ink py-6 text-center text-sm text-white/60">
         &copy; {{ date('Y') }} Kazain Hotel. Hak cipta dilindungi undang-undang.
     </footer>
 

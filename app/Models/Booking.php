@@ -19,6 +19,7 @@ class Booking extends Model
         'midtrans_transaction_status',
         'midtrans_fraud_status',
         'midtrans_snap_token',
+        'midtrans_redirect_url',
         'booking_type',
         'check_in_time',
         'check_out_time',
@@ -36,6 +37,7 @@ class Booking extends Model
         'check_out_time' => 'datetime',
         'payment_time' => 'datetime',
         'payment_expires_at' => 'datetime',
+        'booking_code_sent_at' => 'datetime',
     ];
 
     public function room(): BelongsTo
