@@ -163,28 +163,29 @@
     {{-- MODAL TAMBAH PEMESANAN (LANGSUNG DARI DASHBOARD) --}}
     <div id="createBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         {{-- Backdrop --}}
-        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" onclick="closeCreateBookingModal()"></div>
+        <div class="fixed inset-0 bg-[#1d3027]/45 backdrop-blur-[2px] transition-opacity" onclick="closeCreateBookingModal()"></div>
 
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
+            <div class="relative my-4 flex max-h-[calc(100vh-2rem)] w-full transform flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface text-left shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] transition-all sm:my-8 sm:max-w-4xl">
 
                 {{-- Modal Header --}}
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/70">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 bg-gray-900 text-white rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <div class="flex shrink-0 items-center justify-between border-b border-kazain-border bg-white px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3]">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900" id="modal-title">Tambah Pemesanan Kamar</h3>
-                            <p class="text-xs text-gray-500">Input reservasi langsung dari dashboard admin.</p>
+                            <h3 class="text-base font-semibold tracking-tight text-kazain-text" id="modal-title">Tambah Pemesanan Kamar</h3>
+                            <p class="mt-0.5 text-xs text-kazain-muted">Input reservasi langsung dari dashboard.</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onclick="closeCreateBookingModal()"
-                        class="text-gray-400 hover:text-gray-600 rounded-lg p-1.5 hover:bg-gray-200/50 transition"
+                        aria-label="Tutup form pemesanan"
+                        class="rounded-lg p-1.5 text-kazain-muted transition hover:bg-[#f4f5f1] hover:text-kazain-text"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -193,85 +194,111 @@
                 </div>
 
                 {{-- Alert Error Box --}}
-                <div id="modalErrorBox" class="hidden mx-6 mt-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs">
-                    <div class="flex items-center space-x-2 font-semibold mb-1">
-                        <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <div id="modalErrorBox" class="mx-6 mt-4 hidden shrink-0 rounded-2xl border border-[#e8c9c2] bg-[#fbf3f1] p-4 text-xs text-[#844a40]">
+                    <div class="mb-1 flex items-center gap-2 font-semibold">
+                        <svg class="h-4 w-4 shrink-0 text-[#975b50]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                         </svg>
                         <span id="modalErrorTitle">Terjadi kesalahan validasi</span>
                     </div>
-                    <ul id="modalErrorList" class="list-disc list-inside space-y-0.5 text-red-700"></ul>
+                    <ul id="modalErrorList" class="list-inside list-disc space-y-0.5 text-[#844a40]"></ul>
                 </div>
 
                 {{-- Form Tambah Pemesanan --}}
-                <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="p-6 space-y-5">
+                <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6">
                     @csrf
 
                     {{-- Section 1: Data Customer --}}
                     <div>
-                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100 flex items-center space-x-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <h4 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
+                            <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                             </svg>
-                            <span>1. Data Customer</span>
+                            <span>Data Customer</span>
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap Customer <span class="text-red-500">*</span></label>
+                                <label for="modal_customer_name" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Nama lengkap customer <span class="text-[#975b50]">*</span></label>
                                 <input
                                     type="text"
                                     name="customer_name"
                                     id="modal_customer_name"
                                     placeholder="Contoh: Budi Santoso"
                                     required
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Nomor Telepon / WhatsApp <span class="text-red-500">*</span></label>
+                                <label for="modal_phone_number" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Nomor telepon / WhatsApp <span class="text-[#975b50]">*</span></label>
                                 <input
                                     type="text"
                                     name="phone_number"
                                     id="modal_phone_number"
                                     placeholder="Contoh: 081234567890"
                                     required
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Email Customer (Opsional)</label>
+                                <label for="modal_email" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Email customer <span class="font-normal">(opsional)</span></label>
                                 <input
                                     type="email"
                                     name="email"
                                     id="modal_email"
                                     placeholder="Contoh: budi@gmail.com"
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
                         </div>
                     </div>
 
-                    {{-- Section 2: Detail Kamar & Durasi --}}
+                    {{-- Section 2: Durasi --}}
                     <div>
-                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100 flex items-center space-x-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <h4 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
+                            <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5Z" />
                             </svg>
-                            <span>2. Detail Kamar & Jadwal</span>
+                            <span>Tipe dan Durasi</span>
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Pilih Kamar Tersedia <span class="text-red-500">*</span></label>
+                                <label for="modal_booking_type" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe durasi pemesanan <span class="text-[#975b50]">*</span></label>
+                                <select
+                                    name="booking_type"
+                                    id="modal_booking_type"
+                                    required
+                                    onchange="updateRoomCalculations()"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                >
+                                    <option value="Full Day" selected>Full Day (Sampai 12:00 Hari Berikutnya)</option>
+                                    <option value="Short Time 5 Jam">Short Time (5 Jam)</option>
+                                    <option value="Short Time 8 Jam">Short Time (8 Jam)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Section 3: Kamar --}}
+                    <div>
+                        <h4 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
+                            <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5Z" />
+                            </svg>
+                            <span>Pilih Kamar</span>
+                        </h4>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="modal_room_id" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Pilih kamar tersedia <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="room_id"
                                     id="modal_room_id"
                                     required
                                     onchange="updateRoomCalculations()"
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
-                                    <option value="">-- Pilih Kamar Tersedia --</option>
+                                    <option value="">Pilih kamar tersedia</option>
                                     @forelse($availableRooms as $room)
                                         <option
                                             value="{{ $room->id }}"
@@ -284,53 +311,35 @@
                                             Kamar {{ $room->room_number }} — {{ $room->room_type }} Bed (Tersedia)
                                         </option>
                                     @empty
-                                        <option value="" disabled>-- Tidak ada kamar yang tersedia saat ini --</option>
+                                        <option value="" disabled>Tidak ada kamar yang tersedia saat ini</option>
                                     @endforelse
                                 </select>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Tipe Kamar</label>
+                                <label for="modal_room_type_display" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe kamar</label>
                                 <input
                                     type="text"
                                     id="modal_room_type_display"
                                     value="Pilih kamar terlebih dahulu"
                                     readonly
-                                    class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-600 font-semibold cursor-not-allowed"
+                                    class="min-h-10 w-full cursor-not-allowed rounded-xl border border-kazain-border bg-[#f4f5f1] px-3 py-2 text-sm font-medium text-kazain-muted"
                                 >
                             </div>
+                        </div>
+                    </div>
 
+                    {{-- Section 4: Jadwal --}}
+                    <div>
+                        <h4 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
+                            <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                            </svg>
+                            <span>Jadwal Check-in & Check-out</span>
+                        </h4>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Tipe Durasi Pemesanan <span class="text-red-500">*</span></label>
-                                <select
-                                    name="booking_type"
-                                    id="modal_booking_type"
-                                    required
-                                    onchange="updateRoomCalculations()"
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
-                                >
-                                    <option value="Full Day" selected>Full Day (Sampai 12:00 Hari Berikutnya)</option>
-                                    <option value="Short Time 5 Jam">Short Time (5 Jam)</option>
-                                    <option value="Short Time 8 Jam">Short Time (8 Jam)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Sumber Pemesanan <span class="text-red-500">*</span></label>
-                                <select
-                                    name="source"
-                                    id="modal_source"
-                                    required
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
-                                >
-                                    <option value="Offline" selected>Offline (Datang Langsung)</option>
-                                    <option value="WhatsApp">WhatsApp</option>
-                                    <option value="Website">Website</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Waktu Check-in <span class="text-red-500">*</span></label>
+                                <label for="modal_check_in_time" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Waktu check-in <span class="text-[#975b50]">*</span></label>
                                 <input
                                     type="datetime-local"
                                     name="check_in_time"
@@ -340,42 +349,55 @@
                                     required
                                     onchange="validateDashboardCheckIn(this); updateRoomCalculations()"
                                     oninput="validateDashboardCheckIn(this)"
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Waktu Check-out (Otomatis)</label>
+                                <label for="modal_check_out_preview" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Waktu check-out (otomatis)</label>
                                 <div class="relative">
                                     <input
                                         type="text"
                                         id="modal_check_out_preview"
                                         readonly
                                         value="-"
-                                        class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-semibold text-gray-800 cursor-not-allowed"
+                                        class="min-h-10 w-full cursor-not-allowed rounded-xl border border-kazain-border bg-[#f4f5f1] px-3 py-2 text-sm font-medium text-kazain-text"
                                     >
-                                    <span class="absolute right-3 top-2.5 text-xs text-gray-400">Auto</span>
+                                    <span class="absolute right-3 top-3 text-[10px] font-semibold uppercase tracking-wide text-kazain-muted/70">Auto</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Section 3: Pembayaran & Total Harga --}}
+                    {{-- Section 5: Pembayaran & Total Harga --}}
                     <div>
-                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100 flex items-center space-x-1.5">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <h4 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
+                            <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0-8.25a60.07 60.07 0 0 1 15.797-2.101c.727-.198 1.453.342 1.453 1.096V6m-18 8.25h16.5m0 0a2.25 2.25 0 0 0 2.25-2.25V6m0 8.25a2.25 2.25 0 0 1-2.25 2.25m-16.5 0a2.25 2.25 0 0 0 2.25-2.25V6" />
                             </svg>
-                            <span>3. Pembayaran & Status</span>
+                            <span>Pembayaran & Sumber</span>
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Metode Pembayaran <span class="text-red-500">*</span></label>
+                                <label for="modal_source" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Sumber pemesanan <span class="text-[#975b50]">*</span></label>
+                                <select
+                                    name="source"
+                                    id="modal_source"
+                                    required
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                >
+                                    <option value="Offline" selected>Offline (Datang Langsung)</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                    <option value="Website">Website</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="modal_payment_method" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="payment_method"
                                     id="modal_payment_method"
                                     required
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Cash" selected>Cash / Tunai</option>
                                     <option value="QRIS">QRIS</option>
@@ -384,13 +406,13 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Status Pembayaran <span class="text-red-500">*</span></label>
+                                <label for="modal_payment_status" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pembayaran <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="payment_status"
                                     id="modal_payment_status"
                                     required
                                     onchange="handlePaymentStatusChange()"
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Paid" selected>Lunas (Paid)</option>
                                     <option value="Pending">Pending (DP / Belum)</option>
@@ -398,12 +420,12 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Status Pemesanan <span class="text-red-500">*</span></label>
+                                <label for="modal_booking_status" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pemesanan <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="booking_status"
                                     id="modal_booking_status"
                                     required
-                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Check-in" selected>Check-in (Tamu Langsung Masuk)</option>
                                     <option value="Confirmed">Confirmed (Terkonfirmasi)</option>
@@ -413,13 +435,13 @@
                         </div>
 
                         {{-- Total Price Banner --}}
-                        <div class="mt-4 p-4 rounded-xl bg-gray-900 text-white flex items-center justify-between">
+                        <div class="mt-4 flex items-center justify-between rounded-xl bg-kazain-primary p-4 text-white shadow-sm">
                             <div>
-                                <p class="text-xs text-gray-300">Total Biaya Pemesanan</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Dihitung otomatis berdasarkan tipe kamar & durasi</p>
+                                <p class="text-xs font-medium text-white/80">Total biaya pemesanan</p>
+                                <p class="mt-0.5 text-xs text-white/65">Dihitung otomatis berdasarkan tipe kamar & durasi</p>
                             </div>
                             <div class="text-right">
-                                <span id="modal_total_price_display" class="text-2xl font-extrabold tracking-tight text-white">
+                                <span id="modal_total_price_display" class="text-xl font-semibold tracking-tight text-white">
                                     Rp 0
                                 </span>
                             </div>
@@ -427,18 +449,18 @@
                     </div>
 
                     {{-- Actions --}}
-                    <div class="flex items-center justify-end space-x-3 pt-3 border-t border-gray-200">
+                    <div class="flex flex-col-reverse justify-end gap-3 border-t border-kazain-border pt-4 sm:flex-row">
                         <button
                             type="button"
                             onclick="closeCreateBookingModal()"
-                            class="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-white px-5 text-sm font-semibold text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
                             id="btnSubmitBooking"
-                            class="inline-flex items-center space-x-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-kazain-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <svg id="submitSpinner" class="hidden animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
