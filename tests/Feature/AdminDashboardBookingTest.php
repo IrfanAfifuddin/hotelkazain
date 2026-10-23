@@ -14,8 +14,11 @@ class AdminDashboardBookingTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $receptionist;
+
     private Room $room1;
+
     private Room $room2;
 
     protected function setUp(): void
@@ -65,6 +68,17 @@ class AdminDashboardBookingTest extends TestCase
         $response->assertSee('id="modal_customer_name"', false);
         $response->assertSee('id="modal_room_id"', false);
         $response->assertSee('id="modal_booking_type"', false);
+        $response->assertSeeInOrder([
+            'Data Customer',
+            'Tipe dan Durasi',
+            'Tipe durasi pemesanan',
+            'Pilih Kamar',
+            'Pilih kamar tersedia',
+            'Jadwal Check-in & Check-out',
+            'Waktu check-in',
+            'Waktu check-out (otomatis)',
+            'Pembayaran & Sumber',
+        ], false);
         $response->assertSee('Kamar 101 — King Bed (Tersedia)');
         // Kamar 102 yang Occupied tidak boleh ada di dropdown kamar tersedia
         $response->assertDontSee('Kamar 102 — Twin Bed (Tersedia)');
