@@ -82,6 +82,7 @@
                             <span class="block font-semibold text-gray-900">Transfer / Virtual Account</span>
                             <span class="block text-sm text-gray-500">Transfer via m-banking, internet banking, atau ATM</span>
                         </span>
+                        </label>
                 </div>
 
                 <button type="submit" id="submitButton" disabled
