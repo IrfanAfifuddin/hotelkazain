@@ -77,7 +77,7 @@ class AdminDashboardBookingTest extends TestCase
             'Jadwal Check-in & Check-out',
             'Waktu check-in',
             'Waktu check-out (otomatis)',
-            'Pembayaran & Sumber',
+            'Pembayaran',
         ], false);
         $response->assertSee('Kamar 101 — King Bed (Tersedia)');
         // Kamar 102 yang Occupied tidak boleh ada di dropdown kamar tersedia
@@ -93,11 +93,9 @@ class AdminDashboardBookingTest extends TestCase
             'email' => 'ahmad@example.com',
             'room_id' => $this->room1->id,
             'booking_type' => 'Short Time 5 Jam',
-            'check_in_time' => now()->format('Y-m-d H:i:s'),
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Check-in',
             'payment_method' => 'Cash',
-            'payment_status' => 'Paid',
-            'source' => 'Offline',
         ];
 
         $response = $this->actingAs($this->admin)
@@ -161,11 +159,9 @@ class AdminDashboardBookingTest extends TestCase
             'phone_number' => '081122334455',
             'room_id' => $this->room1->id,
             'booking_type' => 'Full Day',
-            'check_in_time' => now()->format('Y-m-d H:i:s'),
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
-            'payment_method' => 'Virtual Account',
-            'payment_status' => 'Paid',
-            'source' => 'WhatsApp',
+            'payment_method' => 'Cash',
         ];
 
         $response = $this->actingAs($this->admin)
@@ -192,8 +188,6 @@ class AdminDashboardBookingTest extends TestCase
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Check-in',
             'payment_method' => 'QRIS',
-            'payment_status' => 'Paid',
-            'source' => 'Offline',
         ]);
 
         $response->assertUnprocessable()
@@ -203,7 +197,7 @@ class AdminDashboardBookingTest extends TestCase
 
     public function test_prevent_double_booking_overlap_returns_json_422(): void
     {
-        $checkIn = now()->addHour();
+        $checkIn = now('Asia/Jakarta')->addHour();
         $checkOut = (clone $checkIn)->addHours(5);
 
         // Booking 1 yang sudah ada
@@ -212,6 +206,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_id' => Customer::create([
                 'customer_name' => 'Tamu Pertama',
                 'phone_number' => '082222222222',
+                'email' => 'tamu1@example.com',
             ])->id,
             'booking_code' => 'KZN-EXIST-01',
             'booking_type' => 'Short Time 5 Jam',
@@ -228,13 +223,12 @@ class AdminDashboardBookingTest extends TestCase
         $payloadOverlap = [
             'customer_name' => 'Tamu Kedua',
             'phone_number' => '083333333333',
+            'email' => 'tamu2@example.com',
             'room_id' => $this->room1->id,
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => (clone $checkIn)->addHours(2)->format('Y-m-d H:i:s'),
-            'booking_status' => 'Pending',
+            'booking_status' => 'Confirmed',
             'payment_method' => 'Cash',
-            'payment_status' => 'Pending',
-            'source' => 'Offline',
         ];
 
         $response = $this->actingAs($this->admin)
@@ -256,9 +250,8 @@ class AdminDashboardBookingTest extends TestCase
             'room_id',
             'booking_type',
             'check_in_time',
+            'booking_status',
             'payment_method',
-            'payment_status',
-            'source',
         ]);
     }
 
@@ -270,11 +263,9 @@ class AdminDashboardBookingTest extends TestCase
             'email' => 'siti@example.com',
             'room_id' => $this->room1->id,
             'booking_type' => 'Short Time 8 Jam',
-            'check_in_time' => now()->format('Y-m-d H:i:s'),
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
             'payment_method' => 'Cash',
-            'payment_status' => 'Paid',
-            'source' => 'Offline',
         ];
 
         $response = $this->actingAs($this->admin)

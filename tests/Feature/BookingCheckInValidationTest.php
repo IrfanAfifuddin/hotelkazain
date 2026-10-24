@@ -41,13 +41,12 @@ class BookingCheckInValidationTest extends TestCase
         $response = $this->actingAs($this->admin)->postJson(route('admin.pemesanan.store'), [
             'customer_name' => 'Tamu Lama',
             'phone_number' => '081234567890',
+            'email' => 'tamalama@example.com',
             'room_id' => $this->room->id,
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->subDay()->format('Y-m-d H:i'),
-            'booking_status' => 'Pending',
+            'booking_status' => 'Confirmed',
             'payment_method' => 'Cash',
-            'payment_status' => 'Pending',
-            'source' => 'Offline',
         ]);
 
         $response->assertStatus(422);
@@ -60,13 +59,12 @@ class BookingCheckInValidationTest extends TestCase
         $response = $this->actingAs($this->admin)->postJson(route('admin.pemesanan.store'), [
             'customer_name' => 'Tamu Baru',
             'phone_number' => '081234567891',
+            'email' => 'tamubaru@example.com',
             'room_id' => $this->room->id,
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addMinutes(10)->format('Y-m-d H:i'),
-            'booking_status' => 'Pending',
+            'booking_status' => 'Confirmed',
             'payment_method' => 'Cash',
-            'payment_status' => 'Pending',
-            'source' => 'Offline',
         ]);
 
         $response->assertCreated();

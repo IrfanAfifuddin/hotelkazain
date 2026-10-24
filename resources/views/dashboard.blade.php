@@ -208,7 +208,6 @@
                 <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6">
                     @csrf
                     <input type="hidden" name="payment_status" id="modal_payment_status_hidden" value="Paid">
-                    <input type="hidden" name="booking_status" id="modal_booking_status_hidden" value="Check-in">
 
                     {{-- Section 1: Data Customer --}}
                     <div>
@@ -377,48 +376,19 @@
                             <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0-8.25a60.07 60.07 0 0 1 15.797-2.101c.727-.198 1.453.342 1.453 1.096V6m-18 8.25h16.5m0 0a2.25 2.25 0 0 0 2.25-2.25V6m0 8.25a2.25 2.25 0 0 1-2.25 2.25m-16.5 0a2.25 2.25 0 0 0 2.25-2.25V6" />
                             </svg>
-                            <span>Pembayaran & Sumber</span>
+                            <span>Pembayaran</span>
                         </h4>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="modal_source" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Sumber pemesanan <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="source"
-                                    id="modal_source"
-                                    required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Offline" selected>Offline (Datang Langsung)</option>
-                                    <option value="WhatsApp">WhatsApp</option>
-                                    <option value="Website">Website</option>
-                                </select>
-                            </div>
                             <div>
                                 <label for="modal_payment_method" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="payment_method"
                                     id="modal_payment_method"
                                     required
-onchange="handlePaymentMethodChange()"
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Cash" selected>Cash / Tunai</option>
-                                    <option value="Virtual Account">Virtual Account</option>
-                                    <option value="Midtrans">Midtrans Snap</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="modal_payment_status" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pembayaran <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="payment_status"
-                                    id="modal_payment_status"
-                                    required
-                                    onchange="handlePaymentStatusChange()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Paid" selected>Lunas (Paid)</option>
-                                    <option value="Pending">Pending (DP / Belum)</option>
+                                    <option value="Transfer">Transfer Bank</option>
                                 </select>
                             </div>
 
@@ -431,8 +401,7 @@ onchange="handlePaymentMethodChange()"
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Check-in" selected>Check-in (Tamu Langsung Masuk)</option>
-                                    <option value="Confirmed">Confirmed (Terkonfirmasi)</option>
-                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed (Reservasi)</option>
                                 </select>
                             </div>
                         </div>
@@ -651,37 +620,6 @@ onchange="handlePaymentMethodChange()"
         return valid;
     }
 
-    // Perubahan Status Pembayaran -> Sinkronkan Status Pemesanan
-    function handlePaymentStatusChange() {
-        const paymentStatus = document.getElementById('modal_payment_status').value;
-        const bookingStatusSelect = document.getElementById('modal_booking_status');
-        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
-        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
-
-        bookingStatusSelect.value = paymentStatus === 'Paid' ? 'Check-in' : 'Pending';
-        hiddenPaymentStatus.value = paymentStatus;
-        hiddenBookingStatus.value = bookingStatusSelect.value;
-    }
-
-    function handlePaymentMethodChange() {
-        const isMidtrans = document.getElementById('modal_payment_method').value === 'Midtrans';
-        const paymentStatusSelect = document.getElementById('modal_payment_status');
-        const bookingStatusSelect = document.getElementById('modal_booking_status');
-        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
-        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
-
-        paymentStatusSelect.disabled = isMidtrans;
-        bookingStatusSelect.disabled = isMidtrans;
-
-        if (isMidtrans) {
-            paymentStatusSelect.value = 'Pending';
-            bookingStatusSelect.value = 'Pending';
-        }
-
-        hiddenPaymentStatus.value = paymentStatusSelect.value;
-        hiddenBookingStatus.value = bookingStatusSelect.value;
-    }
-
     // Perhitungan Realtime Tipe Kamar, Total Harga, dan Waktu Check-out
     function updateRoomCalculations() {
         const roomSelect = document.getElementById('modal_room_id');
@@ -788,12 +726,6 @@ onchange="handlePaymentMethodChange()"
             }
 
             // SUKSES
-            if (formData.get('payment_method') === 'Midtrans') {
-                const paymentBaseUrl = @json(auth()->user()->role === 'Admin' ? url('/admin/pemesanan') : url('/receptionist/pemesanan'));
-                window.location.href = `${paymentBaseUrl}/${encodeURIComponent(data.booking.id)}/payment`;
-                return;
-            }
-
             // 1. Reset form & tutup modal form
             const bookedRoomId = formData.get('room_id');
             const bookedBookingStatus = formData.get('booking_status');
@@ -815,8 +747,6 @@ onchange="handlePaymentMethodChange()"
                 if (statCheckin) statCheckin.textContent = data.stats.today_check_in;
                 if (statCheckout) statCheckout.textContent = data.stats.today_check_out;
             }
-
-            handlePaymentMethodChange();
 
             // 4. Perbarui tabel Pemesanan Terbaru di Dashboard
             if (data.booking) {
