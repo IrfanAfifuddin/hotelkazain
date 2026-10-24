@@ -89,10 +89,8 @@ class BookingController extends Controller
             'room_id' => 'required|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
-            'booking_status' => 'nullable|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
-            'payment_method' => ['required', Rule::in(['Cash', 'Transfer', 'Virtual Account', 'Midtrans'])],
-            'payment_status' => ['required', Rule::in(['Pending', 'Paid', 'Failed', 'Cancelled'])],
-            'source' => 'required|in:Offline,Website,WhatsApp',
+            'booking_status' => 'required|in:Confirmed,Check-in',
+            'payment_method' => ['required', Rule::in(['Cash', 'Transfer'])],
         ]);
 
         $checkIn = Carbon::parse($request->check_in_time);
@@ -155,9 +153,9 @@ class BookingController extends Controller
                 default => $room->full_day_price,
             };
 
-            $isMidtransPayment = $request->payment_method === 'Midtrans';
-            $paymentStatus = $isMidtransPayment ? 'Pending' : $request->payment_status;
-            $bookingStatus = $paymentStatus === 'Paid' ? 'Confirmed' : 'Pending';
+            $isMidtransPayment = false;
+            $paymentStatus = 'Paid';
+            $bookingStatus = $request->booking_status;
 
             $booking = Booking::create([
                 'room_id' => $room->id,
@@ -169,10 +167,10 @@ class BookingController extends Controller
                 'booking_status' => $bookingStatus,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $paymentStatus,
-                'payment_time' => ($paymentStatus === 'Paid') ? now() : null,
-                'payment_expires_at' => $isMidtransPayment ? now()->addMinutes(20) : null,
+                'payment_time' => now(),
+                'payment_expires_at' => null,
                 'total_price' => $totalPrice,
-                'source' => $request->source,
+                'source' => 'Offline',
             ]);
 
             // Jika status booking adalah Check-in, sinkronkan status kamar menjadi Occupied
