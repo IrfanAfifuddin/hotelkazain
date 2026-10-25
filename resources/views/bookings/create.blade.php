@@ -18,7 +18,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm max-w-3xl">
+    <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm max-w-3xl">
         <form action="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.store') : route('receptionist.pemesanan.store') }}" method="POST" class="space-y-6" onsubmit="return validateCheckInTime(document.getElementById('check_in_time'))">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

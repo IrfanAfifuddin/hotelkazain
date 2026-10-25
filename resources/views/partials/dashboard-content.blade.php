@@ -41,7 +41,7 @@
         </section>
 
         <section aria-label="Ringkasan operasional" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b9c9bc] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b9c9bc] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Kamar tersedia</p>
@@ -51,7 +51,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Lihat status dan ketersediaan kamar <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddc7c0] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddc7c0] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
@@ -61,7 +61,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Pantau kamar yang sedang digunakan <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#c3d0d7] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#c3d0d7] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Check-in hari ini</p>
@@ -71,7 +71,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Lihat daftar pemesanan tamu <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddd2b5] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddd2b5] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Check-out hari ini</p>
@@ -83,7 +83,7 @@
         </section>
 
         <section class="grid grid-cols-1 gap-5">
-            <div class="min-w-0 overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+            <div class="min-w-0 overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
                 <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <div class="flex items-center gap-2.5">

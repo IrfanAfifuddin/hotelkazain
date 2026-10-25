@@ -52,7 +52,7 @@
             </div>
         @endif
 
-        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
             <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                     <div class="flex items-center gap-2.5">
@@ -145,18 +145,18 @@
                     <div id="methodField"></div>
                     <div class="space-y-1.5">
                         <label for="inputName" class="block text-xs font-semibold text-kazain-muted">Nama lengkap <span class="text-[#975b50]">*</span></label>
-                        <input type="text" name="user_name" id="inputName" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-white px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="text" name="user_name" id="inputName" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-gray-50 px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div class="space-y-1.5">
                         <label for="inputUsername" class="block text-xs font-semibold text-kazain-muted">Username <span class="text-[#975b50]">*</span></label>
-                        <input type="text" name="username" id="inputUsername" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-white px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="text" name="username" id="inputUsername" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-gray-50 px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div class="space-y-1.5">
                         <label for="inputPassword" class="block text-xs font-semibold text-kazain-muted">Password <span id="passwordHint" class="font-normal text-kazain-muted">(Minimal 6 karakter)</span></label>
-                        <input type="password" name="password" id="inputPassword" class="min-h-11 w-full rounded-xl border border-kazain-border bg-white px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="password" name="password" id="inputPassword" class="min-h-11 w-full rounded-xl border border-kazain-border bg-gray-50 px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="closeUserModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-white px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
+                        <button type="button" onclick="closeUserModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
                             Batal
                         </button>
                         <button type="submit" class="min-h-11 flex-1 rounded-xl bg-kazain-primary px-4 text-sm font-semibold text-white transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
@@ -183,7 +183,7 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex gap-3">
-                        <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-white px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
+                        <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
                             Batal
                         </button>
                         <button type="submit" class="min-h-11 flex-1 rounded-xl bg-[#975b50] px-4 text-sm font-semibold text-white transition hover:bg-[#814b42] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#975b50]/20">
