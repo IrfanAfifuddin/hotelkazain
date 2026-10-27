@@ -10,8 +10,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="min-h-screen bg-kazain-neutral font-sans text-kazain-text antialiased">
-    <nav class="print:hidden fixed inset-x-0 top-0 z-30 h-16 border-b border-kazain-border/80 bg-white/95 backdrop-blur">
+<body class="min-h-screen bg-gray-300 font-sans text-kazain-text antialiased">
+    <nav class="print:hidden fixed inset-x-0 top-0 z-30 h-16 border-b border-kazain-border/80 bg-gray-100/95 backdrop-blur">
         <div class="flex h-full items-center justify-between px-4 sm:px-6">
             <div class="flex items-center gap-3">
                 <button
@@ -129,7 +129,7 @@
                 <h2 id="logoutModalTitle" class="mt-4 text-lg font-semibold text-kazain-text">Keluar dari akun?</h2>
                 <p class="mt-1 text-sm leading-6 text-kazain-muted">Anda akan keluar dari sistem manajemen Kazain Hotel.</p>
                 <div class="mt-6 flex gap-3">
-                    <button type="button" data-logout-close class="flex-1 rounded-xl border border-kazain-border bg-white px-4 py-2.5 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
+                    <button type="button" data-logout-close class="flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 py-2.5 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
                         Batal
                     </button>
                     <button type="button" data-logout-submit class="flex-1 rounded-xl bg-kazain-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">

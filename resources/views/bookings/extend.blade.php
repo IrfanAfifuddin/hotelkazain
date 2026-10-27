@@ -15,7 +15,7 @@
         </a>
 
         <section class="flex max-h-[calc(100vh-7rem)] min-h-[32rem] flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-[0_24px_70px_-30px_rgba(29,48,39,0.35)]">
-            <header class="flex shrink-0 items-center gap-3 border-b border-kazain-border bg-white px-5 py-4 sm:px-6">
+            <header class="flex shrink-0 items-center gap-3 border-b border-kazain-border bg-gray-100 px-5 py-4 sm:px-6">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3]">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -67,12 +67,12 @@
                             <fieldset>
                                 <legend class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe perpanjangan <span class="text-[#975b50]">*</span></legend>
                                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="extension_type" value="Short Time" checked>
                                         <span class="block text-sm font-semibold text-kazain-text">Short Time</span>
                                         <span class="mt-0.5 block text-xs text-kazain-muted">Pilih tambahan 5 atau 8 jam.</span>
                                     </label>
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="extension_type" value="Full Day">
                                         <span class="block text-sm font-semibold text-kazain-text">Full Day</span>
                                         <span class="mt-0.5 block text-xs text-kazain-muted">Sampai pukul 12.00 hari berikutnya.</span>
@@ -82,14 +82,14 @@
                             <fieldset id="durationSection">
                                 <legend class="mb-1.5 block text-xs font-semibold text-kazain-muted">Durasi Short Time <span class="text-[#975b50]">*</span></legend>
                                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="duration_hours" value="5" checked>
                                         <span class="flex items-center justify-between gap-3">
                                             <span class="text-sm font-semibold text-kazain-text">5 Jam</span>
                                             <span class="text-xs font-semibold text-kazain-primary">Rp {{ number_format($booking->room->price_5_hours, 0, ',', '.') }}</span>
                                         </span>
                                     </label>
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="duration_hours" value="8">
                                         <span class="flex items-center justify-between gap-3">
                                             <span class="text-sm font-semibold text-kazain-text">8 Jam</span>
@@ -114,11 +114,11 @@
                             <fieldset>
                                 <legend class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></legend>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 text-center transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 text-center transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="payment_method" value="Cash" checked>
                                         <span class="text-sm font-semibold text-kazain-text">Cash</span>
                                     </label>
-                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-white p-3 text-center transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
+                                    <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 text-center transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="payment_method" value="Transfer">
                                         <span class="text-sm font-semibold text-kazain-text">Transfer</span>
                                     </label>
@@ -132,7 +132,7 @@
                     </section>
                 </div>
 
-                <footer class="flex shrink-0 flex-col gap-4 border-t border-kazain-border bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <footer class="flex shrink-0 flex-col gap-4 border-t border-kazain-border bg-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div class="flex items-center justify-between gap-4 sm:justify-start sm:gap-6">
                         <div>
                             <p class="text-xs text-kazain-muted">Durasi</p>
@@ -146,7 +146,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col-reverse gap-3 sm:flex-row">
-                        <a href="{{ route($prefix . '.pemesanan.index') }}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-kazain-border bg-white px-5 text-sm font-semibold text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">Batal</a>
+                        <a href="{{ route($prefix . '.pemesanan.index') }}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-5 text-sm font-semibold text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">Batal</a>
                         <button id="submitButton" type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-kazain-primary px-5 text-sm font-semibold text-white transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 disabled:cursor-not-allowed disabled:opacity-60">Konfirmasi Extend</button>
                     </div>
                 </footer>

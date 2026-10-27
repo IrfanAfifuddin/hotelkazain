@@ -85,7 +85,7 @@
             </div>
 
             @if ($rooms->isEmpty())
-                <div class="rounded-2xl border border-kazain-border bg-white px-6 py-14 text-center shadow-sm">
+                <div class="rounded-2xl border border-kazain-border bg-gray-100 px-6 py-14 text-center shadow-sm">
                     <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf1ec] text-kazain-primary">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5.25 21V5.25L12 2l6.75 3.25V21M8.25 8.25h.008v.008H8.25V8.25Zm7.5 0h.008v.008h-.008V8.25Z" />
@@ -113,7 +113,7 @@
                             };
                         @endphp
 
-                        <article class="flex flex-col rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#cbd5cc] hover:shadow-md sm:p-6">
+                        <article class="flex flex-col rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#cbd5cc] hover:shadow-md sm:p-6">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <p class="text-xs font-medium uppercase tracking-[0.12em] text-kazain-muted">Nomor kamar</p>

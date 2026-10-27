@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm max-w-2xl">
+    <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm max-w-2xl">
         <form action="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.update', $booking->id) : route('receptionist.pemesanan.update', $booking->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')

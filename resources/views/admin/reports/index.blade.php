@@ -35,7 +35,7 @@
         </header>
 
         <section class="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
-            <div class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm" aria-label="Filter periode laporan">
+            <div class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm" aria-label="Filter periode laporan">
                 <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:px-6">
                     <div>
                         <h2 class="text-base font-semibold text-kazain-text">Periode laporan</h2>
@@ -75,7 +75,7 @@
                         @if ($startDate || $endDate)
                             <a
                                 href="{{ route($salesReportRoute) }}"
-                                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-white px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
+                                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
                             >
                                 Reset
                             </a>
@@ -84,7 +84,7 @@
                 </form>
             </div>
 
-            <article class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+            <article class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
                 <div class="flex h-full items-start justify-between gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Total pendapatan lunas</p>
