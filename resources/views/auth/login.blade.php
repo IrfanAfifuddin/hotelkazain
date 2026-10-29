@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f4f3ef">
+    <meta name="theme-color" content="#d1d5db">
     <title>Masuk — Kazain Hotel</title>
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="min-h-screen bg-kazain-neutral font-sans text-kazain-text antialiased">
+<body class="min-h-screen bg-gray-300 font-sans text-kazain-text antialiased">
     <main class="flex min-h-screen items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
         <section class="login-card grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-[1.75rem] bg-white shadow-[0_28px_80px_-36px_rgba(29,47,37,0.3)] lg:min-h-[620px] lg:grid-cols-2">
             <aside class="login-panel relative isolate flex items-center justify-between gap-4 overflow-hidden px-5 py-4 text-white lg:min-h-[620px] lg:flex-col lg:items-stretch lg:px-12 lg:py-12">

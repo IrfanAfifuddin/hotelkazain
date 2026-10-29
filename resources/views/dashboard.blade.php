@@ -49,7 +49,7 @@
         <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan hotel">
 
             {{-- Total Kamar Tersedia --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Kamar tersedia</p>
                     <p id="stat-available" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $availableCount }}</p>
@@ -57,7 +57,7 @@
             </a>
 
             {{-- Total Kamar Terisi --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
                     <p id="stat-occupied" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $occupiedCount }}</p>
@@ -65,7 +65,7 @@
             </a>
 
             {{-- Check-in Hari Ini --}}
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Check-in hari ini</p>
                     <p id="stat-checkin" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckInCount }}</p>
@@ -73,7 +73,7 @@
             </a>
 
             {{-- Check-out Hari Ini --}}
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-white p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Check-out hari ini</p>
                     <p id="stat-checkout" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckOutCount }}</p>
@@ -83,7 +83,7 @@
         </section>
 
         {{-- Pemesanan Terbaru --}}
-        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
             <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                     <div class="flex items-center gap-2.5">
@@ -169,7 +169,7 @@
             <div class="relative my-4 flex max-h-[calc(100vh-2rem)] w-full transform flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface text-left shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] transition-all sm:my-8 sm:max-w-4xl">
 
                 {{-- Modal Header --}}
-                <div class="flex shrink-0 items-center justify-between border-b border-kazain-border bg-white px-5 py-4 sm:px-6">
+                <div class="flex shrink-0 items-center justify-between border-b border-kazain-border bg-gray-100 px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3]">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -208,7 +208,6 @@
                 <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6">
                     @csrf
                     <input type="hidden" name="payment_status" id="modal_payment_status_hidden" value="Paid">
-                    <input type="hidden" name="booking_status" id="modal_booking_status_hidden" value="Check-in">
 
                     {{-- Section 1: Data Customer --}}
                     <div>
@@ -227,7 +226,7 @@
                                     id="modal_customer_name"
                                     placeholder="Contoh: Budi Santoso"
                                     required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
@@ -239,7 +238,7 @@
                                     id="modal_phone_number"
                                     placeholder="Contoh: 081234567890"
                                     required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
@@ -250,7 +249,7 @@
                                     name="email"
                                     id="modal_email"
                                     placeholder="Contoh: budi@gmail.com"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
                         </div>
@@ -272,7 +271,7 @@
                                     id="modal_booking_type"
                                     required
                                     onchange="updateRoomCalculations()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Full Day" selected>Full Day (Sampai 12:00 Hari Berikutnya)</option>
                                     <option value="Short Time 5 Jam">Short Time (5 Jam)</option>
@@ -298,7 +297,7 @@
                                     id="modal_room_id"
                                     required
                                     onchange="updateRoomCalculations()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="">Pilih kamar tersedia</option>
                                     @forelse($availableRooms as $room)
@@ -351,7 +350,7 @@
                                     required
                                     onchange="validateDashboardCheckIn(this); updateRoomCalculations()"
                                     oninput="validateDashboardCheckIn(this)"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
 
@@ -377,48 +376,19 @@
                             <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0-8.25a60.07 60.07 0 0 1 15.797-2.101c.727-.198 1.453.342 1.453 1.096V6m-18 8.25h16.5m0 0a2.25 2.25 0 0 0 2.25-2.25V6m0 8.25a2.25 2.25 0 0 1-2.25 2.25m-16.5 0a2.25 2.25 0 0 0 2.25-2.25V6" />
                             </svg>
-                            <span>Pembayaran & Sumber</span>
+                            <span>Pembayaran</span>
                         </h4>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="modal_source" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Sumber pemesanan <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="source"
-                                    id="modal_source"
-                                    required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Offline" selected>Offline (Datang Langsung)</option>
-                                    <option value="WhatsApp">WhatsApp</option>
-                                    <option value="Website">Website</option>
-                                </select>
-                            </div>
                             <div>
                                 <label for="modal_payment_method" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></label>
                                 <select
                                     name="payment_method"
                                     id="modal_payment_method"
                                     required
-onchange="handlePaymentMethodChange()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Cash" selected>Cash / Tunai</option>
-                                    <option value="Virtual Account">Virtual Account</option>
-                                    <option value="Midtrans">Midtrans Snap</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="modal_payment_status" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pembayaran <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="payment_status"
-                                    id="modal_payment_status"
-                                    required
-                                    onchange="handlePaymentStatusChange()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Paid" selected>Lunas (Paid)</option>
-                                    <option value="Pending">Pending (DP / Belum)</option>
+                                    <option value="Transfer">Transfer Bank</option>
                                 </select>
                             </div>
 
@@ -428,11 +398,10 @@ onchange="handlePaymentMethodChange()"
                                     name="booking_status"
                                     id="modal_booking_status"
                                     required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-white focus:ring-4 focus:ring-kazain-primary/10"
+                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                                     <option value="Check-in" selected>Check-in (Tamu Langsung Masuk)</option>
-                                    <option value="Confirmed">Confirmed (Terkonfirmasi)</option>
-                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed (Reservasi)</option>
                                 </select>
                             </div>
                         </div>
@@ -456,7 +425,7 @@ onchange="handlePaymentMethodChange()"
                         <button
                             type="button"
                             onclick="closeCreateBookingModal()"
-                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-white px-5 text-sm font-semibold text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-5 text-sm font-semibold text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
                         >
                             Batal
                         </button>
@@ -481,7 +450,7 @@ onchange="handlePaymentMethodChange()"
     <div id="bookingSuccessModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" onclick="closeBookingSuccessModal()"></div>
         <div class="flex min-h-full items-center justify-center p-4 text-center">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-200">
+            <div class="relative transform overflow-hidden rounded-2xl bg-gray-100 p-6 text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-200">
                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
                     <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -651,37 +620,6 @@ onchange="handlePaymentMethodChange()"
         return valid;
     }
 
-    // Perubahan Status Pembayaran -> Sinkronkan Status Pemesanan
-    function handlePaymentStatusChange() {
-        const paymentStatus = document.getElementById('modal_payment_status').value;
-        const bookingStatusSelect = document.getElementById('modal_booking_status');
-        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
-        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
-
-        bookingStatusSelect.value = paymentStatus === 'Paid' ? 'Check-in' : 'Pending';
-        hiddenPaymentStatus.value = paymentStatus;
-        hiddenBookingStatus.value = bookingStatusSelect.value;
-    }
-
-    function handlePaymentMethodChange() {
-        const isMidtrans = document.getElementById('modal_payment_method').value === 'Midtrans';
-        const paymentStatusSelect = document.getElementById('modal_payment_status');
-        const bookingStatusSelect = document.getElementById('modal_booking_status');
-        const hiddenPaymentStatus = document.getElementById('modal_payment_status_hidden');
-        const hiddenBookingStatus = document.getElementById('modal_booking_status_hidden');
-
-        paymentStatusSelect.disabled = isMidtrans;
-        bookingStatusSelect.disabled = isMidtrans;
-
-        if (isMidtrans) {
-            paymentStatusSelect.value = 'Pending';
-            bookingStatusSelect.value = 'Pending';
-        }
-
-        hiddenPaymentStatus.value = paymentStatusSelect.value;
-        hiddenBookingStatus.value = bookingStatusSelect.value;
-    }
-
     // Perhitungan Realtime Tipe Kamar, Total Harga, dan Waktu Check-out
     function updateRoomCalculations() {
         const roomSelect = document.getElementById('modal_room_id');
@@ -788,12 +726,6 @@ onchange="handlePaymentMethodChange()"
             }
 
             // SUKSES
-            if (formData.get('payment_method') === 'Midtrans') {
-                const paymentBaseUrl = @json(auth()->user()->role === 'Admin' ? url('/admin/pemesanan') : url('/receptionist/pemesanan'));
-                window.location.href = `${paymentBaseUrl}/${encodeURIComponent(data.booking.id)}/payment`;
-                return;
-            }
-
             // 1. Reset form & tutup modal form
             const bookedRoomId = formData.get('room_id');
             const bookedBookingStatus = formData.get('booking_status');
@@ -815,8 +747,6 @@ onchange="handlePaymentMethodChange()"
                 if (statCheckin) statCheckin.textContent = data.stats.today_check_in;
                 if (statCheckout) statCheckout.textContent = data.stats.today_check_out;
             }
-
-            handlePaymentMethodChange();
 
             // 4. Perbarui tabel Pemesanan Terbaru di Dashboard
             if (data.booking) {

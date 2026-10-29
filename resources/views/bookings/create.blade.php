@@ -18,7 +18,7 @@
         </div>
     @endif
 
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm max-w-3xl">
+    <div class="bg-gray-100 border border-gray-200 rounded-xl p-6 shadow-sm max-w-3xl">
         <form action="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.store') : route('receptionist.pemesanan.store') }}" method="POST" class="space-y-6" onsubmit="return validateCheckInTime(document.getElementById('check_in_time'))">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -59,31 +59,21 @@
                     <p id="checkInError" class="hidden mt-1 text-xs text-red-600"></p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Sumber Pemesanan *</label>
-                    <select name="source" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm">
-                        <option value="Offline">Offline (Datang Langsung)</option>
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="Website">Website</option>
-                    </select>
-                </div>
-                <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Metode Pembayaran *</label>
                     <select name="payment_method" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm">
                         <option value="Cash">Cash / Tunai</option>
-                        <option value="Transfer">Transfer</option>
-                        <option value="Virtual Account">Virtual Account</option>
-                        <option value="Midtrans">Midtrans Snap</option>
+                        <option value="Transfer">Transfer Bank</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Status Pembayaran *</label>
-                    <select name="payment_status" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm">
-                        <option value="Pending" selected>Pending</option>
-                        <option value="Paid">Paid</option>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Status Pemesanan *</label>
+                    <select name="booking_status" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+                        <option value="Confirmed" {{ old('booking_status', 'Confirmed') == 'Confirmed' ? 'selected' : '' }}>Confirmed (Reservasi)</option>
+                        <option value="Check-in" {{ old('booking_status') == 'Check-in' ? 'selected' : '' }}>Check-in (Tamu Masuk)</option>
                     </select>
                 </div>
             </div>
-            <input type="hidden" name="booking_status" value="Pending">
+
             <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
                 <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</a>
                 <button type="submit" class="px-5 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition">Simpan Pemesanan</button>

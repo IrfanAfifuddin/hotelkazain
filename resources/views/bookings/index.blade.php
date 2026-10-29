@@ -41,7 +41,7 @@
     @endif
 
     {{-- 1. KOMPONEN KALENDER PEMESANAN --}}
-    <section class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+    <section class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
         {{-- Kalender Header & Legenda --}}
         <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 md:flex-row md:items-center md:justify-between sm:px-6">
             <div>
@@ -168,7 +168,7 @@
 
     {{-- 2. TABEL DATA PEMESANAN --}}
     {{-- Search & Filter Bar --}}
-    <div class="rounded-2xl border border-kazain-border bg-white p-4 shadow-sm sm:p-5">
+    <div class="rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm sm:p-5">
         <form action="{{ route($bookingIndexRoute) }}" method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div class="relative min-w-0 flex-1">
                 <input
@@ -188,13 +188,13 @@
                 Cari
             </button>
             @if($search)
-                <a href="{{ route($bookingIndexRoute) }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-white px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">Reset</a>
+                <a href="{{ route($bookingIndexRoute) }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">Reset</a>
             @endif
         </form>
     </div>
 
     {{-- Tabel Pemesanan --}}
-    <section class="overflow-hidden rounded-2xl border border-kazain-border bg-white shadow-sm">
+    <section class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
         <div class="flex flex-col gap-2 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
                 <div class="flex items-center gap-2.5">
@@ -296,7 +296,7 @@
                                             Bayar
                                         </a>
                                     @endif
-                                    <a href="{{ $isAdmin ? route('admin.pemesanan.edit', $b->id) : route('receptionist.pemesanan.edit', $b->id) }}" aria-label="Edit pemesanan {{ $b->booking_code }}" title="Edit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-kazain-border bg-white text-kazain-muted transition hover:border-[#cbd8cd] hover:bg-[#f4f5f1] hover:text-kazain-primary focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
+                                    <a href="{{ $isAdmin ? route('admin.pemesanan.edit', $b->id) : route('receptionist.pemesanan.edit', $b->id) }}" aria-label="Edit pemesanan {{ $b->booking_code }}" title="Edit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-kazain-border bg-gray-50 text-kazain-muted transition hover:border-[#cbd8cd] hover:bg-[#f4f5f1] hover:text-kazain-primary focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 2.651 2.651m-1.414-4.065a2.25 2.25 0 0 1 3.182 3.182L8.25 22.286l-4.5 1.125 1.125-4.5L19.099 3.073Z" />
                                         </svg>
@@ -339,7 +339,7 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex gap-3">
-                        <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-white px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1]">
+                        <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1]">
                             Batal
                         </button>
                         <button type="submit" class="min-h-11 flex-1 rounded-xl bg-[#975b50] px-4 text-sm font-semibold text-white transition hover:bg-[#844a40]">
@@ -501,7 +501,7 @@
             cellClasses += ' border-[#c9b887] bg-[#f7f3e8] font-bold text-kazain-primary hover:bg-[#f0e8d3]';
         } else if (isCurrentMonth) {
             // Current Month
-            cellClasses += ' border-kazain-border bg-white text-kazain-text hover:border-[#b9c9bc] hover:bg-[#f7f8f5]';
+            cellClasses += ' border-kazain-border bg-gray-50 text-kazain-text hover:border-[#b9c9bc] hover:bg-[#f7f8f5]';
         } else {
             // Other Month
             cellClasses += ' border-kazain-border/60 bg-kazain-surface text-kazain-muted/50 hover:bg-[#f4f5f1]';
@@ -617,7 +617,7 @@
         if (bookings.length === 0) {
             // Empty State
             container.innerHTML = `
-                <div class="flex h-full min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-kazain-border bg-white/70 p-6 text-center">
+                <div class="flex h-full min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-kazain-border bg-gray-50/70 p-6 text-center">
                     <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#edf1ec] text-kazain-muted">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
@@ -643,7 +643,7 @@
                 : 'bg-amber-100 text-amber-800';
 
             const card = document.createElement('div');
-            card.className = 'space-y-2 rounded-xl border border-kazain-border bg-white p-3.5 text-xs shadow-sm transition hover:border-[#b9c9bc]';
+            card.className = 'space-y-2 rounded-xl border border-kazain-border bg-gray-50 p-3.5 text-xs shadow-sm transition hover:border-[#b9c9bc]';
 
             card.innerHTML = `
                 <div class="flex items-center justify-between gap-2 border-b border-kazain-border pb-2">
