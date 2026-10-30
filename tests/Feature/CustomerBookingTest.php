@@ -238,6 +238,24 @@ class CustomerBookingTest extends TestCase
         ]);
     }
 
+    public function test_booking_returns_service_unavailable_and_cancels_reservation_when_midtrans_server_key_is_missing(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        config()->set('services.midtrans.server_key', null);
+        Http::preventStrayRequests();
+        $room = $this->createRoom('110', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room));
+
+        $response->assertServiceUnavailable()
+            ->assertJsonPath('message', 'Pembayaran belum dapat dibuat. Silakan coba kembali.');
+        $this->assertDatabaseHas('bookings', [
+            'room_id' => $room->id,
+            'booking_status' => 'Cancelled',
+            'payment_status' => 'Failed',
+        ]);
+    }
+
     public function test_ambiguous_midtrans_connection_failure_keeps_temporary_room_hold(): void
     {
         $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
