@@ -192,7 +192,8 @@
             </div>
 
             {{-- Pilih kamar --}}
-            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(satu kamar per pemesanan)</span></h2>
+            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar</h2>
+            <p class="mt-1 text-sm text-gray-500">Anda dapat memesan lebih dari satu kamar dalam satu pemesanan.</p>
             <div id="roomCards" class="mt-4 space-y-4"></div>
 
             {{-- Total --}}
@@ -286,7 +287,6 @@
                 guests: 1,
                 quantities: Object.fromEntries(ROOM_TYPES.map((r) => [r.type, 0])),
                 availability: @json($availability),
-                selectedRoomId: null,
                 availabilityError: null,
                 availabilityRequestId: 0,
             };
@@ -360,6 +360,16 @@
                     text += ` (${date.getDate()} ${MONTHS_SHORT[date.getMonth()]})`;
                 }
                 return text;
+            }
+
+            // Jumlah kamar yang benar-benar tersedia per tipe untuk tanggal & jam terpilih
+            function availableCount(type) {
+                if (!state.selectedDate || state.availability?.date !== dateKey(state.selectedDate)) return 0;
+                return state.availability.data.filter((room) => room.room_type === type && room.is_available).length;
+            }
+
+            function resetRooms() {
+                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
             }
 
             const selectedRooms = () => ROOM_TYPES.filter((r) => state.quantities[r.type] > 0);
@@ -550,20 +560,19 @@
             function renderRooms() {
                 const info = state.selectedDate ? getDayInfo(state.selectedDate) : { remaining: {} };
                 const unit = state.bookingType === 'full' ? 'malam' : `${state.duration} jam`;
-                const selectedRoom = state.availability?.data.find((room) => room.room_id === state.selectedRoomId);
+                const needHour = state.bookingType === 'short' && state.hour === null;
 
                 el.roomCards.innerHTML = ROOM_TYPES.map((room) => {
                     const remaining = info.remaining[room.type] ?? 0;
                     const qty = state.quantities[room.type];
                     const selected = qty > 0;
-                    const availableRooms = state.availability?.date === dateKey(state.selectedDate)
-                        ? state.availability.data.filter((availableRoom) => availableRoom.room_type === room.type && availableRoom.is_available)
-                        : [];
-                    const soldOut = !availableRooms.length;
+                    const maxQty = availableCount(room.type);
+                    const soldOut = maxQty === 0;
 
                     let description = room.description;
                     if (soldOut) description = 'Tidak tersedia pada tanggal ini';
                     else if (remaining <= 2) description = `${room.description.split('·')[0].trim()} · hanya ${remaining} kamar tersedia`;
+                    if (!soldOut && needHour) description += ' · pilih jam check-in dulu';
 
                     const photos = ROOM_PHOTOS[room.type]?.length ? ROOM_PHOTOS[room.type] : (room.image ? [room.image] : []);
                     const photo = photos.length
@@ -601,14 +610,13 @@
                                 <div>
                                     <p class="text-gray-400">Harga / ${unit}</p>
                                     <p class="text-xl font-bold text-gray-900">${rupiah(room.prices[priceKey()])}</p>
-                                    ${selected && selectedRoom ? `<p class="mt-1 text-sm font-medium text-gray-700">Kamar ${selectedRoom.room_number}</p>` : ''}
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <span class="text-gray-400">Sisa: <strong class="text-gray-600">${remaining}</strong></span>
                                     <button type="button" data-room="${room.type}" data-action="minus" ${qty <= 0 ? 'disabled' : ''}
                                         class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Kurangi ${room.name}">&minus;</button>
                                     <span class="w-6 text-center text-lg font-semibold">${qty}</span>
-                                    <button type="button" data-room="${room.type}" data-action="plus" ${soldOut || (totalRoomsSelected() > 0 && !selected) || (state.bookingType === 'short' && state.hour === null) ? 'disabled' : ''}
+                                    <button type="button" data-room="${room.type}" data-action="plus" ${soldOut || needHour || qty >= maxQty ? 'disabled' : ''}
                                         class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Tambah ${room.name}">+</button>
                                 </div>
                             </div>
@@ -621,7 +629,7 @@
                 if (!state.selectedDate) return 'Pilih tanggal terlebih dahulu.';
                 if (state.bookingType === 'short' && state.hour === null) return 'Pilih jam check-in.';
                 if (totalRoomsSelected() === 0) return 'Pilih minimal satu kamar.';
-                if (!state.selectedRoomId) return 'Pilih kamar yang tersedia.';
+                if (ROOM_TYPES.some((r) => state.quantities[r.type] > availableCount(r.type))) return 'Jumlah kamar melebihi kamar yang tersedia.';
                 if (state.availabilityError) return state.availabilityError;
                 if (state.guests > totalCapacity()) return 'Jumlah tamu melebihi kapasitas kamar.';
                 return null;
@@ -631,7 +639,7 @@
                 const rooms = selectedRooms();
                 el.totalPrice.textContent = rupiah(totalPrice());
                 el.totalDetail.textContent = rooms.length
-                    ? `${rooms[0].short_name}${state.selectedRoomId ? ` (Kamar ${state.availability.data.find((room) => room.room_id === state.selectedRoomId)?.room_number ?? ''})` : ''} · ${durationText()}`
+                    ? `${rooms.map((r) => `${state.quantities[r.type]}× ${r.short_name}`).join(', ')} · ${durationText()}`
                     : 'Belum ada kamar dipilih';
 
                 const missing = getMissingStep();
@@ -666,8 +674,7 @@
             function selectDate(date) {
                 state.selectedDate = date;
                 state.hour = null;
-                state.selectedRoomId = null;
-                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                resetRooms();
                 refreshAvailability();
             }
 
@@ -699,10 +706,10 @@
                     }
 
                     state.availability = result;
-                    if (state.selectedRoomId && !result.data.some((room) => room.room_id === state.selectedRoomId && room.is_available)) {
-                        state.selectedRoomId = null;
-                        ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
-                    }
+                    // Kurangi jumlah kamar terpilih jika ketersediaan berubah
+                    ROOM_TYPES.forEach((room) => {
+                        state.quantities[room.type] = Math.min(state.quantities[room.type], availableCount(room.type));
+                    });
                 } catch (error) {
                     if (requestId !== state.availabilityRequestId) return;
                     state.availabilityError = error.message || 'Ketersediaan kamar gagal dimuat.';
@@ -744,8 +751,7 @@
                 card.addEventListener('click', () => {
                     state.bookingType = card.dataset.bookingType;
                     state.hour = null;
-                    state.selectedRoomId = null;
-                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    resetRooms();
                     refreshAvailability();
                     render();
                 });
@@ -756,8 +762,7 @@
                 if (next === state.nights) return;
                 state.nights = next;
                 // Kamar perlu dicek ulang untuk rentang malam yang baru
-                state.selectedRoomId = null;
-                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                resetRooms();
                 refreshAvailability();
                 render();
             }
@@ -768,8 +773,7 @@
                 btn.addEventListener('click', () => {
                     state.duration = Number(btn.dataset.duration);
                     state.hour = null;
-                    state.selectedRoomId = null;
-                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                    resetRooms();
                     refreshAvailability();
                     render();
                 });
@@ -779,8 +783,7 @@
                 const btn = e.target.closest('[data-hour]');
                 if (!btn) return;
                 state.hour = Number(btn.dataset.hour);
-                state.selectedRoomId = null;
-                ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
+                resetRooms();
                 refreshAvailability();
                 render();
             });
@@ -810,12 +813,9 @@
                 if (!btn || btn.disabled) return;
                 const type = btn.dataset.room;
                 if (btn.dataset.action === 'plus') {
-                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
-                    state.quantities[type] = 1;
-                    state.selectedRoomId = state.availability.data.find((room) => room.room_type === type && room.is_available)?.room_id ?? null;
+                    state.quantities[type] = Math.min(availableCount(type), state.quantities[type] + 1);
                 } else {
-                    state.quantities[type] = 0;
-                    state.selectedRoomId = null;
+                    state.quantities[type] = Math.max(0, state.quantities[type] - 1);
                 }
                 render();
             });
@@ -831,7 +831,6 @@
                 params.set('booking_type', state.bookingType === 'full' ? 'Full Day' : `Short Time ${state.duration} Jam`);
                 params.set('duration_hours', String(durationHours()));
                 params.set('guests', String(state.guests));
-                params.set('room_id', String(state.selectedRoomId));
                 selectedRooms().forEach((r) => params.set(`rooms[${r.type}]`, String(state.quantities[r.type])));
 
                 window.location.href = `${CHECKOUT_URL}?${params.toString()}`;
@@ -861,9 +860,10 @@
                         state.hour = hour;
                     }
                     state.selectedDate = d;
-                    state.selectedRoomId = Number(prev.get('room_id')) || null;
-                    const selectedType = ROOM_TYPES.find((room) => Number(prev.get(`rooms[${room.type}]`)) > 0);
-                    if (selectedType && state.selectedRoomId) state.quantities[selectedType.type] = 1;
+                    // Jumlah kamar dipulihkan, lalu disesuaikan dengan ketersediaan setelah data dimuat
+                    ROOM_TYPES.forEach((room) => {
+                        state.quantities[room.type] = Math.max(0, parseInt(prev.get(`rooms[${room.type}]`) || '0', 10));
+                    });
                     refreshAvailability();
                     state.viewYear = d.getFullYear();
                     state.viewMonth = d.getMonth();

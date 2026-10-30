@@ -206,7 +206,9 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         },
                         body: JSON.stringify({
-                            room_id: booking.roomId,
+                            // Banyak kamar dalam satu pemesanan, contoh: { "King": 2, "Twin": 1 }
+                            // (format ini perlu disepakati dengan backend)
+                            rooms: Object.fromEntries(booking.rooms.map((r) => [r.room.type, r.qty])),
                             customer_name: form.elements.customer_name.value.trim(),
                             phone_number: form.elements.phone_number.value.replace(/[\s-]/g, ''),
                             email: form.elements.email.value.trim(),
