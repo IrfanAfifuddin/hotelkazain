@@ -87,7 +87,7 @@
             <article class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
                 <div class="flex h-full items-start justify-between gap-4">
                     <div>
-                        <p class="text-sm font-medium text-kazain-muted">Total pendapatan lunas</p>
+                        <p class="text-sm font-medium text-kazain-muted">Total Pendapatan (Lunas)</p>
                         <p class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
                         <div class="mt-4 flex items-center gap-2 border-t border-kazain-border pt-4">
                             <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#edf1ec] text-kazain-primary">

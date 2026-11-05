@@ -14,7 +14,9 @@ class AdminReportTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Room $room;
+
     private Customer $customer;
 
     protected function setUp(): void
