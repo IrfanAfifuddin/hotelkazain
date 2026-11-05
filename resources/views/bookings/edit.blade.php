@@ -35,16 +35,20 @@
                 <p><strong class="text-kazain-text">Total Harga:</strong> Rp {{ number_format($booking->total_price, 0, ',', '.') }}</p>
             </div>
 
-            {{-- Room Selection --}}
-            <div>
-                <label class="block text-xs font-medium text-kazain-muted mb-1.5">Pilih Kamar *</label>
-                <select name="room_id" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
-                    @foreach($rooms as $room)
-                        <option value="{{ $room->id }}" {{ $booking->room_id == $room->id ? 'selected' : '' }}>
-                            Kamar {{ $room->room_number }} ({{ $room->room_type }})
-                        </option>
-                    @endforeach
-                </select>
+            {{-- Kamar yang Dipesan --}}
+            <div class="bg-kazain-surface border border-kazain-border rounded-xl p-4">
+                <label class="block text-xs font-medium text-kazain-muted mb-2">Kamar yang Dipesan</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    @forelse($booking->rooms as $room)
+                        <div class="rounded-lg bg-gray-50 p-2.5 text-center">
+                            <p class="font-semibold text-sm text-kazain-text">No. {{ $room->room_number }}</p>
+                            <p class="text-xs text-kazain-muted">{{ $room->room_type }}</p>
+                            <p class="text-xs text-kazain-primary mt-1">Rp {{ number_format($room->pivot->price, 0, ',', '.') }}</p>
+                        </div>
+                    @empty
+                        <p class="col-span-3 text-xs text-kazain-muted italic">-</p>
+                    @endforelse
+                </div>
             </div>
 
             {{-- Booking Status --}}

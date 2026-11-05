@@ -5,6 +5,11 @@
 @php
     $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
     $checkout = $booking->check_out_time->copy()->timezone('Asia/Jakarta');
+    
+    // Calculate total prices untuk multi-room
+    $total5Hours = $booking->rooms->sum(fn($r) => $r->price_5_hours);
+    $total8Hours = $booking->rooms->sum(fn($r) => $r->price_8_hours);
+    $totalFullDay = $booking->rooms->sum(fn($r) => $r->full_day_price);
 @endphp
 
 @section('content')
@@ -23,7 +28,7 @@
                 </div>
                 <div class="min-w-0 flex-1">
                     <h1 class="text-base font-semibold tracking-tight text-kazain-text">Extend Pemesanan Kamar</h1>
-                    <p class="mt-0.5 text-xs text-kazain-muted">Perpanjangan untuk {{ $booking->booking_code }} · Kamar {{ $booking->room->room_number }}</p>
+                    <p class="mt-0.5 text-xs text-kazain-muted">Perpanjangan untuk {{ $booking->booking_code }} · Kamar {{ $booking->rooms->pluck('room_number')->join(', ') }}</p>
                 </div>
             </header>
 
@@ -86,14 +91,14 @@
                                         <input class="sr-only" type="radio" name="duration_hours" value="5" checked>
                                         <span class="flex items-center justify-between gap-3">
                                             <span class="text-sm font-semibold text-kazain-text">5 Jam</span>
-                                            <span class="text-xs font-semibold text-kazain-primary">Rp {{ number_format($booking->room->price_5_hours, 0, ',', '.') }}</span>
+                                            <span class="text-xs font-semibold text-kazain-primary">Rp {{ number_format($total5Hours, 0, ',', '.') }}</span>
                                         </span>
                                     </label>
                                     <label class="cursor-pointer rounded-xl border border-kazain-border bg-gray-100 p-3 transition hover:border-kazain-primary/50 has-[:checked]:border-kazain-primary has-[:checked]:bg-[#edf1ec] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-kazain-primary/15">
                                         <input class="sr-only" type="radio" name="duration_hours" value="8">
                                         <span class="flex items-center justify-between gap-3">
                                             <span class="text-sm font-semibold text-kazain-text">8 Jam</span>
-                                            <span class="text-xs font-semibold text-kazain-primary">Rp {{ number_format($booking->room->price_8_hours, 0, ',', '.') }}</span>
+                                            <span class="text-xs font-semibold text-kazain-primary">Rp {{ number_format($total8Hours, 0, ',', '.') }}</span>
                                         </span>
                                     </label>
                                 </div>
@@ -141,8 +146,8 @@
                         <div class="h-9 border-l border-kazain-border"></div>
                         <div>
                             <p class="text-xs text-kazain-muted">Total biaya extend</p>
-                            <p id="summaryTotal" class="mt-0.5 text-lg font-semibold tracking-tight text-kazain-primary">Rp {{ number_format($booking->room->price_5_hours, 0, ',', '.') }}</p>
-                            <p id="summaryAmount" class="sr-only">Rp {{ number_format($booking->room->price_5_hours, 0, ',', '.') }}</p>
+                            <p id="summaryTotal" class="mt-0.5 text-lg font-semibold tracking-tight text-kazain-primary">Rp {{ number_format($total5Hours, 0, ',', '.') }}</p>
+                            <p id="summaryAmount" class="sr-only">Rp {{ number_format($total5Hours, 0, ',', '.') }}</p>
                         </div>
                     </div>
                     <div class="flex flex-col-reverse gap-3 sm:flex-row">
@@ -156,7 +161,7 @@
 
     @push('scripts')
         <script>
-            const prices = { five: {{ $booking->room->price_5_hours }}, eight: {{ $booking->room->price_8_hours }}, full: {{ $booking->room->full_day_price }} };
+            const prices = { five: {{ $total5Hours }}, eight: {{ $total8Hours }}, full: {{ $totalFullDay }} };
             const currentCheckOut = new Date('{{ $checkout->format('c') }}');
             const formatRupiah = amount => `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
             const formatDate = date => new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(date) + ' WIB';

@@ -228,9 +228,16 @@
                                 <p class="font-medium text-kazain-text">{{ $b->customer->customer_name ?? '-' }}</p>
                                 <p class="text-xs text-kazain-muted">{{ $b->customer->phone_number ?? '-' }}</p>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 font-medium text-kazain-text">
-                                Kamar {{ $b->room->room_number ?? '-' }}
-                                <span class="block text-xs text-kazain-muted">({{ $b->room->room_type ?? '-' }})</span>
+                            <td class="px-6 py-4 font-medium text-kazain-text">
+                                @if($b->rooms->count() > 1)
+                                    <span class="font-semibold">{{ $b->rooms->count() }} Kamar</span>
+                                    <span class="block text-xs text-kazain-muted">
+                                        No. {{ $b->rooms->pluck('room_number')->join(', ') }}
+                                    </span>
+                                @else
+                                    Kamar {{ $b->room->room_number ?? '-' }}
+                                    <span class="block text-xs text-kazain-muted">({{ $b->room->room_type ?? '-' }})</span>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted">{{ $b->booking_type }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted">{{ \Carbon\Carbon::parse($b->check_in_time)->format('d M Y H:i') }}</td>

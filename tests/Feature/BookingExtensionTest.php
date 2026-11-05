@@ -111,7 +111,7 @@ class BookingExtensionTest extends TestCase
 
     private function activeBooking(): Booking
     {
-        return Booking::create([
+        $booking = Booking::create([
             'room_id' => $this->room->id,
             'customer_id' => $this->customer->id,
             'booking_code' => 'KZN-100001',
@@ -122,5 +122,10 @@ class BookingExtensionTest extends TestCase
             'total_price' => 150000,
             'source' => 'Offline',
         ]);
+
+        // Attach room via pivot table for multi-room support
+        $booking->rooms()->attach($this->room->id, ['price' => 150000]);
+
+        return $booking;
     }
 }

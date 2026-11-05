@@ -66,22 +66,23 @@ class AdminDashboardBookingTest extends TestCase
         $response->assertSee('Tambah Pemesanan');
         $response->assertSee('id="createBookingModal"', false);
         $response->assertSee('id="modal_customer_name"', false);
-        $response->assertSee('id="modal_room_id"', false);
         $response->assertSee('id="modal_booking_type"', false);
         $response->assertSeeInOrder([
             'Data Customer',
             'Tipe dan Durasi',
             'Tipe durasi pemesanan',
             'Pilih Kamar',
-            'Pilih kamar tersedia',
+            'Pilih satu atau lebih kamar yang tersedia',
             'Jadwal Check-in & Check-out',
             'Waktu check-in',
             'Waktu check-out (otomatis)',
             'Pembayaran',
         ], false);
-        $response->assertSee('Kamar 101 — King Bed (Tersedia)');
-        // Kamar 102 yang Occupied tidak boleh ada di dropdown kamar tersedia
-        $response->assertDontSee('Kamar 102 — Twin Bed (Tersedia)');
+        // Multi-room checkbox UI - check room 101 is available
+        $response->assertSee('No. 101');
+        $response->assertSee('King Bed');
+        // Kamar 102 yang Occupied tidak boleh ada di list kamar tersedia
+        $response->assertDontSee('No. 102');
         $response->assertDontSee('<option value="QRIS">QRIS</option>', false);
     }
 
@@ -91,7 +92,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_name' => 'Ahmad Dani',
             'phone_number' => '081987654321',
             'email' => 'ahmad@example.com',
-            'room_id' => $this->room1->id,
+            'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Check-in',
@@ -113,8 +114,7 @@ class AdminDashboardBookingTest extends TestCase
                 'id',
                 'booking_code',
                 'customer_name',
-                'room_number',
-                'room_type',
+                'room_count',
                 'check_in_formatted',
                 'check_out_formatted',
                 'booking_status',
@@ -135,7 +135,6 @@ class AdminDashboardBookingTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $this->room1->id,
             'booking_status' => 'Check-in',
             'payment_status' => 'Paid',
             'total_price' => 150000,
@@ -157,7 +156,8 @@ class AdminDashboardBookingTest extends TestCase
         $payload = [
             'customer_name' => 'Pelanggan Lama Updated',
             'phone_number' => '081122334455',
-            'room_id' => $this->room1->id,
+            'email' => 'lama@example.com',
+            'room_ids' => [$this->room1->id],
             'booking_type' => 'Full Day',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
@@ -183,7 +183,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_name' => 'Ahmad Dani',
             'phone_number' => '081987654321',
             'email' => 'ahmad@example.com',
-            'room_id' => $this->room1->id,
+            'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Check-in',
@@ -224,7 +224,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_name' => 'Tamu Kedua',
             'phone_number' => '083333333333',
             'email' => 'tamu2@example.com',
-            'room_id' => $this->room1->id,
+            'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => (clone $checkIn)->addHours(2)->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
@@ -235,7 +235,7 @@ class AdminDashboardBookingTest extends TestCase
             ->postJson(route('admin.pemesanan.store'), $payloadOverlap);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['room_id']);
+        $response->assertJsonValidationErrors(['room_ids']);
     }
 
     public function test_validation_fails_when_required_fields_missing(): void
@@ -247,7 +247,8 @@ class AdminDashboardBookingTest extends TestCase
         $response->assertJsonValidationErrors([
             'customer_name',
             'phone_number',
-            'room_id',
+            'email',
+            'room_ids',
             'booking_type',
             'check_in_time',
             'booking_status',
@@ -261,7 +262,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_name' => 'Siti Aminah',
             'phone_number' => '085566778899',
             'email' => 'siti@example.com',
-            'room_id' => $this->room1->id,
+            'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 8 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
             'booking_status' => 'Confirmed',
