@@ -38,8 +38,8 @@
                         <input type="text" name="phone_number" value="{{ old('phone_number') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-kazain-muted mb-1.5">Email <span class="font-normal text-kazain-muted/70">(opsional)</span></label>
-                        <input type="email" name="email" value="{{ old('email') }}" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
+                        <label class="block text-xs font-medium text-kazain-muted mb-1.5">Email *</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                 </div>
             </div>
@@ -111,31 +111,26 @@
                 </div>
             </div>
 
-            {{-- No. & Tipe Kamar --}}
+            {{-- Pilih Kamar --}}
             <div class="space-y-4">
-                <h3 class="text-sm font-semibold text-kazain-text">No. & Tipe Kamar</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-kazain-muted mb-1.5">Pilih kamar tersedia *</label>
-                        <select name="room_id" id="room_id" required onchange="updateRoomPrice()" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
-                            <option value="">-- Pilih Kamar (0 tersedia) --</option>
-                            @foreach($rooms as $room)
-                                <option value="{{ $room->id }}" 
-                                    data-room-type="{{ $room->room_type }}"
-                                    data-price-5="{{ $room->price_5_hours }}"
-                                    data-price-8="{{ $room->price_8_hours }}"
-                                    data-price-full="{{ $room->full_day_price }}"
-                                    {{ old('room_id') == $room->id ? 'selected' : '' }}>
-                                    Kamar {{ $room->room_number }} — {{ $room->room_type }} Bed (Tersedia)
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-kazain-muted mb-1.5">Tipe kamar</label>
-                        <input type="text" id="room_type_display" readonly value="Pilih kamar terlebih dahulu" class="min-h-11 w-full cursor-not-allowed rounded-xl border border-kazain-border bg-gray-50 px-3.5 py-2.5 text-sm font-medium text-kazain-muted">
-                    </div>
+                <h3 class="text-sm font-semibold text-kazain-text">Pilih Kamar</h3>
+                <p class="text-xs text-kazain-muted">Pilih satu atau lebih kamar yang tersedia. Kamar dengan status "Cleaning" tersedia setelah 1 jam.</p>
+                <div id="rooms-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach($rooms as $room)
+                        <label class="room-card relative cursor-pointer rounded-xl border-2 border-kazain-border bg-kazain-surface p-3 transition hover:border-kazain-primary/40 hover:bg-gray-50" data-room-id="{{ $room->id }}" data-room-number="{{ $room->room_number }}" data-room-type="{{ $room->room_type }}" data-price-5="{{ $room->price_5_hours }}" data-price-8="{{ $room->price_8_hours }}" data-price-full="{{ $room->full_day_price }}" data-status="{{ $room->room_status }}">
+                            <input type="checkbox" name="room_ids[]" value="{{ $room->id }}" class="room-checkbox sr-only" onchange="updateRoomSelection()">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm font-semibold text-kazain-text">No. {{ $room->room_number }}</span>
+                                <div class="h-4 w-4 rounded border-2 border-kazain-border bg-white transition-colors room-check">
+                                    <svg class="hidden h-3 w-3 text-white mx-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                            <p class="text-xs text-kazain-muted">{{ $room->room_type }} Bed</p>
+                            <p class="text-xs mt-1 @if($room->room_status == 'Available') text-emerald-600 @elseif($room->room_status == 'Cleaning') text-amber-600 @else text-red-600 @endif">{{ $room->room_status }}</p>
+                        </label>
+                    @endforeach
                 </div>
+                <div id="selected-rooms-summary" class="mt-3 text-sm text-kazain-muted"></div>
             </div>
 
             {{-- Jumlah Orang & Kamar --}}
@@ -236,14 +231,80 @@
     let currentHourDuration = null; // 5 or 8 (for shorttime)
     let guestCount = 1;
     let roomCount = 1;
-    let currentRoomPrice = { price5: 0, price8: 0, priceFull: 0 };
+    let selectedRoomIds = [];
+    let roomPricesMap = {}; // Map room IDs to their prices
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        updateRoomPrice();
+        // Restore old selections if available
+        const oldRoomIds = @json(old('room_ids', []));
+        if (oldRoomIds.length > 0) {
+            oldRoomIds.forEach(id => {
+                const checkbox = document.querySelector(`input[name="room_ids[]"][value="${id}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+        
+        // Build room prices map
+        document.querySelectorAll('.room-card').forEach(card => {
+            const roomId = card.getAttribute('data-room-id');
+            roomPricesMap[roomId] = {
+                price5: parseFloat(card.getAttribute('data-price-5')) || 0,
+                price8: parseFloat(card.getAttribute('data-price-8')) || 0,
+                priceFull: parseFloat(card.getAttribute('data-price-full')) || 0,
+            };
+        });
+        
+        updateRoomSelection();
         calculateCheckOut();
         updateTotalPrice();
     });
+
+    function updateRoomSelection() {
+        selectedRoomIds = Array.from(document.querySelectorAll('input[name="room_ids[]"]:checked'))
+            .map(el => el.value);
+        
+        // Update UI for selected/unselected rooms
+        document.querySelectorAll('.room-card').forEach(card => {
+            const checkbox = card.querySelector('input[name="room_ids[]"]');
+            const isChecked = checkbox.checked;
+            const check = card.querySelector('.room-check');
+            
+            if (isChecked) {
+                card.classList.add('border-kazain-primary', 'bg-gray-50');
+                card.classList.remove('border-kazain-border');
+                check.classList.add('bg-kazain-primary', 'border-kazain-primary');
+                check.classList.remove('border-kazain-border', 'bg-white');
+                check.querySelector('svg').classList.remove('hidden');
+            } else {
+                card.classList.remove('border-kazain-primary', 'bg-gray-50');
+                card.classList.add('border-kazain-border');
+                check.classList.remove('bg-kazain-primary', 'border-kazain-primary');
+                check.classList.add('border-kazain-border', 'bg-white');
+                check.querySelector('svg').classList.add('hidden');
+            }
+        });
+        
+        // Update room count to match selected rooms
+        roomCount = Math.max(1, selectedRoomIds.length);
+        document.getElementById('room_count').textContent = roomCount;
+        document.getElementById('total_room_multiplier').textContent = roomCount;
+        
+        // Update summary
+        if (selectedRoomIds.length > 0) {
+            const roomNumbers = selectedRoomIds
+                .map(id => {
+                    const card = document.querySelector(`[data-room-id="${id}"]`);
+                    return 'No. ' + card.getAttribute('data-room-number');
+                })
+                .join(', ');
+            document.getElementById('selected-rooms-summary').textContent = `Kamar dipilih: ${roomNumbers}`;
+        } else {
+            document.getElementById('selected-rooms-summary').textContent = 'Pilih minimal 1 kamar';
+        }
+        
+        updateTotalPrice();
+    }
 
     function selectDurationType(type) {
         currentDurationType = type;
@@ -379,45 +440,31 @@
         updateTotalPrice();
     }
 
-    function updateRoomPrice() {
-        const roomSelect = document.getElementById('room_id');
-        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-        const roomTypeDisplay = document.getElementById('room_type_display');
-        
-        if (selectedOption && selectedOption.value) {
-            const roomType = selectedOption.getAttribute('data-room-type') || 'Standard';
-            roomTypeDisplay.value = roomType + ' Bed';
-            
-            currentRoomPrice.price5 = parseFloat(selectedOption.getAttribute('data-price-5')) || 0;
-            currentRoomPrice.price8 = parseFloat(selectedOption.getAttribute('data-price-8')) || 0;
-            currentRoomPrice.priceFull = parseFloat(selectedOption.getAttribute('data-price-full')) || 0;
-            
-            // Update price displays
-            document.getElementById('hour-5-price').textContent = 'Rp ' + currentRoomPrice.price5.toLocaleString('id-ID');
-            document.getElementById('hour-8-price').textContent = 'Rp ' + currentRoomPrice.price8.toLocaleString('id-ID');
-            document.getElementById('fullday-price').textContent = 'Rp ' + currentRoomPrice.priceFull.toLocaleString('id-ID') + ' / hari';
-        } else {
-            roomTypeDisplay.value = 'Pilih kamar terlebih dahulu';
-            currentRoomPrice = { price5: 0, price8: 0, priceFull: 0 };
-        }
-        
-        updateTotalPrice();
-    }
-
     function updateTotalPrice() {
-        let price = 0;
-        
-        if (currentDurationType === 'fullday') {
-            price = currentRoomPrice.priceFull;
-        } else if (currentDurationType === 'shorttime') {
-            if (currentHourDuration === '5') {
-                price = currentRoomPrice.price5;
-            } else if (currentHourDuration === '8') {
-                price = currentRoomPrice.price8;
-            }
+        if (selectedRoomIds.length === 0) {
+            document.getElementById('total_price_display').textContent = 'Rp 0';
+            return;
         }
         
-        const totalPrice = price * roomCount;
+        let totalPrice = 0;
+        
+        selectedRoomIds.forEach(roomId => {
+            const prices = roomPricesMap[roomId];
+            if (!prices) return;
+            
+            let roomPrice = 0;
+            if (currentDurationType === 'fullday') {
+                roomPrice = prices.priceFull;
+            } else if (currentDurationType === 'shorttime') {
+                if (currentHourDuration === '5') {
+                    roomPrice = prices.price5;
+                } else if (currentHourDuration === '8') {
+                    roomPrice = prices.price8;
+                }
+            }
+            totalPrice += roomPrice;
+        });
+        
         document.getElementById('total_price_display').textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
     }
 

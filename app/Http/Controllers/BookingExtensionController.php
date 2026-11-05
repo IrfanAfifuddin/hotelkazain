@@ -15,7 +15,7 @@ class BookingExtensionController extends Controller
 {
     public function create(Booking $booking): View
     {
-        $booking->load(['customer', 'room']);
+        $booking->load(['customer', 'rooms']);
 
         abort_unless($booking->booking_status === 'Check-in', 422, 'Hanya pemesanan aktif yang dapat diperpanjang.');
 
@@ -30,7 +30,7 @@ class BookingExtensionController extends Controller
             'payment_method' => 'required|in:Cash,Transfer',
         ]);
 
-        $booking->load('room');
+        $booking->load(['rooms', 'customer']);
         abort_unless($booking->booking_status === 'Check-in', 422, 'Hanya pemesanan aktif yang dapat diperpanjang.');
 
         $duration = (int) $validated['duration_hours'];
@@ -47,8 +47,10 @@ class BookingExtensionController extends Controller
             ? $checkoutBefore->copy()->addDay()->startOfDay()->addHours(12)
             : $checkoutBefore->copy()->addHours($duration);
 
+        // Check conflict untuk semua rooms dalam multi-room booking
+        $roomIds = $booking->rooms()->pluck('room_id')->toArray();
         $conflict = Booking::query()
-            ->where('room_id', $booking->room_id)
+            ->whereIn('room_id', $roomIds)
             ->where('id', '!=', $booking->id)
             ->whereIn('booking_status', ['Pending', 'Confirmed', 'Check-in'])
             ->where('check_in_time', '<', $checkoutAfter)
@@ -59,11 +61,24 @@ class BookingExtensionController extends Controller
             throw ValidationException::withMessages(['duration_hours' => 'Kamar tidak tersedia untuk durasi perpanjangan tersebut karena berbenturan dengan pemesanan lain.']);
         }
 
-        $amount = match ([$validated['extension_type'], $duration]) {
-            ['Short Time', 5] => $booking->room->price_5_hours,
-            ['Short Time', 8] => $booking->room->price_8_hours,
-            default => $booking->room->full_day_price,
+        // Calculate total extension amount untuk semua rooms (multi-room support)
+        $extensionRate = match ([$validated['extension_type'], $duration]) {
+            ['Short Time', 5] => 5 / 5,
+            ['Short Time', 8] => 8 / 8,
+            default => 24 / 24,
         };
+
+        $amount = $booking->rooms()
+            ->get()
+            ->reduce(function ($sum, $room) use ($validated) {
+                $roomPrice = match ([$validated['extension_type'], (int) $validated['duration_hours']]) {
+                    ['Short Time', 5] => $room->price_5_hours,
+                    ['Short Time', 8] => $room->price_8_hours,
+                    default => $room->full_day_price,
+                };
+
+                return $sum + $roomPrice;
+            }, 0);
 
         DB::transaction(function () use ($booking, $validated, $duration, $amount, $checkoutBefore, $checkoutAfter): void {
             $booking->update(['check_out_time' => $checkoutAfter]);

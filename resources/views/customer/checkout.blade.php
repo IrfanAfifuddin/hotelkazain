@@ -206,11 +206,11 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         },
                         body: JSON.stringify({
-                            room_id: booking.roomId,
+                            room_quantities: booking.roomQuantities,
                             customer_name: form.elements.customer_name.value.trim(),
                             phone_number: form.elements.phone_number.value.replace(/[\s-]/g, ''),
                             email: form.elements.email.value.trim(),
-                            booking_type: booking.isFull ? 'Full Day' : 'Short Time',
+                            booking_type: booking.bookingType,
                             check_in_date: booking.date,
                             check_in_time: booking.time,
                             duration_hours: booking.duration,

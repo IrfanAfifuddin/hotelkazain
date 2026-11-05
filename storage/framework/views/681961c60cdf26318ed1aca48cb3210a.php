@@ -6,9 +6,16 @@
         $availableRooms = $availableRooms ?? \App\Models\Room::where('room_status', 'Available')->orderBy('room_number')->get();
         $availableCount = $availableCount ?? $availableRooms->count();
         $occupiedCount = $occupiedCount ?? \App\Models\Room::where('room_status', 'Occupied')->count();
+        $cleaningCount = $cleaningCount ?? \App\Models\Room::where('room_status', 'Cleaning')->count();
+        $maintenanceCount = $maintenanceCount ?? \App\Models\Room::where('room_status', 'Maintenance')->count();
         $todayCheckInCount = $todayCheckInCount ?? \App\Models\Booking::whereDate('check_in_time', today())->count();
         $todayCheckOutCount = $todayCheckOutCount ?? \App\Models\Booking::whereDate('check_out_time', today())->count();
-        $recentBookings = $recentBookings ?? \App\Models\Booking::with(['customer', 'room'])->latest()->take(5)->get();
+        $recentBookings = $recentBookings ?? \App\Models\Booking::with(['customer', 'room'])
+            ->whereNotIn('booking_status', ['Check-out', 'Cancelled'])
+            ->where('check_out_time', '>', now())
+            ->orderBy('check_in_time', 'desc')
+            ->take(5)
+            ->get();
         $roomStatusRoute = auth()->user()->role === 'Admin' ? 'admin.status-kamar.index' : 'receptionist.status-kamar.index';
         $bookingIndexRoute = auth()->user()->role === 'Admin' ? 'admin.pemesanan.index' : 'receptionist.pemesanan.index';
     ?>
@@ -46,7 +53,7 @@
         </header>
 
         
-        <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan hotel">
+        <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-6" aria-label="Ringkasan hotel">
 
             
             <a href="<?php echo e(route($roomStatusRoute)); ?>" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
@@ -61,6 +68,22 @@
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
                     <p id="stat-occupied" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text"><?php echo e($occupiedCount); ?></p>
+                </div>
+            </a>
+
+            
+            <a href="<?php echo e(route($roomStatusRoute)); ?>" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+                <div>
+                    <p class="text-sm font-medium text-kazain-muted">Dibersihkan</p>
+                    <p id="stat-cleaning" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text"><?php echo e($cleaningCount); ?></p>
+                </div>
+            </a>
+
+            
+            <a href="<?php echo e(route($roomStatusRoute)); ?>" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+                <div>
+                    <p class="text-sm font-medium text-kazain-muted">Maintenance</p>
+                    <p id="stat-maintenance" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text"><?php echo e($maintenanceCount); ?></p>
                 </div>
             </a>
 
@@ -289,45 +312,24 @@
                             </svg>
                             <span>Pilih Kamar</span>
                         </h4>
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="modal_room_id" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Pilih kamar tersedia <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="room_id"
-                                    id="modal_room_id"
-                                    required
-                                    onchange="updateRoomCalculations()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="">Pilih kamar tersedia</option>
-                                    <?php $__empty_1 = true; $__currentLoopData = $availableRooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                        <option
-                                            value="<?php echo e($room->id); ?>"
-                                            data-room-number="<?php echo e($room->room_number); ?>"
-                                            data-room-type="<?php echo e($room->room_type); ?>"
-                                            data-price-5="<?php echo e($room->price_5_hours); ?>"
-                                            data-price-8="<?php echo e($room->price_8_hours); ?>"
-                                            data-price-full="<?php echo e($room->full_day_price); ?>"
-                                        >
-                                            Kamar <?php echo e($room->room_number); ?> — <?php echo e($room->room_type); ?> Bed (Tersedia)
-                                        </option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                        <option value="" disabled>Tidak ada kamar yang tersedia saat ini</option>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="modal_room_type_display" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe kamar</label>
-                                <input
-                                    type="text"
-                                    id="modal_room_type_display"
-                                    value="Pilih kamar terlebih dahulu"
-                                    readonly
-                                    class="min-h-10 w-full cursor-not-allowed rounded-xl border border-kazain-border bg-[#f4f5f1] px-3 py-2 text-sm font-medium text-kazain-muted"
-                                >
-                            </div>
+                        <p class="mb-3 text-xs text-kazain-muted">Pilih satu atau lebih kamar yang tersedia.</p>
+                        <div id="modal-rooms-container" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            <?php $__empty_1 = true; $__currentLoopData = $availableRooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <label class="modal-room-card relative cursor-pointer rounded-xl border-2 border-kazain-border bg-kazain-surface p-3 transition hover:border-kazain-primary/40 hover:bg-gray-50" data-room-id="<?php echo e($room->id); ?>" data-room-number="<?php echo e($room->room_number); ?>" data-room-type="<?php echo e($room->room_type); ?>" data-price-5="<?php echo e($room->price_5_hours); ?>" data-price-8="<?php echo e($room->price_8_hours); ?>" data-price-full="<?php echo e($room->full_day_price); ?>">
+                                    <input type="checkbox" name="room_ids[]" value="<?php echo e($room->id); ?>" class="modal-room-checkbox sr-only" onchange="updateModalRoomSelection()">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-semibold text-kazain-text">No. <?php echo e($room->room_number); ?></span>
+                                        <div class="h-4 w-4 rounded border-2 border-kazain-border bg-white transition-colors modal-room-check">
+                                            <svg class="hidden h-3 w-3 text-white mx-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-kazain-muted"><?php echo e($room->room_type); ?> Bed</p>
+                                </label>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                <p class="col-span-full text-xs text-kazain-muted text-center py-4">Tidak ada kamar yang tersedia saat ini</p>
+                            <?php endif; ?>
                         </div>
+                        <p id="modal-selected-rooms-summary" class="mt-3 text-xs text-kazain-muted"></p>
                     </div>
 
                     
@@ -620,38 +622,91 @@
         return valid;
     }
 
-    // Perhitungan Realtime Tipe Kamar, Total Harga, dan Waktu Check-out
+    // Multi-room selection state
+    let modalSelectedRoomIds = [];
+    let modalRoomPricesMap = {};
+
+    // Initialize room prices map on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal-room-card').forEach(card => {
+            const roomId = card.getAttribute('data-room-id');
+            modalRoomPricesMap[roomId] = {
+                price5: parseFloat(card.getAttribute('data-price-5')) || 0,
+                price8: parseFloat(card.getAttribute('data-price-8')) || 0,
+                priceFull: parseFloat(card.getAttribute('data-price-full')) || 0,
+            };
+        });
+        updateModalRoomSelection();
+    });
+
+    // Handle multi-room checkbox selection
+    function updateModalRoomSelection() {
+        modalSelectedRoomIds = Array.from(document.querySelectorAll('input[name="room_ids[]"]:checked'))
+            .map(el => el.value);
+
+        // Update UI for selected/unselected rooms
+        document.querySelectorAll('.modal-room-card').forEach(card => {
+            const checkbox = card.querySelector('input[name="room_ids[]"]');
+            const isChecked = checkbox.checked;
+            const check = card.querySelector('.modal-room-check');
+
+            if (isChecked) {
+                card.classList.add('border-kazain-primary', 'bg-gray-50');
+                card.classList.remove('border-kazain-border');
+                check.classList.add('bg-kazain-primary', 'border-kazain-primary');
+                check.classList.remove('border-kazain-border', 'bg-white');
+                check.querySelector('svg').classList.remove('hidden');
+            } else {
+                card.classList.remove('border-kazain-primary', 'bg-gray-50');
+                card.classList.add('border-kazain-border');
+                check.classList.remove('bg-kazain-primary', 'border-kazain-primary');
+                check.classList.add('border-kazain-border', 'bg-white');
+                check.querySelector('svg').classList.add('hidden');
+            }
+        });
+
+        // Update summary
+        const summaryEl = document.getElementById('modal-selected-rooms-summary');
+        if (modalSelectedRoomIds.length > 0) {
+            const roomNumbers = modalSelectedRoomIds
+                .map(id => {
+                    const card = document.querySelector(`.modal-room-card[data-room-id="${id}"]`);
+                    return 'No. ' + card.getAttribute('data-room-number');
+                })
+                .join(', ');
+            summaryEl.textContent = `Kamar dipilih: ${roomNumbers}`;
+        } else {
+            summaryEl.textContent = 'Pilih minimal 1 kamar';
+        }
+
+        updateRoomCalculations();
+    }
+
+    // Perhitungan Realtime Total Harga dan Waktu Check-out
     function updateRoomCalculations() {
-        const roomSelect = document.getElementById('modal_room_id');
-        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-        const roomTypeDisplay = document.getElementById('modal_room_type_display');
         const bookingType = document.getElementById('modal_booking_type').value;
         const checkInInput = document.getElementById('modal_check_in_time');
         const checkOutPreview = document.getElementById('modal_check_out_preview');
         const totalPriceDisplay = document.getElementById('modal_total_price_display');
 
-        // 1. Tipe Kamar & Harga
-        let price = 0;
-        if (selectedOption && selectedOption.value) {
-            const roomType = selectedOption.getAttribute('data-room-type') || 'Standard';
-            roomTypeDisplay.value = roomType + ' Bed';
+        // 1. Calculate total price from all selected rooms
+        let totalPrice = 0;
+        modalSelectedRoomIds.forEach(roomId => {
+            const prices = modalRoomPricesMap[roomId];
+            if (!prices) return;
 
-            const price5 = parseFloat(selectedOption.getAttribute('data-price-5')) || 0;
-            const price8 = parseFloat(selectedOption.getAttribute('data-price-8')) || 0;
-            const priceFull = parseFloat(selectedOption.getAttribute('data-price-full')) || 0;
-
+            let roomPrice = 0;
             if (bookingType === 'Short Time 5 Jam') {
-                price = price5;
+                roomPrice = prices.price5;
             } else if (bookingType === 'Short Time 8 Jam') {
-                price = price8;
+                roomPrice = prices.price8;
             } else {
-                price = priceFull;
+                roomPrice = prices.priceFull;
             }
-        } else {
-            roomTypeDisplay.value = 'Pilih kamar terlebih dahulu';
-        }
+            totalPrice += roomPrice;
+        });
 
-        totalPriceDisplay.textContent = 'Rp ' + price.toLocaleString('id-ID');
+        totalPriceDisplay.textContent = 'Rp ' + totalPrice.toLocaleString('id-ID');
 
         // 2. Waktu Check-out Otomatis
         if (checkInInput.value) {
@@ -727,9 +782,34 @@
 
             // SUKSES
             // 1. Reset form & tutup modal form
-            const bookedRoomId = formData.get('room_id');
+            const bookedRoomIds = modalSelectedRoomIds;
             const bookedBookingStatus = formData.get('booking_status');
+            
+            // Reset form fields
             form.reset();
+            modalSelectedRoomIds = [];
+            
+            // Reset display fields
+            document.getElementById('modal-selected-rooms-summary').textContent = 'Pilih minimal 1 kamar';
+            document.getElementById('modal_check_out_preview').value = '-';
+            document.getElementById('modal_total_price_display').textContent = 'Rp 0';
+            
+            // Uncheck all room checkboxes
+            document.querySelectorAll('input[name="room_ids[]"]').forEach(checkbox => {
+                checkbox.checked = false;
+                const card = checkbox.closest('.modal-room-card');
+                if (card) {
+                    card.classList.remove('border-kazain-primary', 'bg-gray-50');
+                    card.classList.add('border-kazain-border');
+                    const check = card.querySelector('.modal-room-check');
+                    if (check) {
+                        check.classList.remove('bg-kazain-primary', 'border-kazain-primary');
+                        check.classList.add('border-kazain-border', 'bg-white');
+                        check.querySelector('svg').classList.add('hidden');
+                    }
+                }
+            });
+            
             closeCreateBookingModal();
 
             // 2. Tampilkan modal konfirmasi sukses
@@ -753,12 +833,15 @@
                 insertNewBookingRow(data.booking);
             }
 
-            // 5. Jika kamar menjadi Occupied, hapus kamar dari dropdown modal
-            if (bookedBookingStatus === 'Check-in' && bookedRoomId) {
-                const roomOption = document.querySelector(`#modal_room_id option[value="${bookedRoomId}"]`);
-                if (roomOption) {
-                    roomOption.remove();
-                }
+            // 5. Remove booked rooms dari modal
+            if (bookedRoomIds.length > 0) {
+                bookedRoomIds.forEach(roomId => {
+                    const roomCard = document.querySelector(`.modal-room-card[data-room-id="${roomId}"]`);
+                    if (roomCard) {
+                        roomCard.remove();
+                        delete modalRoomPricesMap[roomId];
+                    }
+                });
             }
 
         } catch (error) {
@@ -832,6 +915,51 @@
 
         row.appendChild(cell);
     }
+
+    // Auto-refresh dashboard stats dan tabel booking setiap 30 detik
+    async function refreshDashboardStats() {
+        try {
+            const dashboardRoute = '<?php echo e(auth()->user()->role === "Admin" ? route("admin.dashboard") : route("receptionist.dashboard")); ?>';
+            const response = await fetch(dashboardRoute, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!response.ok) return;
+            
+            const html = await response.text();
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+            
+            // Update stats
+            const newAvailable = newDoc.getElementById('stat-available')?.textContent;
+            const newOccupied = newDoc.getElementById('stat-occupied')?.textContent;
+            const newCleaning = newDoc.getElementById('stat-cleaning')?.textContent;
+            const newMaintenance = newDoc.getElementById('stat-maintenance')?.textContent;
+            const newCheckin = newDoc.getElementById('stat-checkin')?.textContent;
+            const newCheckout = newDoc.getElementById('stat-checkout')?.textContent;
+            
+            if (newAvailable) document.getElementById('stat-available').textContent = newAvailable;
+            if (newOccupied) document.getElementById('stat-occupied').textContent = newOccupied;
+            if (newCleaning) document.getElementById('stat-cleaning').textContent = newCleaning;
+            if (newMaintenance) document.getElementById('stat-maintenance').textContent = newMaintenance;
+            if (newCheckin) document.getElementById('stat-checkin').textContent = newCheckin;
+            if (newCheckout) document.getElementById('stat-checkout').textContent = newCheckout;
+            
+            // Update tabel booking - hanya booking aktif
+            const newTbody = newDoc.getElementById('recentBookingsTableBody');
+            const currentTbody = document.getElementById('recentBookingsTableBody');
+            if (newTbody && currentTbody) {
+                currentTbody.innerHTML = newTbody.innerHTML;
+            }
+        } catch (error) {
+            console.error('Error refreshing dashboard stats:', error);
+        }
+    }
+
+    // Jalankan auto-refresh setiap 30 detik
+    setInterval(refreshDashboardStats, 30000);
 </script>
 <?php $__env->stopPush(); ?>
 

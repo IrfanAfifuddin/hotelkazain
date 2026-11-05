@@ -48,10 +48,13 @@ class AvailabilityService
                 $computedStatus = $room->computed_status;
                 $isAvailable = $computedStatus === 'Available' && ! $hasActiveBooking;
 
+                // Convert DB type to display name
+                $shortName = $room->room_type === 'King' ? 'King Bed' : $room->room_type.' Bed';
+
                 return [
                     'room_id' => $room->id,
                     'room_number' => $room->room_number,
-                    'room_type' => $room->room_type,
+                    'room_type' => $shortName,
                     'room_status' => $hasActiveBooking ? 'Booked' : $computedStatus,
                     'is_available' => $isAvailable,
                     'price_5_hours' => $room->price_5_hours,
@@ -97,7 +100,7 @@ class AvailabilityService
                 $shortName = $type === 'King' ? 'King Bed' : $type.' Bed';
 
                 return [
-                    'type' => $type,
+                    'type' => $shortName,
                     'name' => 'Kamar '.$shortName,
                     'short_name' => $shortName,
                     'description' => 'Kamar '.$type.' untuk 1–2 orang',

@@ -135,14 +135,14 @@ class CustomerBookingTest extends TestCase
             'customer_name' => 'Budi',
             'phone_number' => '081234567891',
             'email' => 'budi@example.com',
-            'booking_type' => 'Short Time',
+            'booking_type' => 'Short Time 5 Jam',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '15:00',
             'duration_hours' => 5,
         ]));
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.room_id.0', 'The selected room is not available for that time slot.');
+            ->assertJsonPath('errors.room_ids.0', 'Kamar No. 103 tidak tersedia untuk slot waktu tersebut.');
 
         $this->assertDatabaseCount('bookings', 1);
         $this->assertDatabaseMissing('customers', ['email' => 'budi@example.com']);
@@ -204,14 +204,14 @@ class CustomerBookingTest extends TestCase
         $room = $this->createRoom('105', 'King');
 
         $response = $this->postJson('/bookings', $this->bookingPayload($room, [
-            'booking_type' => 'Short Time',
+            'booking_type' => 'Short Time 5 Jam',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '14:00',
             'duration_hours' => 7,
         ]));
 
         $response->assertStatus(422)
-            ->assertJsonPath('errors.duration_hours.0', 'Short Time bookings must be 5 or 8 hours.');
+            ->assertJsonPath('errors.duration_hours.0', 'Duration must match booking type (5 hours).');
 
         $this->assertDatabaseCount('bookings', 0);
     }
@@ -232,7 +232,6 @@ class CustomerBookingTest extends TestCase
         $response->assertServiceUnavailable()
             ->assertJsonMissingPath('data.booking.booking_code');
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $room->id,
             'booking_status' => 'Cancelled',
             'payment_status' => 'Failed',
         ]);
@@ -250,7 +249,6 @@ class CustomerBookingTest extends TestCase
         $response->assertServiceUnavailable()
             ->assertJsonPath('message', 'Pembayaran belum dapat dibuat. Silakan coba kembali.');
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $room->id,
             'booking_status' => 'Cancelled',
             'payment_status' => 'Failed',
         ]);
@@ -269,7 +267,6 @@ class CustomerBookingTest extends TestCase
 
         $response->assertServiceUnavailable();
         $this->assertDatabaseHas('bookings', [
-            'room_id' => $room->id,
             'booking_status' => 'Pending',
             'payment_status' => 'Pending',
         ]);
@@ -305,7 +302,7 @@ class CustomerBookingTest extends TestCase
     private function bookingPayload(Room $room, array $overrides = []): array
     {
         return array_merge([
-            'room_id' => $room->id,
+            'room_ids' => [$room->id],
             'customer_name' => 'Andi',
             'phone_number' => '081234567890',
             'email' => 'andi@example.com',

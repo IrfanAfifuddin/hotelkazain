@@ -1,12 +1,10 @@
 <?php
-    // Tampilan email kode booking — memakai tabel & style inline agar rapi di Gmail/Outlook.
     $checkIn = $booking->check_in_time->copy()->locale('id');
     $checkOut = $booking->check_out_time->copy()->locale('id');
 
     if ($booking->booking_type === 'Full Day') {
         $durasi = max(1, (int) ceil($checkIn->diffInHours($checkOut) / 24)) . ' Malam';
     } else {
-        // Short Time: hitung dari selisih check-in & check-out (backend menyimpan booking_type = 'Short Time')
         $durasi = ($checkIn && $checkOut) ? round($checkIn->diffInMinutes($checkOut) / 60) . ' Jam' : '-';
     }
 
@@ -20,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kode Booking Kazain Hotel</title>
+    <title>Konfirmasi Pemesanan — <?php echo e($booking->booking_code); ?></title>
 </head>
 <body style="margin:0;padding:0;background:#F7F3EC;font-family:Arial,Helvetica,sans-serif;color:<?php echo e($ink); ?>;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F3EC;">
@@ -39,9 +37,9 @@
                     
                     <tr>
                         <td style="padding:32px 32px 8px;">
-                            <p style="margin:0;font-size:12px;letter-spacing:3px;color:<?php echo e($gold); ?>;text-transform:uppercase;font-weight:bold;">Pembayaran Berhasil</p>
+                            <p style="margin:0;font-size:12px;letter-spacing:3px;color:<?php echo e($gold); ?>;text-transform:uppercase;font-weight:bold;">Konfirmasi Pemesanan</p>
                             <h1 style="margin:10px 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:normal;color:<?php echo e($ink); ?>;">Terima kasih, <?php echo e($booking->customer->customer_name); ?></h1>
-                            <p style="margin:0;font-size:15px;line-height:1.6;color:<?php echo e($muted); ?>;">Pemesanan Anda di Kazain Hotel telah dikonfirmasi. Berikut kode booking dan detail pemesanan Anda.</p>
+                            <p style="margin:0;font-size:15px;line-height:1.6;color:<?php echo e($muted); ?>;">Pemesanan Anda di Kazain Hotel telah berhasil. Berikut detail pemesanan Anda.</p>
                         </td>
                     </tr>
 
@@ -60,26 +58,61 @@
                         </td>
                     </tr>
 
-                    
+                     
                     <tr>
                         <td style="padding:0 32px 8px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
-                                <?php $__currentLoopData = [
-                                    'Nama Pemesan' => $booking->customer->customer_name,
-                                    'Kamar' => $booking->room->room_type . ' Bed · No. ' . $booking->room->room_number,
-                                    'Check-in' => $checkIn->translatedFormat('l, d F Y, H:i') . ' WIB',
-                                    'Check-out' => $checkOut->translatedFormat('l, d F Y, H:i') . ' WIB',
-                                    'Durasi' => $durasi,
-                                    'Metode Pembayaran' => $booking->payment_method,
-                                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Nama Pemesan</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($booking->customer->customer_name); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Nomor Telepon</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($booking->customer->phone_number); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Tipe Pemesanan</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($booking->booking_type); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Check-in</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($checkIn->translatedFormat('l, d F Y, H:i')); ?> WIB</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Check-out</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($checkOut->translatedFormat('l, d F Y, H:i')); ?> WIB</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Durasi</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($durasi); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 0;color:<?php echo e($muted); ?>;">Metode Pembayaran</td>
+                                    <td style="padding:10px 0;text-align:right;"><?php echo e($booking->payment_method); ?></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    
+                    <tr>
+                        <td style="padding:16px 32px;">
+                            <p style="margin:0 0 10px;font-size:14px;font-weight:bold;color:<?php echo e($ink); ?>;">Kamar yang Dipesan:</p>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-left:3px solid <?php echo e($gold); ?>;">
+                                <?php $__currentLoopData = $booking->rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr>
-                                        <td style="padding:10px 0;border-bottom:1px solid <?php echo e($line); ?>;color:<?php echo e($muted); ?>;"><?php echo e($label); ?></td>
-                                        <td style="padding:10px 0;border-bottom:1px solid <?php echo e($line); ?>;text-align:right;"><?php echo e($value); ?></td>
+                                        <td style="padding:8px 0 8px 12px;">
+                                            <strong>No. <?php echo e($room->room_number); ?></strong> — <?php echo e($room->room_type); ?>
+
+                                            <br><span style="color:<?php echo e($muted); ?>;">Harga: Rp <?php echo e(number_format($room->pivot->price, 0, ',', '.')); ?></span>
+                                        </td>
                                     </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td style="padding:14px 0;font-weight:bold;">Total Dibayar <span style="font-weight:normal;font-size:12px;color:<?php echo e($muted); ?>;">(Lunas)</span></td>
-                                    <td style="padding:14px 0;text-align:right;font-size:18px;font-weight:bold;">Rp <?php echo e(number_format($booking->total_price, 0, ',', '.')); ?></td>
+                                    <td style="padding:14px 0 0 12px;border-top:1px dashed <?php echo e($line); ?>;">
+                                        <strong>Total Harga</strong>
+                                        <span style="float:right;font-size:18px;color:<?php echo e($gold); ?>;">Rp <?php echo e(number_format($booking->total_price, 0, ',', '.')); ?></span>
+                                    </td>
                                 </tr>
                             </table>
                         </td>
@@ -116,4 +149,5 @@
         </tr>
     </table>
 </body>
-</html><?php /**PATH D:\KULIAH\hotelkazain\resources\views/mail/booking-code.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH D:\KULIAH\hotelkazain\resources\views/mail/booking-confirmation.blade.php ENDPATH**/ ?>

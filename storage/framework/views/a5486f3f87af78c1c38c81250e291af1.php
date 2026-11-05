@@ -227,10 +227,18 @@
                                 <p class="font-medium text-kazain-text"><?php echo e($b->customer->customer_name ?? '-'); ?></p>
                                 <p class="text-xs text-kazain-muted"><?php echo e($b->customer->phone_number ?? '-'); ?></p>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 font-medium text-kazain-text">
-                                Kamar <?php echo e($b->room->room_number ?? '-'); ?>
+                            <td class="px-6 py-4 font-medium text-kazain-text">
+                                <?php if($b->rooms->count() > 1): ?>
+                                    <span class="font-semibold"><?php echo e($b->rooms->count()); ?> Kamar</span>
+                                    <span class="block text-xs text-kazain-muted">
+                                        No. <?php echo e($b->rooms->pluck('room_number')->join(', ')); ?>
 
-                                <span class="block text-xs text-kazain-muted">(<?php echo e($b->room->room_type ?? '-'); ?>)</span>
+                                    </span>
+                                <?php else: ?>
+                                    Kamar <?php echo e($b->room->room_number ?? '-'); ?>
+
+                                    <span class="block text-xs text-kazain-muted">(<?php echo e($b->room->room_type ?? '-'); ?>)</span>
+                                <?php endif; ?>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted"><?php echo e($b->booking_type); ?></td>
                             <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted"><?php echo e(\Carbon\Carbon::parse($b->check_in_time)->format('d M Y H:i')); ?></td>

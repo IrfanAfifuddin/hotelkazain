@@ -16,11 +16,14 @@ class StoreCustomerBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'room_id' => ['required', 'integer', 'exists:rooms,id'],
+            'room_ids' => ['sometimes', 'array'],
+            'room_ids.*' => ['integer', 'exists:rooms,id'],
+            'room_quantities' => ['sometimes', 'array'],
+            'room_quantities.*' => ['integer', 'min:1', 'max:12'],
             'customer_name' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:30', 'regex:/^[0-9+\-\s()]{8,30}$/'],
             'email' => ['required', 'email', 'max:255'],
-            'booking_type' => ['required', 'in:Short Time,Full Day'],
+            'booking_type' => ['required', 'in:Short Time 5 Jam,Short Time 8 Jam,Full Day'],
             'check_in_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'check_in_time' => ['required', 'date_format:H:i'],
             'duration_hours' => ['required', 'integer', 'min:1', 'max:720'],
@@ -40,6 +43,15 @@ class StoreCustomerBookingRequest extends FormRequest
                     return;
                 }
 
+                // Ensure at least one of room_ids or room_quantities is provided
+                $hasRoomIds = $this->has('room_ids') && !empty($this->input('room_ids'));
+                $hasRoomQuantities = $this->has('room_quantities') && !empty($this->input('room_quantities'));
+                
+                if (!$hasRoomIds && !$hasRoomQuantities) {
+                    $validator->errors()->add('room_ids', 'Either room_ids or room_quantities must be provided.');
+                    return;
+                }
+
                 $checkIn = CarbonImmutable::parse(
                     $this->string('check_in_date')->toString().' '.$this->string('check_in_time')->toString(),
                 );
@@ -53,8 +65,14 @@ class StoreCustomerBookingRequest extends FormRequest
                 $bookingType = $this->string('booking_type')->toString();
                 $durationHours = $this->integer('duration_hours');
 
-                if ($bookingType === 'Short Time' && ! in_array($durationHours, [5, 8], true)) {
-                    $validator->errors()->add('duration_hours', 'Short Time bookings must be 5 or 8 hours.');
+                if (str_starts_with($bookingType, 'Short Time')) {
+                    $expectedDuration = (int) preg_replace('/\D/', '', $bookingType);
+                    if (! in_array($expectedDuration, [5, 8], true)) {
+                        $validator->errors()->add('booking_type', 'Short Time must be 5 Jam or 8 Jam.');
+                    }
+                    if ($durationHours !== $expectedDuration) {
+                        $validator->errors()->add('duration_hours', "Duration must match booking type ($expectedDuration hours).");
+                    }
                 }
 
                 if ($bookingType === 'Full Day') {

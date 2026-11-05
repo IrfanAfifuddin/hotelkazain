@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
@@ -73,6 +74,11 @@ class Booking extends Model
     public function extensions(): HasMany
     {
         return $this->hasMany(BookingExtension::class);
+    }
+
+    public function rooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Room::class, 'booking_rooms')->withPivot('price')->withTimestamps();
     }
 
     public static function generateCode(): string

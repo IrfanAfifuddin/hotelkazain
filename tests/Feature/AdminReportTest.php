@@ -154,13 +154,16 @@ class AdminReportTest extends TestCase
         ]));
 
         $response->assertOk();
-        $content = $response->getContent();
+        $xlsxContent = $response->getContent();
+
+        // Extract worksheet XML from XLSX (ZIP)
+        $worksheetXml = $this->extractXlsxSheetXml($xlsxContent);
 
         // KZN-PAID-IN harus ada dalam worksheet
-        $this->assertStringContainsString('KZN-PAID-IN', $content);
+        $this->assertStringContainsString('KZN-PAID-IN', $worksheetXml);
         // KZN-PAID-OUT dan KZN-PENDING tidak boleh ada
-        $this->assertStringNotContainsString('KZN-PAID-OUT', $content);
-        $this->assertStringNotContainsString('KZN-PENDING', $content);
+        $this->assertStringNotContainsString('KZN-PAID-OUT', $worksheetXml);
+        $this->assertStringNotContainsString('KZN-PENDING', $worksheetXml);
     }
 
     public function test_export_handles_empty_transactions_gracefully(): void
@@ -176,6 +179,31 @@ class AdminReportTest extends TestCase
 
         $this->assertNotEmpty($content);
         $this->assertStringStartsWith("PK\x03\x04", $content);
-        $this->assertStringContainsString('Tidak ada data transaksi', $content);
+        $this->assertStringContainsString('Tidak ada data transaksi', $this->extractXlsxSheetXml($content));
+    }
+
+    private function extractXlsxSheetXml(string $xlsxContent): string
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        if ($tempFile === false) {
+            $this->fail('Failed to create temp file');
+        }
+
+        file_put_contents($tempFile, $xlsxContent);
+
+        $zip = new \ZipArchive;
+        if ($zip->open($tempFile) !== true) {
+            $this->fail('Failed to open XLSX ZIP');
+        }
+
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+        unlink($tempFile);
+
+        if ($sheetXml === false) {
+            $this->fail('Failed to read sheet1.xml from XLSX');
+        }
+
+        return $sheetXml;
     }
 }

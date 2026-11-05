@@ -192,7 +192,7 @@
             </div>
 
             {{-- Pilih kamar --}}
-            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(satu kamar per pemesanan)</span></h2>
+            <h2 class="mt-10 text-lg font-semibold text-gray-900">Pilih Kamar <span class="font-normal text-gray-500">(bisa pilih beberapa kamar)</span></h2>
             <div id="roomCards" class="mt-4 space-y-4"></div>
 
             {{-- Total --}}
@@ -286,7 +286,6 @@
                 guests: 1,
                 quantities: Object.fromEntries(ROOM_TYPES.map((r) => [r.type, 0])),
                 availability: @json($availability),
-                selectedRoomId: null,
                 availabilityError: null,
                 availabilityRequestId: 0,
             };
@@ -534,8 +533,9 @@
                 el.guestMinus.disabled = state.guests <= 1;
                 el.guestPlus.disabled = state.guests >= 10;
 
-                const capacity = totalCapacity();
-                if (totalRoomsSelected() === 0) {
+                const totalRooms = Object.values(state.quantities).reduce((sum, qty) => sum + qty, 0);
+                const capacity = totalRooms * 2; // Each room max 2 guests
+                if (totalRooms === 0) {
                     el.guestHint.className = 'mt-3 text-sm text-gray-500';
                     el.guestHint.textContent = 'Pilih kamar di bawah untuk melihat kapasitas';
                 } else if (state.guests > capacity) {
@@ -550,69 +550,71 @@
             function renderRooms() {
                 const info = state.selectedDate ? getDayInfo(state.selectedDate) : { remaining: {} };
                 const unit = state.bookingType === 'full' ? 'malam' : `${state.duration} jam`;
-                const selectedRoom = state.availability?.data.find((room) => room.room_id === state.selectedRoomId);
 
                 el.roomCards.innerHTML = ROOM_TYPES.map((room) => {
                     const remaining = info.remaining[room.type] ?? 0;
-                    const qty = state.quantities[room.type];
-                    const selected = qty > 0;
                     const availableRooms = state.availability?.date === dateKey(state.selectedDate)
                         ? state.availability.data.filter((availableRoom) => availableRoom.room_type === room.type && availableRoom.is_available)
                         : [];
                     const soldOut = !availableRooms.length;
+                    const selectedCount = state.quantities[room.type] || 0;
 
                     let description = room.description;
                     if (soldOut) description = 'Tidak tersedia pada tanggal ini';
                     else if (remaining <= 2) description = `${room.description.split('·')[0].trim()} · hanya ${remaining} kamar tersedia`;
 
-                    const photos = ROOM_PHOTOS[room.type]?.length ? ROOM_PHOTOS[room.type] : (room.image ? [room.image] : []);
+                    const roomDbType = room.type.split(' ')[0]; // "King Bed" -> "King", "Twin Bed" -> "Twin"
+                    const photos = ROOM_PHOTOS[roomDbType]?.length ? ROOM_PHOTOS[roomDbType] : (room.image ? [room.image] : []);
                     const photo = photos.length
-                        ? `<div class="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar" data-photo-track="${room.type}">
+                        ? `<div class="flex h-full overflow-x-auto snap-x snap-mandatory no-scrollbar" data-photo-track="${roomDbType}">
                                ${photos.map((src, i) => `<img src="${src}" alt="${room.name} – foto ${i + 1}" class="w-full h-full shrink-0 snap-center object-cover" loading="lazy">`).join('')}
                            </div>
                            ${photos.length > 1 ? `
-                           <button type="button" data-photo-nav="-1" data-photo-type="${room.type}" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto sebelumnya">
+                           <button type="button" data-photo-nav="-1" data-photo-type="${roomDbType}" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto sebelumnya">
                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
                            </button>
-                           <button type="button" data-photo-nav="1" data-photo-type="${room.type}" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto berikutnya">
+                           <button type="button" data-photo-nav="1" data-photo-type="${roomDbType}" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center" aria-label="Foto berikutnya">
                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
                            </button>
-                           <span class="absolute left-2 bottom-2 px-2 py-0.5 rounded bg-black/55 text-white text-xs font-semibold tabular-nums" data-photo-counter="${room.type}">${(photoIndex[room.type] || 0) + 1} / ${photos.length}</span>` : ''}`
+                           <span class="absolute left-2 bottom-2 px-2 py-0.5 rounded bg-black/55 text-white text-xs font-semibold tabular-nums" data-photo-counter="${roomDbType}">${(photoIndex[roomDbType] || 0) + 1} / ${photos.length}</span>` : ''}`
                         : `<span class="flex flex-col items-center justify-center gap-2 h-full text-gray-400">
                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
                                <span class="text-sm tracking-wider">FOTO</span>
                            </span>`;
 
                     return `
-                    <div class="border-2 rounded-lg p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-5 transition ${selected ? 'border-gray-900' : 'border-gray-200'} ${soldOut ? 'opacity-60' : ''}">
-                        <div class="relative w-full sm:w-72 h-52 sm:h-48 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-3">
+                    <div class="border-2 rounded-lg p-4 sm:p-5 transition ${selectedCount > 0 ? 'border-gray-900' : 'border-gray-200'} ${soldOut ? 'opacity-60' : ''}">
+                        <div class="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                            <div class="relative w-full sm:w-72 h-52 sm:h-48 shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">${photo}</div>
+                            <div class="flex-1 min-w-0">
                                 <div>
                                     <p class="text-lg font-semibold text-gray-900">${room.name}</p>
                                     <p class="text-gray-600">${description}</p>
                                 </div>
-                                ${selected ? `<span class="shrink-0 px-2.5 py-1 bg-gray-900 text-white text-xs font-semibold rounded">${qty} dipilih</span>` : ''}
-                            </div>
-                            <div class="mt-2 flex flex-wrap gap-1.5">
-                                ${room.facilities.map((f) => `<span class="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">${f}</span>`).join('')}
-                            </div>
-                            <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-end justify-between gap-3">
-                                <div>
+                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                    ${room.facilities.map((f) => `<span class="px-2.5 py-1 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">${f}</span>`).join('')}
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-gray-100">
                                     <p class="text-gray-400">Harga / ${unit}</p>
                                     <p class="text-xl font-bold text-gray-900">${rupiah(room.prices[priceKey()])}</p>
-                                    ${selected && selectedRoom ? `<p class="mt-1 text-sm font-medium text-gray-700">Kamar ${selectedRoom.room_number}</p>` : ''}
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-gray-400">Sisa: <strong class="text-gray-600">${remaining}</strong></span>
-                                    <button type="button" data-room="${room.type}" data-action="minus" ${qty <= 0 ? 'disabled' : ''}
-                                        class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Kurangi ${room.name}">&minus;</button>
-                                    <span class="w-6 text-center text-lg font-semibold">${qty}</span>
-                                    <button type="button" data-room="${room.type}" data-action="plus" ${soldOut || (totalRoomsSelected() > 0 && !selected) || (state.bookingType === 'short' && state.hour === null) ? 'disabled' : ''}
-                                        class="w-10 h-10 border border-gray-300 rounded-md text-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Tambah ${room.name}">+</button>
                                 </div>
                             </div>
                         </div>
+                        ${!soldOut && availableRooms.length > 0 ? `
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <p class="text-sm font-medium text-gray-700 mb-3">Jumlah kamar (tersedia: ${availableRooms.length})</p>
+                            <div class="flex items-center gap-3">
+                                <button type="button" data-room-type="${room.type}" data-action="decrease" class="quantity-btn flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition" ${state.quantities[room.type] === 0 ? 'disabled' : ''}>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 12h14"/></svg>
+                                </button>
+                                <span class="quantity-display text-xl font-semibold text-gray-900 w-12 text-center">${state.quantities[room.type] || 0}</span>
+                                <button type="button" data-room-type="${room.type}" data-action="increase" class="quantity-btn flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition" ${state.quantities[room.type] >= availableRooms.length ? 'disabled' : ''}>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14m7-7H5"/></svg>
+                                </button>
+                                <span class="text-sm text-gray-500 ml-2">kamar</span>
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>`;
                 }).join('');
             }
@@ -620,18 +622,30 @@
             function getMissingStep() {
                 if (!state.selectedDate) return 'Pilih tanggal terlebih dahulu.';
                 if (state.bookingType === 'short' && state.hour === null) return 'Pilih jam check-in.';
-                if (totalRoomsSelected() === 0) return 'Pilih minimal satu kamar.';
-                if (!state.selectedRoomId) return 'Pilih kamar yang tersedia.';
+                const totalQuantity = Object.values(state.quantities).reduce((sum, q) => sum + q, 0);
+                if (totalQuantity === 0) return 'Pilih minimal satu kamar.';
                 if (state.availabilityError) return state.availabilityError;
-                if (state.guests > totalCapacity()) return 'Jumlah tamu melebihi kapasitas kamar.';
+                // Capacity check: each room max 2 guests, total capacity = num rooms * 2
+                if (state.guests > totalQuantity * 2) return 'Jumlah tamu melebihi kapasitas kamar.';
                 return null;
             }
 
             function renderTotal() {
-                const rooms = selectedRooms();
-                el.totalPrice.textContent = rupiah(totalPrice());
-                el.totalDetail.textContent = rooms.length
-                    ? `${rooms[0].short_name}${state.selectedRoomId ? ` (Kamar ${state.availability.data.find((room) => room.room_id === state.selectedRoomId)?.room_number ?? ''})` : ''} · ${durationText()}`
+                const totalQuantity = Object.values(state.quantities).reduce((sum, q) => sum + q, 0);
+                const totalPriceValue = ROOM_TYPES.reduce((sum, roomType) => {
+                    const quantity = state.quantities[roomType.type] || 0;
+                    const price = roomType.prices[priceKey()] || 0;
+                    return sum + price * quantity;
+                }, 0) * (state.bookingType === 'full' ? state.nights : 1);
+
+                const roomsDetail = ROOM_TYPES
+                    .filter(rt => (state.quantities[rt.type] || 0) > 0)
+                    .map(rt => `${state.quantities[rt.type]} ${rt.type}`)
+                    .join(', ');
+
+                el.totalPrice.textContent = rupiah(totalPriceValue);
+                el.totalDetail.textContent = totalQuantity
+                    ? `${totalQuantity} kamar (${roomsDetail}) · ${durationText()}`
                     : 'Belum ada kamar dipilih';
 
                 const missing = getMissingStep();
@@ -666,7 +680,6 @@
             function selectDate(date) {
                 state.selectedDate = date;
                 state.hour = null;
-                state.selectedRoomId = null;
                 ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
                 refreshAvailability();
             }
@@ -678,9 +691,6 @@
                 const params = new URLSearchParams({
                     date: dateKey(state.selectedDate),
                     booking_type: state.bookingType === 'full' ? 'Full Day' : 'Short Time',
-                    // Endpoint ketersediaan backend hanya menerima 5, 8, atau 24 jam.
-                    // Untuk Full Day lebih dari 1 malam, cek malam pertama di sini;
-                    // seluruh malam dicek ulang oleh backend saat pesanan disimpan.
                     duration_hours: state.bookingType === 'full' ? '24' : String(state.duration),
                 });
                 const hour = state.bookingType === 'full' ? 14 : state.hour;
@@ -699,10 +709,6 @@
                     }
 
                     state.availability = result;
-                    if (state.selectedRoomId && !result.data.some((room) => room.room_id === state.selectedRoomId && room.is_available)) {
-                        state.selectedRoomId = null;
-                        ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
-                    }
                 } catch (error) {
                     if (requestId !== state.availabilityRequestId) return;
                     state.availabilityError = error.message || 'Ketersediaan kamar gagal dimuat.';
@@ -744,7 +750,6 @@
                 card.addEventListener('click', () => {
                     state.bookingType = card.dataset.bookingType;
                     state.hour = null;
-                    state.selectedRoomId = null;
                     ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
                     refreshAvailability();
                     render();
@@ -756,7 +761,6 @@
                 if (next === state.nights) return;
                 state.nights = next;
                 // Kamar perlu dicek ulang untuk rentang malam yang baru
-                state.selectedRoomId = null;
                 ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
                 refreshAvailability();
                 render();
@@ -768,7 +772,6 @@
                 btn.addEventListener('click', () => {
                     state.duration = Number(btn.dataset.duration);
                     state.hour = null;
-                    state.selectedRoomId = null;
                     ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
                     refreshAvailability();
                     render();
@@ -779,7 +782,6 @@
                 const btn = e.target.closest('[data-hour]');
                 if (!btn) return;
                 state.hour = Number(btn.dataset.hour);
-                state.selectedRoomId = null;
                 ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
                 refreshAvailability();
                 render();
@@ -806,22 +808,25 @@
                     return;
                 }
 
-                const btn = e.target.closest('[data-room]');
-                if (!btn || btn.disabled) return;
-                const type = btn.dataset.room;
-                if (btn.dataset.action === 'plus') {
-                    ROOM_TYPES.forEach((room) => { state.quantities[room.type] = 0; });
-                    state.quantities[type] = 1;
-                    state.selectedRoomId = state.availability.data.find((room) => room.room_type === type && room.is_available)?.room_id ?? null;
-                } else {
-                    state.quantities[type] = 0;
-                    state.selectedRoomId = null;
+                // Handle quantity buttons
+                const quantityBtn = e.target.closest('.quantity-btn');
+                if (quantityBtn) {
+                    const roomType = quantityBtn.dataset.roomType;
+                    const action = quantityBtn.dataset.action;
+                    const availableRooms = state.availability?.data.filter(r => r.room_type === roomType && r.is_available) || [];
+                    const maxQuantity = availableRooms.length;
+                    
+                    if (action === 'increase') {
+                        state.quantities[roomType] = Math.min(maxQuantity, (state.quantities[roomType] || 0) + 1);
+                    } else if (action === 'decrease') {
+                        state.quantities[roomType] = Math.max(0, (state.quantities[roomType] || 0) - 1);
+                    }
+                    render();
+                    return;
                 }
-                render();
             });
 
             // Lanjut ke halaman Isi Data Diri.
-            // Nama parameter mengikuti kontrak di tests/Feature/CustomerBookingTest.php
             el.submitButton.addEventListener('click', () => {
                 if (getMissingStep()) return;
 
@@ -831,8 +836,13 @@
                 params.set('booking_type', state.bookingType === 'full' ? 'Full Day' : `Short Time ${state.duration} Jam`);
                 params.set('duration_hours', String(durationHours()));
                 params.set('guests', String(state.guests));
-                params.set('room_id', String(state.selectedRoomId));
-                selectedRooms().forEach((r) => params.set(`rooms[${r.type}]`, String(state.quantities[r.type])));
+                
+                // Pass quantities per room type
+                const quantitiesArray = ROOM_TYPES
+                    .filter(rt => (state.quantities[rt.type] || 0) > 0)
+                    .map(rt => `${rt.type}:${state.quantities[rt.type]}`)
+                    .join('|');
+                params.set('room_quantities', quantitiesArray);
 
                 window.location.href = `${CHECKOUT_URL}?${params.toString()}`;
             });
@@ -861,9 +871,18 @@
                         state.hour = hour;
                     }
                     state.selectedDate = d;
-                    state.selectedRoomId = Number(prev.get('room_id')) || null;
-                    const selectedType = ROOM_TYPES.find((room) => Number(prev.get(`rooms[${room.type}]`)) > 0);
-                    if (selectedType && state.selectedRoomId) state.quantities[selectedType.type] = 1;
+                    
+                    // Restore quantities from room_quantities parameter
+                    const quantitiesParam = prev.get('room_quantities');
+                    if (quantitiesParam) {
+                        quantitiesParam.split('|').forEach(item => {
+                            const [roomType, quantity] = item.split(':');
+                            if (roomType && quantity) {
+                                state.quantities[roomType] = parseInt(quantity, 10);
+                            }
+                        });
+                    }
+                    
                     refreshAvailability();
                     state.viewYear = d.getFullYear();
                     state.viewMonth = d.getMonth();

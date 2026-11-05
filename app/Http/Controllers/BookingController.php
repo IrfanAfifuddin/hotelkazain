@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
@@ -79,14 +82,16 @@ class BookingController extends Controller
 
     /**
      * Simpan pemesanan baru dengan pencegahan double booking yang ketat.
+     * Mendukung single room dan multiple room bookings.
      */
     public function store(Request $request)
     {
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'room_id' => 'required|exists:rooms,id',
+            'email' => 'required|email|max:255',
+            'room_ids' => 'required|array|min:1',
+            'room_ids.*' => 'required|integer|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'required|in:Confirmed,Check-in',
@@ -105,8 +110,9 @@ class BookingController extends Controller
             $checkOut = (clone $checkIn)->addDay()->startOfDay()->addHours(12);
         }
 
-        // Validasi Ketat Double Booking (Overlap waktu pada kamar yang sama)
-        $conflict = Booking::where('room_id', $request->room_id)
+        // Validasi Ketat Double Booking untuk semua kamar yang dipilih
+        $roomIds = array_unique($request->room_ids);
+        $conflicts = Booking::whereIn('room_id', $roomIds)
             ->whereIn('booking_status', ['Pending', 'Confirmed', 'Check-in'])
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->where(function ($q) use ($checkIn, $checkOut) {
@@ -114,72 +120,91 @@ class BookingController extends Controller
                         ->where('check_out_time', '>', $checkIn);
                 });
             })
-            ->exists();
+            ->pluck('room_id')
+            ->unique();
 
-        if ($conflict) {
+        if ($conflicts->count() > 0) {
+            $conflictRoomNumbers = Room::whereIn('id', $conflicts)->pluck('room_number')->join(', ');
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Kamar sudah dipesan atau tidak tersedia pada rentang waktu tersebut (Double Booking terdeteksi).',
+                    'message' => "Kamar {$conflictRoomNumbers} sudah dipesan atau tidak tersedia pada rentang waktu tersebut.",
                     'errors' => [
-                        'room_id' => ['Kamar sudah dipesan atau tidak tersedia pada rentang waktu tersebut (Double Booking terdeteksi).'],
+                        'room_ids' => ["Kamar {$conflictRoomNumbers} sudah dipesan atau tidak tersedia pada rentang waktu tersebut."],
                     ],
                 ], 422);
             }
 
-            return back()->withInput()->withErrors(['room_id' => 'Kamar sudah dipesan atau tidak tersedia pada rentang waktu tersebut (Double Booking terdeteksi).']);
+            return back()->withInput()->withErrors(['room_ids' => "Kamar {$conflictRoomNumbers} sudah dipesan atau tidak tersedia pada rentang waktu tersebut."]);
         }
 
-        return DB::transaction(function () use ($request, $checkIn, $checkOut) {
-            // Simpan / Buat Data Customer (hindari duplikat)
+        return DB::transaction(function () use ($request, $checkIn, $checkOut, $roomIds) {
+            // Simpan / Buat Data Customer
             $customer = Customer::firstOrCreate(
                 ['phone_number' => $request->phone_number],
                 [
                     'customer_name' => $request->customer_name,
-                    'email' => $request->email ?? strtolower(str_replace(' ', '', $request->customer_name)).'@guest.com',
+                    'email' => $request->email,
                 ]
             );
 
-            // Update nama customer jika nomor telepon sudah ada dan nama baru diberikan
-            if ($customer->customer_name !== $request->customer_name) {
-                $customer->update(['customer_name' => $request->customer_name]);
+            // Update nama dan email customer jika nomor telepon sudah ada
+            if ($customer->customer_name !== $request->customer_name || $customer->email !== $request->email) {
+                $customer->update([
+                    'customer_name' => $request->customer_name,
+                    'email' => $request->email,
+                ]);
             }
 
-            // Hitung total harga
-            $room = Room::findOrFail($request->room_id);
-            $totalPrice = match ($request->booking_type) {
-                'Short Time 5 Jam' => $room->price_5_hours,
-                'Short Time 8 Jam' => $room->price_8_hours,
-                'Full Day' => $room->full_day_price,
-                default => $room->full_day_price,
-            };
+            // Fetch semua kamar dan hitung total harga
+            $rooms = Room::whereIn('id', $roomIds)->get();
+            $totalPrice = 0;
+            $roomPrices = [];
 
-            $isMidtransPayment = false;
-            $paymentStatus = 'Paid';
-            $bookingStatus = $request->booking_status;
+            foreach ($rooms as $room) {
+                $roomPrice = match ($request->booking_type) {
+                    'Short Time 5 Jam' => $room->price_5_hours,
+                    'Short Time 8 Jam' => $room->price_8_hours,
+                    'Full Day' => $room->full_day_price,
+                    default => 0,
+                };
+                $totalPrice += $roomPrice;
+                $roomPrices[$room->id] = $roomPrice;
+            }
+
+            // Gunakan room_id pertama untuk backward compatibility
+            $primaryRoomId = $roomIds[0];
 
             $booking = Booking::create([
-                'room_id' => $room->id,
+                'room_id' => $primaryRoomId,
                 'customer_id' => $customer->id,
                 'booking_code' => Booking::generateCode(),
                 'booking_type' => $request->booking_type,
                 'check_in_time' => $checkIn,
                 'check_out_time' => $checkOut,
-                'booking_status' => $bookingStatus,
+                'booking_status' => $request->booking_status,
                 'payment_method' => $request->payment_method,
-                'payment_status' => $paymentStatus,
+                'payment_status' => 'Paid',
                 'payment_time' => now(),
                 'payment_expires_at' => null,
-                'total_price' => $totalPrice,
+                'total_price' => (int) $totalPrice,
                 'source' => 'Offline',
             ]);
 
-            // Jika status booking adalah Check-in, sinkronkan status kamar menjadi Occupied
-            if ($bookingStatus === 'Check-in') {
-                $room->update(['room_status' => 'Occupied']);
+            // Simpan pivot records untuk semua kamar
+            foreach ($rooms as $room) {
+                $booking->rooms()->attach($room->id, ['price' => $roomPrices[$room->id]]);
             }
 
+            // Jika status booking adalah Check-in, sinkronkan status kamar menjadi Occupied
+            if ($request->booking_status === 'Check-in') {
+                Room::whereIn('id', $roomIds)->update(['room_status' => 'Occupied']);
+            }
+
+            // Kirim email konfirmasi
+            $this->sendBookingConfirmation($booking, $customer);
+
             if ($request->expectsJson()) {
-                $booking->load(['customer', 'room']);
+                $booking->load(['customer', 'rooms']);
 
                 return response()->json([
                     'success' => true,
@@ -189,8 +214,7 @@ class BookingController extends Controller
                         'id' => $booking->id,
                         'booking_code' => $booking->booking_code,
                         'customer_name' => $customer->customer_name,
-                        'room_number' => $room->room_number,
-                        'room_type' => $room->room_type,
+                        'room_count' => $booking->rooms()->count(),
                         'check_in_formatted' => $booking->check_in_time->format('d M Y H:i'),
                         'check_out_formatted' => $booking->check_out_time->format('d M Y H:i'),
                         'booking_status' => $booking->booking_status,
@@ -227,37 +251,31 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $request->validate([
-            'room_id' => 'required|exists:rooms,id',
             'booking_status' => 'required|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
             'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
         ]);
 
         return DB::transaction(function () use ($request, $booking) {
-            $oldRoomId = $booking->room_id;
-            $newRoomId = $request->room_id;
             $oldStatus = $booking->booking_status;
             $newStatus = $request->booking_status;
 
             $booking->update([
-                'room_id' => $newRoomId,
                 'booking_status' => $newStatus,
                 'payment_status' => $request->payment_status,
                 'payment_time' => ($request->payment_status === 'Paid' && ! $booking->payment_time) ? now() : $booking->payment_time,
             ]);
 
-            // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking
-            $room = Room::findOrFail($newRoomId);
+            // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking (multi-room)
+            $roomIds = $booking->rooms()->pluck('room_id')->toArray();
 
             if ($newStatus === 'Check-in') {
-                $room->update(['room_status' => 'Occupied']);
+                Room::whereIn('id', $roomIds)->update(['room_status' => 'Occupied']);
             } elseif ($newStatus === 'Check-out') {
-                $room->update(['room_status' => 'Cleaning']);
-                // Jika pindah kamar, kamar lama set ke Cleaning juga
-                if ($oldRoomId != $newRoomId) {
-                    Room::where('id', $oldRoomId)->update(['room_status' => 'Cleaning']);
-                }
+                // Checkout → Available langsung
+                Room::whereIn('id', $roomIds)->update(['room_status' => 'Available']);
             } elseif (in_array($newStatus, ['Cancelled', 'Pending']) && $oldStatus === 'Check-in') {
-                $room->update(['room_status' => 'Cleaning']);
+                // Cancel dari Check-in → Available
+                Room::whereIn('id', $roomIds)->update(['room_status' => 'Available']);
             }
 
             $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
@@ -276,5 +294,23 @@ class BookingController extends Controller
         $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
 
         return redirect()->route($prefix.'.pemesanan.index')->with('success', 'Pemesanan berhasil dihapus.');
+    }
+
+    /**
+     * Kirim email konfirmasi booking.
+     */
+    private function sendBookingConfirmation(Booking $booking, Customer $customer): void
+    {
+        try {
+            Mail::to($customer->email)->send(
+                new BookingConfirmationMail($booking)
+            );
+        } catch (\Exception $e) {
+            Log::error('Email konfirmasi gagal terkirim', [
+                'booking_id' => $booking->id,
+                'email' => $customer->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
