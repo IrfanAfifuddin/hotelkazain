@@ -42,7 +42,7 @@ class BookingService
                     : $checkIn->addHours((int) $data['duration_hours']);
 
                 // Get available rooms for each type
-                $selectedRooms = [];
+                $selectedRooms = collect([]);
                 foreach ($roomQuantities as $roomType => $quantity) {
                     $quantity = (int) $quantity;
                     if ($quantity <= 0) continue;

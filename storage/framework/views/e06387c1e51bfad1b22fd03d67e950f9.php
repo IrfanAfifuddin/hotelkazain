@@ -15,12 +15,27 @@
             const p = new URLSearchParams(search);
             const date = p.get('check_in_date');
             const time = p.get('check_in_time');
-            const roomIdsParam = p.get('room_ids');
-            const roomIds = roomIdsParam ? roomIdsParam.split(',').map(Number).filter(id => id > 0) : [];
             const bookingType = p.get('booking_type');
             const guests = Math.max(1, parseInt(p.get('guests') || '1', 10));
 
-            if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time || !/^\d{2}:\d{2}$/.test(time) || !roomIds.length) return null;
+            // Parse room quantities (new format: "King Bed:2|Twin Bed:1")
+            const roomQuantitiesParam = p.get('room_quantities');
+            const roomQuantities = {};
+            let totalRooms = 0;
+            if (roomQuantitiesParam) {
+                roomQuantitiesParam.split('|').forEach(item => {
+                    const [roomType, quantity] = item.split(':');
+                    if (roomType && quantity) {
+                        const qty = parseInt(quantity, 10);
+                        if (qty > 0) {
+                            roomQuantities[roomType] = qty;
+                            totalRooms += qty;
+                        }
+                    }
+                });
+            }
+
+            if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !time || !/^\d{2}:\d{2}$/.test(time) || totalRooms === 0) return null;
             if (!['Full Day', 'Short Time 5 Jam', 'Short Time 8 Jam'].includes(bookingType)) return null;
 
             const isFull = bookingType === 'Full Day';
@@ -40,15 +55,21 @@
                 end.setHours(end.getHours() + duration);
             }
 
+            // Build readable room description from quantities
+            const roomsDescription = Object.entries(roomQuantities)
+                .map(([type, qty]) => `${qty} ${type}`)
+                .join(', ');
+
             // Can't calculate exact total client-side without room details - server will calculate
             // Display placeholder until server response
             const total = 0;
 
             return {
                 query: p,
-                roomIds,
+                roomQuantities,
+                totalRooms,
                 date, time, bookingType, isFull, nights, duration, guests, start, end, total,
-                roomsText: `${roomIds.length} kamar dipilih`,
+                roomsText: `${totalRooms} kamar (${roomsDescription})`,
                 durationText: isFull ? `Full Day (${nights} malam)` : `${duration} Jam`,
                 image: null,
             };
@@ -57,7 +78,7 @@
         // Query string pemesanan saja (tanpa data pribadi) untuk diteruskan antarhalaman
         function bookingQuery(booking) {
             const q = new URLSearchParams();
-            ['check_in_date', 'check_in_time', 'booking_type', 'duration_hours', 'guests', 'room_ids'].forEach((k) => {
+            ['check_in_date', 'check_in_time', 'booking_type', 'duration_hours', 'guests', 'room_quantities'].forEach((k) => {
                 if (booking.query.get(k)) q.set(k, booking.query.get(k));
             });
             return q;
