@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,12 +59,12 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        $availableRooms = \App\Models\Room::where('room_status', 'Available')->orderBy('room_number')->get();
+        $availableRooms = Room::where('room_status', 'Available')->orderBy('room_number')->get();
         $availableCount = $availableRooms->count();
-        $occupiedCount = \App\Models\Room::where('room_status', 'Occupied')->count();
-        $todayCheckInCount = \App\Models\Booking::whereDate('check_in_time', today())->count();
-        $todayCheckOutCount = \App\Models\Booking::whereDate('check_out_time', today())->count();
-        $recentBookings = \App\Models\Booking::with(['customer', 'room'])->latest()->take(5)->get();
+        $occupiedCount = Room::where('room_status', 'Occupied')->count();
+        $todayCheckInCount = Booking::whereDate('check_in_time', today())->count();
+        $todayCheckOutCount = Booking::whereDate('check_out_time', today())->count();
+        $recentBookings = Booking::with(['customer', 'room'])->latest()->take(5)->get();
 
         return view('dashboard', compact(
             'availableRooms',

@@ -37,10 +37,10 @@
                 <div>
                     <p class="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                         <span class="h-1.5 w-1.5 rounded-full bg-[#d9c99d]"></span>
-                        {{ now()->locale('id')->translatedFormat('l, d F Y') }}
+                        {{ now()->locale('id')->translatedFormat('l, d F Y H:i') }}
                     </p>
                     <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Status kamar</h1>
-                    <p class="mt-2 max-w-xl text-sm leading-6 text-white/75">Pantau kondisi kamar dan perbarui statusnya dengan mudah.</p>
+                    <p class="mt-2 max-w-xl text-sm leading-6 text-white/75">Pantau kondisi kamar dan perbarui statusnya dengan mudah. Status diperbarui otomatis berdasarkan jadwal check-in/check-out.</p>
                 </div>
 
                 <div aria-label="Ringkasan status kamar" class="grid grid-cols-3 gap-2 sm:min-w-[390px] sm:gap-3">
@@ -76,6 +76,13 @@
             </div>
         @endif
 
+        @if ($errors->has('room_status'))
+            <div role="alert" class="rounded-2xl border border-[#e8c9c2] bg-[#fbf3f1] px-4 py-3.5 text-sm text-[#844a40]">
+                <p class="font-semibold">Perubahan status tidak diizinkan.</p>
+                <p class="mt-1">{{ $errors->first('room_status') }}</p>
+            </div>
+        @endif
+
         <section aria-label="Daftar status kamar">
             <div class="mb-2 flex items-center gap-2.5">
                 <h2 class="text-base font-semibold text-kazain-text">Daftar kamar</h2>
@@ -98,18 +105,17 @@
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
                     @foreach ($rooms as $room)
                         @php
-                            $activeBooking = $room->bookings->first();
-                            $statusClass = match ($room->room_status) {
+                            $statusClass = match ($room->current_status) {
                                 'Available' => 'bg-emerald-100 text-emerald-800',
                                 'Occupied' => 'bg-rose-100 text-rose-800',
                                 'Cleaning' => 'bg-orange-100 text-orange-800',
                                 default => 'bg-[#f4f5f1] text-kazain-muted',
                             };
-                            $statusLabel = match ($room->room_status) {
+                            $statusLabel = match ($room->current_status) {
                                 'Available' => 'Tersedia',
                                 'Occupied' => 'Terisi',
                                 'Cleaning' => 'Cleaning',
-                                default => $room->room_status,
+                                default => $room->current_status,
                             };
                         @endphp
 
@@ -129,26 +135,40 @@
                                 Tipe kamar <span class="font-medium text-kazain-text">{{ $room->room_type }}</span>
                             </p>
 
-                            @if ($room->room_status === 'Occupied' && $activeBooking)
+                            @if ($room->current_status === 'Occupied' && $room->active_booking)
                                 <div class="mt-4 space-y-2 rounded-xl border border-kazain-border bg-[#f7f8f5] p-3.5 text-sm">
-                                    <p class="font-semibold text-kazain-text">{{ $activeBooking->customer->customer_name ?? 'Tamu' }}</p>
+                                    <p class="font-semibold text-kazain-text">{{ $room->active_booking->customer->customer_name ?? 'Tamu' }}</p>
                                     <div class="flex items-center justify-between gap-3 text-xs text-kazain-muted">
                                         <span>Check-in</span>
-                                        <span class="font-medium text-kazain-text">{{ \Carbon\Carbon::parse($activeBooking->check_in_time)->format('d/m/Y H:i') }}</span>
+                                        <span class="font-medium text-kazain-text">{{ \Carbon\Carbon::parse($room->active_booking->check_in_time)->format('d/m/Y H:i') }}</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-3 text-xs text-kazain-muted">
                                         <span>Check-out</span>
-                                        <span class="font-medium text-kazain-text">{{ \Carbon\Carbon::parse($activeBooking->check_out_time)->format('d/m/Y H:i') }}</span>
+                                        <span class="font-medium text-kazain-text">{{ \Carbon\Carbon::parse($room->active_booking->check_out_time)->format('d/m/Y H:i') }}</span>
                                     </div>
+                                </div>
+                            @elseif ($room->current_status === 'Cleaning' && $room->cleaning_ends_at)
+                                <div class="mt-4 space-y-2 rounded-xl border border-kazain-border bg-[#fff7ed] p-3.5 text-sm">
+                                    <p class="font-semibold text-orange-800">Sedang dibersihkan</p>
+                                    <div class="flex items-center justify-between gap-3 text-xs text-orange-700">
+                                        <span>Selesai cleaning</span>
+                                        <span class="font-medium text-orange-800">{{ \Carbon\Carbon::parse($room->cleaning_ends_at)->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                    <p class="text-xs text-orange-600">Kamar akan tersedia otomatis pada pukul {{ \Carbon\Carbon::parse($room->cleaning_ends_at)->format('H:i') }}</p>
                                 </div>
                             @endif
 
-                            <div class="mt-auto border-t border-kazain-border pt-5 {{ $room->room_status === 'Occupied' && $activeBooking ? 'mt-5' : '' }}">
+                            <div class="mt-auto border-t border-kazain-border pt-5 {{ ($room->current_status === 'Occupied' && $room->active_booking) || ($room->current_status === 'Cleaning' && $room->cleaning_ends_at) ? 'mt-5' : '' }}">
                                 <p class="mb-2.5 text-xs font-semibold text-kazain-muted">Ubah status kamar</p>
                                 <div class="grid grid-cols-3 gap-1 rounded-xl border border-kazain-border bg-[#f7f8f5] p-1">
                                     @foreach ($statusOptions as $statusOption)
                                         @php
-                                            $isCurrentStatus = $room->room_status === $statusOption['value'];
+                                            $isCurrentStatus = $room->current_status === $statusOption['value'];
+                                            // Disable manual override to Available if room should be Occupied/Cleaning
+                                            $shouldDisableAvailable = $statusOption['value'] === 'Available' && in_array($room->current_status, ['Occupied', 'Cleaning']);
+                                            // Disable manual override to Occupied if no active booking
+                                            $shouldDisableOccupied = $statusOption['value'] === 'Occupied' && $room->current_status === 'Available' && !$room->active_booking;
+                                            $isDisabled = $isCurrentStatus || $shouldDisableAvailable || $shouldDisableOccupied;
                                         @endphp
                                         <form action="{{ route($statusRoute, $room) }}" method="POST">
                                             @csrf
@@ -159,7 +179,7 @@
                                                 value="{{ $statusOption['value'] }}"
                                                 aria-label="Set status kamar {{ $room->room_number }} menjadi {{ $statusOption['label'] }}"
                                                 aria-pressed="{{ $isCurrentStatus ? 'true' : 'false' }}"
-                                                @disabled($isCurrentStatus)
+                                                @disabled($isDisabled)
                                                 class="w-full rounded-lg px-1.5 py-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 disabled:cursor-default {{ $isCurrentStatus ? $statusOption['activeClass'] : $statusOption['inactiveClass'] }}"
                                             >
                                                 {{ $statusOption['label'] }}
@@ -168,8 +188,8 @@
                                     @endforeach
                                 </div>
 
-                                @if ($room->room_status === 'Occupied' && $activeBooking)
-                                    <a href="{{ route(auth()->user()->role === 'Admin' ? 'admin.pemesanan.extend.create' : 'receptionist.pemesanan.extend.create', $activeBooking) }}" class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-kazain-primary px-4 text-sm font-semibold text-white transition hover:bg-kazain-primary-dark focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+                                @if ($room->current_status === 'Occupied' && $room->active_booking)
+                                    <a href="{{ route(auth()->user()->role === 'Admin' ? 'admin.pemesanan.extend.create' : 'receptionist.pemesanan.extend.create', $room->active_booking) }}" class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-kazain-primary px-4 text-sm font-semibold text-white transition hover:bg-kazain-primary-dark focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
                                         Extend Pemesanan
                                     </a>
                                 @endif

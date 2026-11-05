@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class BookingCalendarTest extends TestCase
@@ -15,9 +16,13 @@ class BookingCalendarTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $receptionist;
+
     private Room $room1;
+
     private Room $room2;
+
     private Customer $customer;
 
     protected function setUp(): void
@@ -134,7 +139,7 @@ class BookingCalendarTest extends TestCase
 
         $response->assertOk();
 
-        /** @var \Illuminate\Support\Collection $calendarBookings */
+        /** @var Collection $calendarBookings */
         $calendarBookings = $response->viewData('calendarBookings');
 
         $this->assertTrue($calendarBookings->contains('booking_code', 'KZN-ACTIVE'));
@@ -163,7 +168,7 @@ class BookingCalendarTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.pemesanan.index'));
         $response->assertOk();
 
-        /** @var \Illuminate\Support\Collection $calendarBookings */
+        /** @var Collection $calendarBookings */
         $calendarBookings = $response->viewData('calendarBookings');
         $item = $calendarBookings->firstWhere('booking_code', 'KZN-MULTI-NIGHT');
 

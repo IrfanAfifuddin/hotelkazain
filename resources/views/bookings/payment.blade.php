@@ -4,26 +4,40 @@
 
 @section('content')
     <div class="max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold text-gray-900">Pembayaran Booking</h1>
-        <p class="mt-1 text-sm text-gray-500">Booking {{ $booking->booking_code }}</p>
+        <h1 class="text-2xl font-bold text-kazain-text">Pembayaran Booking</h1>
+        <p class="mt-1 text-sm text-kazain-muted">Booking {{ $booking->booking_code }}</p>
 
-        <div class="mt-6 rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-sm space-y-4">
-            <div class="flex justify-between"><span class="text-gray-500">Customer</span><strong>{{ $booking->customer?->customer_name }}</strong></div>
-            <div class="flex justify-between"><span class="text-gray-500">Kamar</span><strong>{{ $booking->room?->room_number }}</strong></div>
-            <div class="flex justify-between"><span class="text-gray-500">Total</span><strong>Rp {{ number_format($booking->total_price, 0, ',', '.') }}</strong></div>
-            <div class="flex justify-between"><span class="text-gray-500">Status pembayaran</span><strong>{{ $booking->payment_status }}</strong></div>
+        <div class="mt-6 rounded-2xl border border-kazain-border bg-kazain-surface p-6 shadow-sm space-y-4">
+            <div class="flex justify-between items-center py-3 border-b border-kazain-border/50">
+                <span class="text-sm text-kazain-muted">Customer</span>
+                <strong class="text-kazain-text">{{ $booking->customer?->customer_name }}</strong>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-kazain-border/50">
+                <span class="text-sm text-kazain-muted">Kamar</span>
+                <strong class="text-kazain-text">{{ $booking->room?->room_number }}</strong>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-kazain-border/50">
+                <span class="text-sm text-kazain-muted">Total</span>
+                <strong class="text-lg text-kazain-text">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</strong>
+            </div>
+            <div class="flex justify-between items-center py-3">
+                <span class="text-sm text-kazain-muted">Status pembayaran</span>
+                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $booking->payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : ($booking->payment_status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
+                    {{ $booking->payment_status }}
+                </span>
+            </div>
 
             @if ($booking->payment_status === 'Pending')
-                <form method="POST" action="{{ $paymentCreateRoute }}">
+                <form method="POST" action="{{ $paymentCreateRoute }}" class="mt-6 space-y-3">
                     @csrf
-                    <button class="w-full rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">Buat Pembayaran Midtrans</button>
+                    <button class="w-full rounded-xl bg-kazain-primary hover:bg-kazain-primary-hover px-5 py-3 text-sm font-semibold text-white transition shadow-sm">Buat Pembayaran Midtrans</button>
                 </form>
             @else
-                <p class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">Booking ini tidak menunggu pembayaran Midtrans.</p>
+                <p class="rounded-xl bg-gray-50 border border-kazain-border/30 p-4 text-sm text-kazain-muted">Booking ini tidak menunggu pembayaran Midtrans.</p>
             @endif
 
             @isset($snapToken)
-                <button type="button" id="payButton" class="w-full rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">Bayar dengan Snap</button>
+                <button type="button" id="payButton" class="w-full rounded-xl bg-kazain-primary hover:bg-kazain-primary-hover px-5 py-3 text-sm font-semibold text-white transition shadow-sm">Bayar dengan Snap</button>
             @endisset
         </div>
     </div>

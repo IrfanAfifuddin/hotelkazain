@@ -12,6 +12,7 @@ class UserController extends Controller
     public function index()
     {
         $receptionists = User::where('role', 'Receptionist')->latest()->get();
+
         return view('admin.users.index', compact('receptionists'));
     }
 
@@ -36,7 +37,7 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'username' => 'required|string|unique:users,username,' . $user->user_id . ',user_id',
+            'username' => 'required|string|unique:users,username,'.$user->user_id.',user_id',
             'user_name' => 'required|string|max:255',
             'password' => 'nullable|string|min:6',
         ]);
