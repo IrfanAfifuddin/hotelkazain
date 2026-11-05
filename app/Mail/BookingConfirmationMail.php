@@ -22,6 +22,9 @@ class BookingConfirmationMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'mail.booking-confirmation');
+        return new Content(
+            view: 'mail.booking-confirmation',
+            text: 'mail.booking-confirmation-text'
+        );
     }
 }

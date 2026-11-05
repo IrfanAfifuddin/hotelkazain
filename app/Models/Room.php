@@ -34,20 +34,13 @@ class Room extends Model
     {
         $now = Carbon::now('Asia/Jakarta');
 
-        // Find the active booking that is currently using or just finished using this room
-        $activeBooking = $this->bookings()
-            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
-            ->where('check_in_time', '<=', $now)
-            ->where('check_out_time', '>', $now)
-            ->latest('check_in_time')
-            ->first();
-
+        // 1. Check for active booking
+        $activeBooking = $this->getActiveBookingAttribute();
         if ($activeBooking) {
-            // Guest is still within their stay period (before check-out)
             return 'Occupied';
         }
 
-        // Check for booking that just ended (check-out passed but within 1-hour cleaning window)
+        // 2. Check for recent checkout (automatic Cleaning)
         $recentBooking = $this->bookings()
             ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
             ->where('check_out_time', '<=', $now)
@@ -56,27 +49,14 @@ class Room extends Model
             ->first();
 
         if ($recentBooking) {
-            // Within 1-hour cleaning window after check-out
             return 'Cleaning';
         }
 
-        // Check if there's a future booking that starts soon (within cleaning window of previous booking)
-        // This prevents marking as Available when next booking overlaps with cleaning
-        $nextBooking = $this->bookings()
-            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
-            ->where('check_in_time', '>', $now)
-            ->orderBy('check_in_time')
-            ->first();
-
-        if ($nextBooking) {
-            $checkInTime = Carbon::parse($nextBooking->check_in_time, 'Asia/Jakarta');
-            $cleaningEndsAt = $now->copy()->addHour();
-
-            // If next booking starts before cleaning would end, room should not be Available yet
-            // But this is handled by the logic above - if no recent booking ended, room is Available
+        // 3. Fallback to manual status if set
+        if (in_array($this->room_status, ['Maintenance', 'Cleaning'])) {
+            return $this->room_status;
         }
 
-        // No active booking, no recent checkout within cleaning window
         return 'Available';
     }
 

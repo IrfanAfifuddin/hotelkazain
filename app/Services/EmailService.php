@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Mail\BookingCodeMail;
+use App\Mail\PaymentConfirmationMail;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Mail;
 use LogicException;
@@ -19,14 +19,19 @@ class EmailService
             return;
         }
 
-        $booking->loadMissing(['customer', 'room']);
+        $booking->loadMissing(['customer', 'rooms']);
 
         if ($booking->customer === null) {
             throw new LogicException('The confirmed booking does not have a customer.');
         }
 
-        Mail::to($booking->customer->email)->send(new BookingCodeMail($booking));
+        try {
+            Mail::to($booking->customer->email)->send(new PaymentConfirmationMail($booking));
 
-        $booking->forceFill(['booking_code_sent_at' => now()])->save();
+            $booking->forceFill(['booking_code_sent_at' => now()])->save();
+        } catch (\Exception $e) {
+            // Log error but don't fail the booking
+            report($e);
+        }
     }
 }

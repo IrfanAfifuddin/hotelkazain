@@ -10,6 +10,14 @@
         $durasi = ($checkIn && $checkOut) ? round($checkIn->diffInMinutes($checkOut) / 60) . ' Jam' : '-';
     }
 
+    // Build room list text
+    $roomsGrouped = $booking->rooms->groupBy('room_type');
+    $roomsText = $roomsGrouped->map(function ($rooms, $type) {
+        $count = $rooms->count();
+        $numbers = $rooms->pluck('room_number')->sort()->join(', ');
+        return $count . 'x ' . $type . ' Bed (No. ' . $numbers . ')';
+    })->join(' · ');
+
     $ink = '#26211D';
     $gold = '#8A6A3B';
     $muted = '#6B6460';
@@ -66,7 +74,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
                                 <?php $__currentLoopData = [
                                     'Nama Pemesan' => $booking->customer->customer_name,
-                                    'Kamar' => $booking->room->room_type . ' Bed · No. ' . $booking->room->room_number,
+                                    'Kamar' => $roomsText,
                                     'Check-in' => $checkIn->translatedFormat('l, d F Y, H:i') . ' WIB',
                                     'Check-out' => $checkOut->translatedFormat('l, d F Y, H:i') . ' WIB',
                                     'Durasi' => $durasi,

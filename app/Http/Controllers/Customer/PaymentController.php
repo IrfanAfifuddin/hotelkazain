@@ -17,7 +17,7 @@ class PaymentController extends Controller
 {
     public function indexRedirect(Booking $booking): View
     {
-        $booking->load(['customer', 'room']);
+        $booking->load(['customer', 'rooms']);
 
         return view('customer.payment', ['booking' => $booking]);
     }
@@ -67,7 +67,7 @@ class PaymentController extends Controller
 
         $booking = Booking::query()
             ->where('midtrans_order_id', $validated['order_id'])
-            ->with(['customer', 'room'])
+            ->with(['customer', 'rooms'])
             ->firstOrFail();
 
         $paymentStatusUnavailable = false;

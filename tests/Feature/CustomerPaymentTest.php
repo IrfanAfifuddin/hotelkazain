@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mail\BookingCodeMail;
+use App\Mail\PaymentConfirmationMail;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
@@ -45,7 +45,7 @@ class CustomerPaymentTest extends TestCase
             'booking_status' => 'Pending',
             'payment_status' => 'Pending',
         ]);
-        Mail::assertNotSent(BookingCodeMail::class);
+        Mail::assertNotSent(PaymentConfirmationMail::class);
     }
 
     public function test_valid_settlement_confirms_booking_and_emails_code_only_once(): void
@@ -62,11 +62,11 @@ class CustomerPaymentTest extends TestCase
             'booking_status' => 'Confirmed',
             'payment_status' => 'Paid',
         ]);
-        Mail::assertSent(BookingCodeMail::class, fn (BookingCodeMail $mail): bool => $mail->hasTo('andi@example.com'));
+        Mail::assertSent(PaymentConfirmationMail::class, fn (PaymentConfirmationMail $mail): bool => $mail->hasTo('andi@example.com'));
 
         $this->postJson('/payments/midtrans/notifications', $notification)->assertOk();
 
-        Mail::assertSentTimes(BookingCodeMail::class, 1);
+        Mail::assertSentTimes(PaymentConfirmationMail::class, 1);
         $this->assertNotNull($booking->fresh()->booking_code_sent_at);
     }
 
@@ -84,7 +84,7 @@ class CustomerPaymentTest extends TestCase
             'booking_status' => 'Pending',
             'payment_status' => 'Pending',
         ]);
-        Mail::assertNotSent(BookingCodeMail::class);
+        Mail::assertNotSent(PaymentConfirmationMail::class);
     }
 
     public function test_expiration_notification_releases_pending_booking(): void
@@ -128,7 +128,7 @@ class CustomerPaymentTest extends TestCase
         ]);
         Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
             && str_ends_with($request->url(), '/'.$booking->midtrans_order_id.'/status'));
-        Mail::assertSent(BookingCodeMail::class);
+        Mail::assertSent(PaymentConfirmationMail::class);
     }
 
     public function test_pending_success_callback_does_not_reveal_booking_code(): void

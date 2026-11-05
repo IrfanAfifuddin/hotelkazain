@@ -38,7 +38,7 @@ class PaymentService
         }
 
         $serverKey = $this->serverKey();
-        $booking->loadMissing(['customer', 'room']);
+        $booking->loadMissing(['customer', 'rooms']);
         $orderId = $booking->midtrans_order_id ?: 'KZN-PAY-'.Str::uuid();
 
         if ($booking->midtrans_order_id !== $orderId) {
@@ -46,6 +46,18 @@ class PaymentService
         }
 
         $expiry = $booking->payment_expires_at ?? now()->addMinutes(20);
+
+        // Build item_details from all rooms
+        $itemDetails = $booking->rooms->map(function ($room) {
+            $price = $room->pivot->price ?? 0;
+
+            return [
+                'id' => (string) $room->id,
+                'price' => (int) $price,
+                'quantity' => 1,
+                'name' => $room->room_type.' Bed No. '.$room->room_number.' - Kazain Hotel',
+            ];
+        })->toArray();
 
         try {
             $response = Http::withBasicAuth($serverKey, '')
@@ -57,12 +69,7 @@ class PaymentService
                         'order_id' => $orderId,
                         'gross_amount' => (int) $booking->total_price,
                     ],
-                    'item_details' => [[
-                        'id' => (string) $booking->room_id,
-                        'price' => (int) $booking->total_price,
-                        'quantity' => 1,
-                        'name' => 'Kamar '.$booking->room->room_number.' Kazain Hotel',
-                    ]],
+                    'item_details' => $itemDetails,
                     'customer_details' => [
                         'first_name' => $booking->customer->customer_name,
                         'email' => $booking->customer->email,
@@ -196,7 +203,7 @@ class PaymentService
             }
 
             if ($booking->payment_status === 'Paid') {
-                return $booking->load(['customer', 'room']);
+                return $booking->load(['customer', 'rooms']);
             }
 
             $transactionStatus = $status['transaction_status'] ?? null;
@@ -233,7 +240,7 @@ class PaymentService
                 ])->save();
             }
 
-            return $booking->fresh(['customer', 'room']);
+            return $booking->fresh(['customer', 'rooms']);
         }, 3);
     }
 
