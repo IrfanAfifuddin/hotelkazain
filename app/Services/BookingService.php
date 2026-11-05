@@ -134,7 +134,7 @@ class BookingService
             $totalPrice = 0;
             $roomPrices = [];
             foreach ($rooms as $room) {
-                $roomPrice = $data['booking_type'] === 'Short Time'
+                $roomPrice = str_starts_with($data['booking_type'], 'Short Time')
                     ? (int) $room->{'price_'.(int) $data['duration_hours'].'_hours'}
                     : (int) $room->full_day_price * $nights;
                 $totalPrice += $roomPrice;
