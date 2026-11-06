@@ -43,7 +43,7 @@
     {{-- 1. KOMPONEN KALENDER PEMESANAN --}}
     <section class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm">
         {{-- Kalender Header & Legenda --}}
-        <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 md:flex-row md:items-center md:justify-between sm:px-6">
+        <div class="flex flex-col gap-4 border-b border-kazain-border px-4 py-5 md:flex-row md:items-center md:justify-between sm:px-6">
             <div>
                 <h2 class="flex items-center gap-2 text-base font-semibold text-kazain-text">
                     <svg class="h-5 w-5 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -79,9 +79,9 @@
             <div class="flex flex-col justify-between lg:col-span-7">
                 <div>
                     {{-- Navigasi Bulan & Tahun --}}
-                    <div class="mb-4 flex items-center justify-between">
+                    <div class="mb-4 flex min-w-0 items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <h3 id="currentMonthYearLabel" class="text-base font-semibold tracking-tight text-kazain-text">
+                            <h3 id="currentMonthYearLabel" class="text-sm font-semibold tracking-tight text-kazain-text sm:text-base">
                                 Bulan Tahun
                             </h3>
                             <button
@@ -128,13 +128,13 @@
                     </div>
 
                     {{-- Kotak Tanggal-Tanggal Kalender --}}
-                    <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1.5">
+                    <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 sm:gap-1.5">
                         {{-- Diisi secara dinamis via JavaScript --}}
                     </div>
                 </div>
 
                 {{-- Catatan Okupansi --}}
-                <div class="mt-4 flex items-center justify-between gap-3 border-t border-kazain-border pt-3 text-xs text-kazain-muted">
+                <div class="mt-4 flex flex-col gap-2 border-t border-kazain-border pt-3 text-xs text-kazain-muted sm:flex-row sm:items-center sm:justify-between">
                     <span>* Klik tanggal untuk melihat rincian pemesanan dan kamar terisi.</span>
                     <span id="calendarTotalMonthBookings" class="font-medium text-kazain-text">0 pemesanan bulan ini</span>
                 </div>
@@ -204,7 +204,7 @@
                 <p class="mt-1 text-sm text-kazain-muted">Kelola reservasi dan informasi pembayaran tamu.</p>
             </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel daftar pemesanan secara horizontal">
             <table class="w-full min-w-[1120px] text-left text-sm">
                 <thead class="border-b border-kazain-border bg-[#f7f8f5] text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
                     <tr>
@@ -336,16 +336,16 @@
     </div>
 
     {{-- Confirmation Modal Hapus --}}
-    <div id="deleteModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeDeleteModal()"></div>
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="relative w-full max-w-sm rounded-2xl border border-kazain-border bg-kazain-surface p-6 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)]">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative my-4 w-full max-w-sm rounded-2xl border border-kazain-border bg-kazain-surface p-5 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] sm:p-6">
                 <h3 id="deleteModalTitle" class="mb-2 text-lg font-semibold text-kazain-text">Hapus pemesanan?</h3>
                 <p class="mb-6 text-sm leading-6 text-kazain-muted">Apakah Anda yakin ingin menghapus pemesanan <span id="deleteCodeLabel" class="font-semibold text-kazain-text">--</span>?</p>
                 <form id="deleteForm" method="POST" action="">
                     @csrf
                     @method('DELETE')
-                    <div class="flex gap-3">
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
                         <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1]">
                             Batal
                         </button>
@@ -498,7 +498,7 @@
         const count = bookingsOnDate.length;
 
         // Base Classes
-        let cellClasses = 'relative flex h-14 flex-col items-center justify-between rounded-xl border p-1.5 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20';
+        let cellClasses = 'relative flex h-12 flex-col items-center justify-between rounded-lg border p-1 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 sm:h-14 sm:rounded-xl sm:p-1.5';
 
         if (isSelected) {
             // Selected Day
@@ -650,7 +650,7 @@
                 : 'bg-amber-100 text-amber-800';
 
             const card = document.createElement('div');
-            card.className = 'space-y-2 rounded-xl border border-kazain-border bg-gray-50 p-3.5 text-xs shadow-sm transition hover:border-[#b9c9bc]';
+            card.className = 'min-w-0 space-y-2 rounded-xl border border-kazain-border bg-gray-50 p-3 text-xs shadow-sm transition hover:border-[#b9c9bc] sm:p-3.5';
 
             card.innerHTML = `
                 <div class="flex items-center justify-between gap-2 border-b border-kazain-border pb-2">

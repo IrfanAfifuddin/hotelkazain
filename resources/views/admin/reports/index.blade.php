@@ -84,12 +84,12 @@
                 </form>
             </div>
 
-            <article class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+            <article class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
                 <div class="flex h-full items-start justify-between gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Total Pendapatan (Lunas)</p>
-                        <p class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
-                        <div class="mt-4 flex items-center gap-2 border-t border-kazain-border pt-4">
+                        <p class="mt-3 break-words text-2xl font-semibold tracking-tight text-kazain-text sm:text-3xl">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+                        <div class="mt-4 flex items-start gap-2 border-t border-kazain-border pt-4">
                             <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#edf1ec] text-kazain-primary">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-7.5 3.75h7.5m-7.5 3.75h4.5M5.25 3.75h13.5A2.25 2.25 0 0 1 21 6v12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
@@ -119,7 +119,7 @@
                     <p class="mt-1 text-sm text-kazain-muted">Daftar pembayaran yang berhasil diterima.</p>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel transaksi secara horizontal">
                 <table class="w-full min-w-[1120px] text-left text-sm">
                     <thead class="bg-[#f7f8f5]">
                         <tr>
@@ -183,7 +183,7 @@
         @if ($extensions->isNotEmpty())
             <section class="overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-sm">
                 <div class="border-b border-kazain-border px-5 py-5 sm:px-6"><h2 class="text-base font-semibold text-kazain-text">Rincian extend lunas</h2><p class="mt-1 text-sm text-kazain-muted">Pembayaran perpanjangan tercatat terpisah dari transaksi awal.</p></div>
-                <div class="overflow-x-auto"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-[#f7f8f5]"><tr><th class="px-6 py-3 text-xs text-kazain-muted">Kode booking</th><th class="px-6 py-3 text-xs text-kazain-muted">Kamar</th><th class="px-6 py-3 text-xs text-kazain-muted">Durasi</th><th class="px-6 py-3 text-xs text-kazain-muted">Metode</th><th class="px-6 py-3 text-right text-xs text-kazain-muted">Nominal</th></tr></thead><tbody class="divide-y divide-kazain-border/70">@foreach ($extensions as $extension)<tr><td class="px-6 py-4 font-semibold text-kazain-text">{{ $extension->booking->booking_code }}</td><td class="px-6 py-4">{{ $extension->booking->room->room_number }}</td><td class="px-6 py-4">{{ $extension->extension_type }} · {{ $extension->duration_hours }} Jam</td><td class="px-6 py-4">{{ $extension->payment_method }}</td><td class="px-6 py-4 text-right font-semibold">Rp {{ number_format($extension->amount, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
+                <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel perpanjangan secara horizontal"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-[#f7f8f5]"><tr><th class="px-6 py-3 text-xs text-kazain-muted">Kode booking</th><th class="px-6 py-3 text-xs text-kazain-muted">Kamar</th><th class="px-6 py-3 text-xs text-kazain-muted">Durasi</th><th class="px-6 py-3 text-xs text-kazain-muted">Metode</th><th class="px-6 py-3 text-right text-xs text-kazain-muted">Nominal</th></tr></thead><tbody class="divide-y divide-kazain-border/70">@foreach ($extensions as $extension)<tr><td class="px-6 py-4 font-semibold text-kazain-text">{{ $extension->booking->booking_code }}</td><td class="px-6 py-4">{{ $extension->booking->room->room_number }}</td><td class="px-6 py-4">{{ $extension->extension_type }} · {{ $extension->duration_hours }} Jam</td><td class="px-6 py-4">{{ $extension->payment_method }}</td><td class="px-6 py-4 text-right font-semibold">Rp {{ number_format($extension->amount, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
             </section>
         @endif
     </div>

@@ -13,7 +13,7 @@
 <body class="min-h-screen bg-gray-300 font-sans text-kazain-text antialiased">
     <nav class="print:hidden fixed inset-x-0 top-0 z-30 h-16 border-b border-kazain-border/80 bg-gray-100/95 backdrop-blur">
         <div class="flex h-full items-center justify-between px-4 sm:px-6">
-            <div class="flex items-center gap-3">
+            <div class="flex min-w-0 items-center gap-3">
                 <button
                     id="sidebarToggle"
                     type="button"
@@ -26,14 +26,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3] shadow-sm">
+                <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3] shadow-sm">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5.25 21V5.25L12 2l6.75 3.25V21M8.25 8.25h.008v.008H8.25V8.25Zm0 3.75h.008v.008H8.25V12Zm0 3.75h.008v.008H8.25V15.75Zm7.5-7.5h.008v.008h-.008V8.25Zm0 3.75h.008v.008h-.008V12Zm0 3.75h.008v.008h-.008V15.75ZM10.5 21v-3.375A1.125 1.125 0 0 1 11.625 16.5h.75a1.125 1.125 0 0 1 1.125 1.125V21" />
                         </svg>
                     </span>
-                    <span class="leading-tight">
-                        <span class="block text-sm font-semibold tracking-wide text-kazain-text">Kazain Hotel</span>
+                    <span class="min-w-0 leading-tight">
+                        <span class="block truncate text-sm font-semibold tracking-wide text-kazain-text">Kazain Hotel</span>
                         <span class="hidden text-[10px] font-medium uppercase tracking-[0.14em] text-kazain-muted sm:block">Hotel management</span>
                     </span>
                 </a>
@@ -51,10 +51,10 @@
         </div>
     </nav>
 
-    <aside id="sidebar" class="print:hidden fixed bottom-0 left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-72 -translate-x-full flex-col border-r border-white/10 bg-gradient-to-b from-kazain-primary to-kazain-primary-dark px-4 py-5 shadow-xl transition-transform duration-200 md:z-20 md:w-64 md:translate-x-0">
+    <aside id="sidebar" class="print:hidden fixed bottom-0 left-0 top-16 z-40 flex w-72 -translate-x-full flex-col overflow-y-auto overscroll-contain border-r border-white/10 bg-gradient-to-b from-kazain-primary to-kazain-primary-dark px-4 py-5 shadow-xl transition-transform duration-200 md:z-20 md:w-64 md:translate-x-0">
         <nav class="flex min-h-0 flex-1 flex-col" aria-label="Navigasi utama">
             <p class="px-3 pb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">Menu utama</p>
-            <div class="flex-1 space-y-1">
+            <div class="min-h-0 flex-1 space-y-1 overflow-y-auto">
                 @php
                     $isDashboardActive = request()->routeIs('dashboard', 'admin.dashboard', 'receptionist.dashboard');
                     $dashboardLinkClass = $isDashboardActive
@@ -140,8 +140,8 @@
         </div>
     </div>
 
-    <main class="min-h-screen pt-16 print:ml-0 print:pt-0 md:ml-64">
-        <div class="p-4 print:p-0 sm:p-6 lg:p-8">
+    <main class="min-h-screen min-w-0 pt-16 print:ml-0 print:pt-0 md:ml-64">
+        <div class="min-w-0 p-3 print:p-0 sm:p-6 lg:p-8">
             @yield('content')
         </div>
     </main>

@@ -17,13 +17,13 @@
             <div aria-hidden="true" class="absolute -right-2 -top-14 -z-10 h-52 w-52 rounded-full border border-white/10"></div>
             <div aria-hidden="true" class="absolute -bottom-28 right-36 -z-10 h-52 w-52 rounded-full bg-kazain-accent/10 blur-3xl"></div>
 
-            <div class="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-7">
                 <div>
                     <p class="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                         <span class="h-1.5 w-1.5 rounded-full bg-[#d9c99d]"></span>
                         {{ now()->locale('id')->translatedFormat('l, d F Y') }}
                     </p>
-                    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <h1 class="break-words text-2xl font-semibold tracking-tight sm:text-3xl">
                         Selamat {{ $greeting }}, {{ auth()->user()->user_name }}
                     </h1>
                     <p class="mt-2 max-w-xl text-sm leading-6 text-white/75">
@@ -40,8 +40,8 @@
             </div>
         </section>
 
-        <section aria-label="Ringkasan operasional" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b9c9bc] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+        <section aria-label="Ringkasan operasional" class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#b9c9bc] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 sm:p-5">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Kamar tersedia</p>
@@ -51,7 +51,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Lihat status dan ketersediaan kamar <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddc7c0] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddc7c0] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 sm:p-5">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
@@ -61,7 +61,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Pantau kamar yang sedang digunakan <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#c3d0d7] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($bookingIndexRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#c3d0d7] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 sm:p-5">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Check-in hari ini</p>
@@ -71,7 +71,7 @@
                 <p class="mt-4 text-xs text-kazain-muted">Lihat daftar pemesanan tamu <span aria-hidden="true" class="ml-1 transition group-hover:ml-2">→</span></p>
             </a>
 
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddd2b5] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20">
+            <a href="{{ route($bookingIndexRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#ddd2b5] hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20 sm:p-5">
                 <div class="flex items-start gap-4">
                     <div>
                         <p class="text-sm font-medium text-kazain-muted">Check-out hari ini</p>
@@ -95,7 +95,7 @@
 
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel pemesanan terbaru secara horizontal">
                     <table class="w-full min-w-[760px] text-left text-sm">
                         <thead class="bg-[#f7f8f5]">
                             <tr>

@@ -22,13 +22,13 @@
         </div>
     @endif
 
-    <div class="bg-kazain-surface border border-kazain-border rounded-2xl p-6 shadow-sm max-w-2xl">
+    <div class="mx-auto w-full max-w-2xl rounded-2xl border border-kazain-border bg-kazain-surface p-4 shadow-sm sm:p-6">
         <form action="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.update', $booking->id) : route('receptionist.pemesanan.update', $booking->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
 
             {{-- Ringkasan Info --}}
-            <div class="bg-gray-50 border border-kazain-border rounded-xl p-4 text-xs space-y-2 text-kazain-text">
+            <div class="space-y-2 break-words rounded-xl border border-kazain-border bg-gray-50 p-4 text-xs text-kazain-text">
                 <p><strong class="text-kazain-text">Customer:</strong> {{ $booking->customer->customer_name ?? '-' }} ({{ $booking->customer->phone_number ?? '-' }})</p>
                 <p><strong class="text-kazain-text">Tipe Booking:</strong> {{ $booking->booking_type }}</p>
                 <p><strong class="text-kazain-text">Jadwal:</strong> {{ \Carbon\Carbon::parse($booking->check_in_time)->format('d M Y H:i') }} s/d {{ \Carbon\Carbon::parse($booking->check_out_time)->format('d M Y H:i') }}</p>
@@ -75,11 +75,11 @@
             </div>
 
             {{-- Actions --}}
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-kazain-border">
-                <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="px-5 py-2.5 border border-kazain-border rounded-xl text-sm font-medium text-kazain-muted hover:bg-gray-50 transition">
+            <div class="flex flex-col-reverse gap-3 border-t border-kazain-border pt-4 sm:flex-row sm:items-center sm:justify-end">
+                <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border px-5 py-2.5 text-sm font-medium text-kazain-muted transition hover:bg-gray-50">
                     Batal
                 </a>
-                <button type="submit" class="px-6 py-2.5 bg-kazain-primary hover:bg-kazain-primary-hover text-white text-sm font-semibold rounded-xl transition shadow-sm">
+                <button type="submit" class="min-h-11 rounded-xl bg-kazain-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-kazain-primary-hover">
                     Simpan Perubahan
                 </button>
             </div>
