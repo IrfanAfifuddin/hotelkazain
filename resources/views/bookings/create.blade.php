@@ -18,7 +18,7 @@
         </div>
     @endif
 
-    <div class="bg-kazain-surface border border-kazain-border rounded-2xl p-6 shadow-sm max-w-3xl">
+    <div class="mx-auto w-full max-w-3xl rounded-2xl border border-kazain-border bg-kazain-surface p-4 shadow-sm sm:p-6">
         <form action="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.store') : route('receptionist.pemesanan.store') }}" method="POST" class="space-y-6" id="bookingForm">
             @csrf
             
@@ -206,20 +206,20 @@
             </div>
 
             {{-- Total Price Display --}}
-            <div class="rounded-2xl bg-kazain-primary p-5 text-white">
-                <div class="flex items-center justify-between">
+            <div class="rounded-2xl bg-kazain-primary p-4 text-white sm:p-5">
+                <div class="flex items-center justify-between gap-3">
                     <div>
                         <p class="text-xs font-medium text-white/80">Total biaya pemesanan</p>
                         <p class="mt-0.5 text-xs text-white/70">× <span id="total_room_multiplier">1</span> kamar</p>
                     </div>
-                    <p class="text-2xl font-bold text-white" id="total_price_display">Rp 0</p>
+                    <p class="break-words text-right text-xl font-bold text-white sm:text-2xl" id="total_price_display">Rp 0</p>
                 </div>
             </div>
 
             {{-- Actions --}}
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-kazain-border">
-                <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="px-5 py-2.5 border border-kazain-border rounded-xl text-sm font-medium text-kazain-muted hover:bg-gray-50 transition">Batal</a>
-                <button type="submit" class="px-6 py-2.5 bg-kazain-primary hover:bg-kazain-primary-hover text-white text-sm font-semibold rounded-xl transition shadow-sm">Simpan Pemesanan</button>
+            <div class="flex flex-col-reverse gap-3 border-t border-kazain-border pt-4 sm:flex-row sm:items-center sm:justify-end">
+                <a href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border px-5 py-2.5 text-sm font-medium text-kazain-muted transition hover:bg-gray-50">Batal</a>
+                <button type="submit" class="min-h-11 rounded-xl bg-kazain-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-kazain-primary-hover">Simpan Pemesanan</button>
             </div>
         </form>
     </div>

@@ -18,7 +18,7 @@
     @endphp
 
     <div class="mx-auto max-w-7xl space-y-7">
-        <header class="relative isolate overflow-hidden rounded-3xl bg-kazain-primary px-6 py-7 text-white shadow-[0_20px_50px_-32px_rgba(29,48,39,0.65)] sm:px-8 sm:py-9">
+        <header class="relative isolate overflow-hidden rounded-3xl bg-kazain-primary px-4 py-6 text-white shadow-[0_20px_50px_-32px_rgba(29,48,39,0.65)] sm:px-8 sm:py-9">
             <div aria-hidden="true" class="absolute -right-16 -top-28 -z-10 h-72 w-72 rounded-full border border-white/10"></div>
             <div aria-hidden="true" class="absolute -right-2 -top-14 -z-10 h-52 w-52 rounded-full border border-white/10"></div>
             <div aria-hidden="true" class="absolute -bottom-28 right-36 -z-10 h-52 w-52 rounded-full bg-kazain-accent/10 blur-3xl"></div>
@@ -48,10 +48,10 @@
         </header>
 
         {{-- Statistik Cards --}}
-        <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-6" aria-label="Ringkasan hotel">
+        <section class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-6" aria-label="Ringkasan hotel">
 
             {{-- Total Kamar Tersedia --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Kamar tersedia</p>
                     <p id="stat-available" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $availableCount }}</p>
@@ -59,7 +59,7 @@
             </a>
 
             {{-- Total Kamar Terisi --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Kamar terisi</p>
                     <p id="stat-occupied" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $occupiedCount }}</p>
@@ -67,7 +67,7 @@
             </a>
 
             {{-- Kamar Dibersihkan --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Dibersihkan</p>
                     <p id="stat-cleaning" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $cleaningCount }}</p>
@@ -75,7 +75,7 @@
             </a>
 
             {{-- Kamar Maintenance --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Maintenance</p>
                     <p id="stat-maintenance" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $maintenanceCount }}</p>
@@ -83,7 +83,7 @@
             </a>
 
             {{-- Check-in Hari Ini --}}
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($bookingIndexRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Check-in hari ini</p>
                     <p id="stat-checkin" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckInCount }}</p>
@@ -91,7 +91,7 @@
             </a>
 
             {{-- Check-out Hari Ini --}}
-            <a href="{{ route($bookingIndexRoute) }}" class="group rounded-2xl border border-kazain-border bg-gray-100 p-5 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
+            <a href="{{ route($bookingIndexRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Check-out hari ini</p>
                     <p id="stat-checkout" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $todayCheckOutCount }}</p>
@@ -124,7 +124,7 @@
                     >
                 </label>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel pemesanan terbaru secara horizontal">
                 <table class="w-full min-w-[1120px] table-fixed text-left text-sm">
                     <thead class="border-b border-kazain-border bg-[#f7f8f5]">
                         <tr>
@@ -179,22 +179,22 @@
     </div>
 
     {{-- MODAL TAMBAH PEMESANAN (LANGSUNG DARI DASHBOARD) --}}
-    <div id="createBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="createBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto overscroll-contain" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         {{-- Backdrop --}}
         <div class="fixed inset-0 bg-[#1d3027]/45 backdrop-blur-[2px] transition-opacity" onclick="closeCreateBookingModal()"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative my-4 flex max-h-[calc(100vh-2rem)] w-full transform flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface text-left shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] transition-all sm:my-8 sm:max-w-4xl">
+        <div class="flex min-h-full items-center justify-center p-2 text-center sm:p-0">
+            <div class="relative my-2 flex max-h-[calc(100dvh-1rem)] w-full min-w-0 transform flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface text-left shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] transition-all sm:my-8 sm:max-h-[calc(100vh-2rem)] sm:max-w-4xl">
 
                 {{-- Modal Header --}}
-                <div class="flex shrink-0 items-center justify-between border-b border-kazain-border bg-gray-100 px-5 py-4 sm:px-6">
-                    <div class="flex items-center gap-3">
+                <div class="flex min-w-0 shrink-0 items-center justify-between gap-2 border-b border-kazain-border bg-gray-100 px-4 py-4 sm:px-6">
+                    <div class="flex min-w-0 items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3]">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <h3 class="text-base font-semibold tracking-tight text-kazain-text" id="modal-title">Tambah Pemesanan Kamar</h3>
                             <p class="mt-0.5 text-xs text-kazain-muted">Input reservasi langsung dari dashboard.</p>
                         </div>
@@ -212,7 +212,7 @@
                 </div>
 
                 {{-- Alert Error Box --}}
-                <div id="modalErrorBox" class="mx-6 mt-4 hidden shrink-0 rounded-2xl border border-[#e8c9c2] bg-[#fbf3f1] p-4 text-xs text-[#844a40]">
+                <div id="modalErrorBox" class="mx-4 mt-4 hidden shrink-0 rounded-2xl border border-[#e8c9c2] bg-[#fbf3f1] p-4 text-xs text-[#844a40] sm:mx-6">
                     <div class="mb-1 flex items-center gap-2 font-semibold">
                         <svg class="h-4 w-4 shrink-0 text-[#975b50]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
@@ -223,7 +223,7 @@
                 </div>
 
                 {{-- Form Tambah Pemesanan --}}
-                <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6">
+                <form id="createBookingForm" onsubmit="handleCreateBookingSubmit(event)" class="min-h-0 space-y-5 overflow-y-auto p-4 sm:p-6">
                     @csrf
                     <input type="hidden" name="payment_status" id="modal_payment_status_hidden" value="Paid">
 
@@ -479,7 +479,7 @@
                     </div>
                 </div>
 
-                <div class="flex space-x-2">
+                <div class="flex flex-col gap-2 sm:flex-row">
                     <button
                         type="button"
                         onclick="closeBookingSuccessModal()"
@@ -489,7 +489,7 @@
                     </button>
                     <a
                         href="{{ auth()->user()->role === 'Admin' ? route('admin.pemesanan.index') : route('receptionist.pemesanan.index') }}"
-                        class="px-4 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition"
+                        class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                     >
                         Lihat Data Pemesanan
                     </a>

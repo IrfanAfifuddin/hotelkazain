@@ -9,7 +9,7 @@
             <div aria-hidden="true" class="absolute -right-2 -top-14 -z-10 h-52 w-52 rounded-full border border-white/10"></div>
             <div aria-hidden="true" class="absolute -bottom-28 right-36 -z-10 h-52 w-52 rounded-full bg-kazain-accent/10 blur-3xl"></div>
 
-            <div class="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-7">
                 <div>
                     <p class="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                         <span class="h-1.5 w-1.5 rounded-full bg-[#d9c99d]"></span>
@@ -22,7 +22,7 @@
                 <button
                     type="button"
                     onclick="openCreateModal()"
-                    class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d8c89c] px-4 text-sm font-semibold text-[#26332c] shadow-sm transition hover:bg-[#e3d6b5] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+                    class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#d8c89c] px-4 text-sm font-semibold text-[#26332c] shadow-sm transition hover:bg-[#e3d6b5] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30 sm:w-auto"
                 >
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5" />
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" aria-label="Geser daftar resepsionis secara horizontal">
                 <table class="w-full min-w-[680px] text-left text-sm">
                     <thead class="bg-[#f7f8f5]">
                         <tr>
@@ -128,10 +128,10 @@
         </section>
     </div>
 
-    <div id="userModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div id="userModal" class="fixed inset-0 z-50 hidden overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <button type="button" class="absolute inset-0 cursor-default bg-[#1d3027]/35 backdrop-blur-[2px]" onclick="closeUserModal()" aria-label="Tutup formulir"></button>
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="relative w-full max-w-md rounded-2xl border border-kazain-border bg-kazain-surface p-6 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)]">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative my-4 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-kazain-border bg-kazain-surface p-5 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] sm:p-6">
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#edf1ec] text-kazain-primary">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 1 2.625.372 9.337 9.337 0 0 1 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z" />
@@ -168,10 +168,10 @@
         </div>
     </div>
 
-    <div id="deleteModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
         <button type="button" class="absolute inset-0 cursor-default bg-[#1d3027]/35 backdrop-blur-[2px]" onclick="closeDeleteModal()" aria-label="Tutup konfirmasi"></button>
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="relative w-full max-w-sm rounded-2xl border border-kazain-border bg-kazain-surface p-6 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)]">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative my-4 w-full max-w-sm rounded-2xl border border-kazain-border bg-kazain-surface p-5 shadow-[0_24px_70px_-30px_rgba(29,48,39,0.45)] sm:p-6">
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f4eae7] text-[#975b50]">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008v.008H12v-.008ZM10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
@@ -182,7 +182,7 @@
                 <form id="deleteForm" method="POST" action="" class="mt-6">
                     @csrf
                     @method('DELETE')
-                    <div class="flex gap-3">
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
                         <button type="button" onclick="closeDeleteModal()" class="min-h-11 flex-1 rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-text transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15">
                             Batal
                         </button>

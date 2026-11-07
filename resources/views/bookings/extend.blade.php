@@ -19,8 +19,8 @@
             Data pemesanan
         </a>
 
-        <section class="flex max-h-[calc(100vh-7rem)] min-h-[32rem] flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-[0_24px_70px_-30px_rgba(29,48,39,0.35)]">
-            <header class="flex shrink-0 items-center gap-3 border-b border-kazain-border bg-gray-100 px-5 py-4 sm:px-6">
+        <section class="flex max-h-[calc(100dvh-7rem)] min-h-0 flex-col overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-[0_24px_70px_-30px_rgba(29,48,39,0.35)] sm:min-h-[32rem]">
+            <header class="flex shrink-0 items-center gap-3 border-b border-kazain-border bg-gray-100 px-4 py-4 sm:px-6">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-kazain-primary text-[#e8dec3]">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -41,7 +41,7 @@
 
             <form method="POST" action="{{ route($prefix . '.pemesanan.extend.store', $booking) }}" id="extendForm" class="flex min-h-0 flex-1 flex-col">
                 @csrf
-                <div class="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 sm:p-6">
+                <div class="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
                     <section>
                         <h2 class="mb-3 flex items-center gap-1.5 border-b border-kazain-border pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">
                             <svg class="h-4 w-4 text-kazain-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -137,7 +137,7 @@
                     </section>
                 </div>
 
-                <footer class="flex shrink-0 flex-col gap-4 border-t border-kazain-border bg-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <footer class="flex shrink-0 flex-col gap-4 border-t border-kazain-border bg-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div class="flex items-center justify-between gap-4 sm:justify-start sm:gap-6">
                         <div>
                             <p class="text-xs text-kazain-muted">Durasi</p>
