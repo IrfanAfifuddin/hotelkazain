@@ -59,15 +59,12 @@ class RoomController extends Controller
         $requestedStatus = $request->room_status;
         $computedStatus = $room->computed_status;
 
-        // Prevent manual override to Available if room should be Occupied or Cleaning
-        if ($requestedStatus === 'Available' && in_array($computedStatus, ['Occupied', 'Cleaning'])) {
+        // Prevent manual override to Available if room should be Occupied (cleaning can be manually overridden to Available)
+        if ($requestedStatus === 'Available' && $computedStatus === 'Occupied') {
             $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-            $message = $computedStatus === 'Occupied'
-                ? 'Kamar tidak bisa dijadikan Tersedia karena masih ada tamu yang menginap (Terisi).'
-                : 'Kamar tidak bisa dijadikan Tersedia karena masih dalam masa cleaning 1 jam setelah check-out.';
 
             return redirect()->route($prefix.'.status-kamar.index')
-                ->withErrors(['room_status' => $message])
+                ->withErrors(['room_status' => 'Kamar tidak bisa dijadikan Tersedia karena masih ada tamu yang menginap (Terisi).'])
                 ->withInput();
         }
 

@@ -5,19 +5,14 @@
 @section('content')
 
     @php
-        $availableRooms = $availableRooms ?? \App\Models\Room::where('room_status', 'Available')->orderBy('room_number')->get();
-        $availableCount = $availableCount ?? $availableRooms->count();
-        $occupiedCount = $occupiedCount ?? \App\Models\Room::where('room_status', 'Occupied')->count();
-        $cleaningCount = $cleaningCount ?? \App\Models\Room::where('room_status', 'Cleaning')->count();
-        $maintenanceCount = $maintenanceCount ?? \App\Models\Room::where('room_status', 'Maintenance')->count();
-        $todayCheckInCount = $todayCheckInCount ?? \App\Models\Booking::whereDate('check_in_time', today())->count();
-        $todayCheckOutCount = $todayCheckOutCount ?? \App\Models\Booking::whereDate('check_out_time', today())->count();
-        $recentBookings = $recentBookings ?? \App\Models\Booking::with(['customer', 'room'])
-            ->whereNotIn('booking_status', ['Check-out', 'Cancelled'])
-            ->where('check_out_time', '>', now())
-            ->orderBy('check_in_time', 'desc')
-            ->take(5)
-            ->get();
+        $availableRooms = $availableRooms;
+        $availableCount = $availableCount;
+        $occupiedCount = $occupiedCount;
+        $cleaningCount = $cleaningCount;
+        $maintenanceCount = $maintenanceCount;
+        $todayCheckInCount = $todayCheckInCount;
+        $todayCheckOutCount = $todayCheckOutCount;
+        $recentBookings = $recentBookings;
         $roomStatusRoute = auth()->user()->role === 'Admin' ? 'admin.status-kamar.index' : 'receptionist.status-kamar.index';
         $bookingIndexRoute = auth()->user()->role === 'Admin' ? 'admin.pemesanan.index' : 'receptionist.pemesanan.index';
     @endphp

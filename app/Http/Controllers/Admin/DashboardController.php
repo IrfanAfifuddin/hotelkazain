@@ -14,13 +14,23 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        $availableRooms = Room::where('room_status', 'Available')->orderBy('room_number')->get();
+        $rooms = Room::with(['bookings' => function ($q) {
+            $q->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+                ->orderBy('check_in_time', 'desc');
+        }])->get();
+
+        $availableRooms = $rooms->filter(fn ($r) => $r->computed_status === 'Available')->sortBy('room_number');
+
         $availableCount = $availableRooms->count();
-        $occupiedCount = Room::where('room_status', 'Occupied')->count();
-        $cleaningCount = Room::where('room_status', 'Cleaning')->count();
-        $maintenanceCount = Room::where('room_status', 'Maintenance')->count();
-        $todayCheckInCount = Booking::whereDate('check_in_time', today())->count();
-        $todayCheckOutCount = Booking::whereDate('check_out_time', today())->count();
+        $occupiedCount = $rooms->filter(fn ($r) => $r->computed_status === 'Occupied')->count();
+        $cleaningCount = $rooms->filter(fn ($r) => $r->computed_status === 'Cleaning')->count();
+        $maintenanceCount = $rooms->filter(fn ($r) => $r->computed_status === 'Maintenance')->count();
+        $todayCheckInCount = Booking::whereDate('check_in_time', now('Asia/Jakarta')->toDateString())
+            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
+            ->count();
+        $todayCheckOutCount = Booking::whereDate('check_out_time', now('Asia/Jakarta')->toDateString())
+            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+            ->count();
         $recentBookings = Booking::with(['customer', 'room'])
             ->whereNotIn('booking_status', ['Check-out', 'Cancelled'])
             ->where('check_out_time', '>', now())

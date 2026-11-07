@@ -59,17 +59,46 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        $availableRooms = Room::where('room_status', 'Available')->orderBy('room_number')->get();
+        $user = Auth::user();
+
+        if ($user->role === 'Admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->role === 'Receptionist') {
+            return redirect()->route('receptionist.dashboard');
+        }
+
+        $rooms = Room::with(['bookings' => function ($q) {
+            $q->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+                ->orderBy('check_in_time', 'desc');
+        }])->get();
+
+        $availableRooms = $rooms->filter(fn ($r) => $r->computed_status === 'Available')->sortBy('room_number');
+
         $availableCount = $availableRooms->count();
-        $occupiedCount = Room::where('room_status', 'Occupied')->count();
-        $todayCheckInCount = Booking::whereDate('check_in_time', today())->count();
-        $todayCheckOutCount = Booking::whereDate('check_out_time', today())->count();
-        $recentBookings = Booking::with(['customer', 'room'])->latest()->take(5)->get();
+        $occupiedCount = $rooms->filter(fn ($r) => $r->computed_status === 'Occupied')->count();
+        $cleaningCount = $rooms->filter(fn ($r) => $r->computed_status === 'Cleaning')->count();
+        $maintenanceCount = $rooms->filter(fn ($r) => $r->computed_status === 'Maintenance')->count();
+        $todayCheckInCount = Booking::whereDate('check_in_time', now('Asia/Jakarta')->toDateString())
+            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
+            ->count();
+        $todayCheckOutCount = Booking::whereDate('check_out_time', now('Asia/Jakarta')->toDateString())
+            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+            ->count();
+        $recentBookings = Booking::with(['customer', 'room'])
+            ->whereNotIn('booking_status', ['Check-out', 'Cancelled'])
+            ->where('check_out_time', '>', now())
+            ->orderBy('check_in_time', 'desc')
+            ->take(5)
+            ->get();
 
         return view('dashboard', compact(
             'availableRooms',
             'availableCount',
             'occupiedCount',
+            'cleaningCount',
+            'maintenanceCount',
             'todayCheckInCount',
             'todayCheckOutCount',
             'recentBookings'

@@ -139,21 +139,13 @@ class BookingController extends Controller
 
         return DB::transaction(function () use ($request, $checkIn, $checkOut, $roomIds) {
             // Simpan / Buat Data Customer
-            $customer = Customer::firstOrCreate(
-                ['phone_number' => $request->phone_number],
+            $customer = Customer::updateOrCreate(
+                ['email' => $request->email],
                 [
                     'customer_name' => $request->customer_name,
-                    'email' => $request->email,
+                    'phone_number' => $request->phone_number,
                 ]
             );
-
-            // Update nama dan email customer jika nomor telepon sudah ada
-            if ($customer->customer_name !== $request->customer_name || $customer->email !== $request->email) {
-                $customer->update([
-                    'customer_name' => $request->customer_name,
-                    'email' => $request->email,
-                ]);
-            }
 
             // Fetch semua kamar dan hitung total harga
             $rooms = Room::whereIn('id', $roomIds)->get();

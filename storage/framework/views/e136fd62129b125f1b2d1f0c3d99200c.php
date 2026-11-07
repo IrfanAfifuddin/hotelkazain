@@ -164,8 +164,8 @@
                                     <?php $__currentLoopData = $statusOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $statusOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <?php
                                             $isCurrentStatus = $room->current_status === $statusOption['value'];
-                                            // Disable manual override to Available if room should be Occupied/Cleaning
-                                            $shouldDisableAvailable = $statusOption['value'] === 'Available' && in_array($room->current_status, ['Occupied', 'Cleaning']);
+                                            // Disable manual override to Available if room should be Occupied
+                                            $shouldDisableAvailable = $statusOption['value'] === 'Available' && $room->current_status === 'Occupied';
                                             // Disable manual override to Occupied if no active booking
                                             $shouldDisableOccupied = $statusOption['value'] === 'Occupied' && $room->current_status === 'Available' && !$room->active_booking;
                                             $isDisabled = $isCurrentStatus || $shouldDisableAvailable || $shouldDisableOccupied;

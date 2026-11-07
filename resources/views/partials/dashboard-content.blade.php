@@ -1,8 +1,15 @@
     @php
         $availableRooms = \App\Models\Room::query()->where('room_status', 'Available')->count();
         $occupiedRooms = \App\Models\Room::query()->where('room_status', 'Occupied')->count();
-        $checkInsToday = \App\Models\Booking::query()->whereDate('check_in_time', today())->count();
-        $checkOutsToday = \App\Models\Booking::query()->whereDate('check_out_time', today())->count();
+        $today = now('Asia/Jakarta')->toDateString();
+        $checkInsToday = \App\Models\Booking::query()
+            ->whereDate('check_in_time', $today)
+            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
+            ->count();
+        $checkOutsToday = \App\Models\Booking::query()
+            ->whereDate('check_out_time', $today)
+            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+            ->count();
         $recentBookings = \App\Models\Booking::query()->with(['customer', 'room'])->latest()->limit(5)->get();
         $isAdmin = auth()->user()->role === 'Admin';
         $bookingIndexRoute = $isAdmin ? 'admin.pemesanan.index' : 'receptionist.pemesanan.index';

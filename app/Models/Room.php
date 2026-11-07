@@ -41,15 +41,18 @@ class Room extends Model
         }
 
         // 2. Check for recent checkout (automatic Cleaning)
-        $recentBooking = $this->bookings()
-            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
-            ->where('check_out_time', '<=', $now)
-            ->where('check_out_time', '>', $now->copy()->subHour())
-            ->latest('check_out_time')
-            ->first();
+        // Only return Cleaning if the room is not already marked as Available manually
+        if ($this->room_status !== 'Available') {
+            $recentBooking = $this->bookings()
+                ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+                ->where('check_out_time', '<=', $now)
+                ->where('check_out_time', '>', $now->copy()->subHour())
+                ->latest('check_out_time')
+                ->first();
 
-        if ($recentBooking) {
-            return 'Cleaning';
+            if ($recentBooking) {
+                return 'Cleaning';
+            }
         }
 
         // 3. Fallback to manual status if set
