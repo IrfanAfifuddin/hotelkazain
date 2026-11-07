@@ -51,6 +51,7 @@
                                 type="date"
                                 name="start_date"
                                 value="{{ $startDate ?? '' }}"
+                                onchange="this.form.submit()"
                                 class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10"
                             >
                         </div>
@@ -61,6 +62,7 @@
                                 type="date"
                                 name="end_date"
                                 value="{{ $endDate ?? '' }}"
+                                onchange="this.form.submit()"
                                 class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10"
                             >
                         </div>
