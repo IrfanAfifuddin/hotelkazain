@@ -31,6 +31,39 @@
     .bg-ink { background-color: var(--kz-ink); }
     .bg-sand { background-color: var(--kz-sand); }
     .border-gold { border-color: var(--kz-gold); }
+    .bg-gold { background-color: var(--kz-gold); }
+
+    /* Tombol utama emas, ujung membulat */
+    .btn-gold {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        background-color: var(--kz-gold);
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        border-radius: 9999px;
+        box-shadow: 0 8px 20px -8px rgba(38, 33, 29, .55);
+        transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .btn-gold:hover { background-color: #94723F; transform: translateY(-1px); box-shadow: 0 12px 24px -10px rgba(38, 33, 29, .6); }
+    .btn-gold:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+    /* Foto hero membesar pelan saat halaman dibuka */
+    @keyframes kz-zoom { from { transform: scale(1.08); } to { transform: scale(1); } }
+    .hero-zoom { animation: kz-zoom 8s ease-out both; }
+
+    /* Muncul halus saat di-scroll (hanya aktif jika JavaScript jalan) */
+    .js-reveal [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .js-reveal [data-reveal].is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-zoom { animation: none; }
+        .js-reveal [data-reveal] { opacity: 1; transform: none; transition: none; }
+        .btn-gold:hover { transform: none; }
+    }
 
     ::selection {
         background-color: #EADFCB;
