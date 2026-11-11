@@ -8,23 +8,25 @@
 @section('content')
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
 
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Isi Data Diri</h1>
+        <p class="text-xs sm:text-sm font-semibold tracking-[0.3em] text-gold">LANGKAH 2</p>
+        <h1 class="mt-2 text-2xl sm:text-3xl font-semibold text-gray-900">Isi Data Diri</h1>
 
         {{-- Jika data pemesanan tidak ada / tidak valid --}}
-        <div id="invalidBooking" class="hidden mt-8 border border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <div id="invalidBooking" class="hidden mt-8 bg-white border border-black/5 rounded-2xl shadow-sm p-8 text-center">
             <p class="text-gray-700">Data pemesanan tidak ditemukan. Silakan pilih tanggal dan kamar terlebih dahulu.</p>
-            <a href="{{ route('customer.availability') }}" class="mt-4 inline-flex px-5 py-2.5 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800">Cek Ketersediaan</a>
+            <a href="{{ route('customer.availability') }}" class="btn-gold mt-5 px-7 py-3 text-sm">Cek Ketersediaan</a>
         </div>
 
         <div id="checkoutContent" class="hidden mt-8 grid gap-8 lg:grid-cols-[1fr_380px] items-start">
 
             {{-- ===================== FORM ===================== --}}
             <form id="checkoutForm" novalidate class="space-y-6">
-                <p id="serverError" class="hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></p>
+                <p id="serverError" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></p>
 
-                <div class="border border-gray-200 rounded-lg">
-                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
-                        <h2 class="font-semibold text-gray-900">Informasi Pemesan</h2>
+                <div class="bg-white border border-black/5 rounded-2xl shadow-sm">
+                    <div class="px-6 pt-6">
+                        <p class="text-xs font-semibold tracking-[0.2em] text-gold uppercase">Data Tamu</p>
+                        <h2 class="font-display mt-1 text-xl font-semibold text-gray-900">Informasi Pemesan</h2>
                     </div>
 
                     <div class="p-6 space-y-5">
@@ -49,33 +51,34 @@
                                     <input id="{{ $field['name'] }}" name="{{ $field['name'] }}" type="{{ $field['type'] }}"
                                            placeholder="{{ $field['placeholder'] }}" autocomplete="{{ $field['autocomplete'] }}" required
                                            @if ($field['type'] === 'tel') inputmode="tel" maxlength="16" @endif
-                                           class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900">
+                                           class="w-full pl-11 pr-4 py-3 bg-[#FCFAF7] border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#A8844F]/40 focus:border-[#A8844F] transition">
                                 </div>
                                 <p data-error-for="{{ $field['name'] }}" class="hidden mt-1.5 text-sm text-red-600"></p>
                             </div>
                         @endforeach
 
                         <label class="flex items-start gap-3 pt-1 cursor-pointer">
-                            <input type="checkbox" id="agree_terms" name="agree_terms" value="1" class="mt-1 w-4 h-4 accent-gray-900">
+                            <input type="checkbox" id="agree_terms" name="agree_terms" value="1" class="mt-1 w-4 h-4 accent-[#A8844F]">
                             <span class="text-gray-700">
                                 Saya menyetujui <a href="#" class="underline font-medium text-gray-900">Syarat dan Ketentuan</a>
                                 serta <a href="#" class="underline font-medium text-gray-900">Kebijakan Privasi</a> Kazain Hotel.
                             </span>
                         </label>
 
-                        <div class="flex items-start gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
-                            <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                        <div class="flex items-start gap-3 px-4 py-3 bg-sand rounded-xl text-sm text-gray-700">
+                            <svg class="w-5 h-5 shrink-0 text-gold" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
                             <span>Kode booking akan dikirimkan ke alamat email yang Anda isi di atas.</span>
                         </div>
                     </div>
                 </div>
 
                 {{-- Metode pembayaran --}}
-                <div>
-                    <p class="font-medium text-gray-800">Metode Pembayaran <span class="text-gray-400">*</span></p>
-                    <label class="mt-3 flex items-center gap-4 border-2 border-gray-200 rounded-lg p-5 cursor-pointer transition has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-                        <input type="radio" name="payment_method" value="Virtual Account" class="w-4 h-4 accent-gray-900">
-                        <span class="w-11 h-11 shrink-0 border border-gray-300 rounded-md bg-white flex items-center justify-center text-gray-500">
+                <div class="bg-white border border-black/5 rounded-2xl shadow-sm p-6">
+                    <p class="text-xs font-semibold tracking-[0.2em] text-gold uppercase">Pembayaran</p>
+                    <p class="font-display mt-1 text-xl font-semibold text-gray-900">Metode Pembayaran <span class="font-sans text-base text-gray-400">*</span></p>
+                    <label class="mt-4 flex items-center gap-4 border-2 border-gray-200 rounded-2xl p-5 cursor-pointer transition hover:border-gray-300 has-[:checked]:border-gray-900 has-[:checked]:bg-sand">
+                        <input type="radio" name="payment_method" value="Virtual Account" class="w-4 h-4 accent-[#A8844F]">
+                        <span class="w-11 h-11 shrink-0 rounded-full bg-white border border-black/5 flex items-center justify-center text-gold">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 22h18" /><path d="M6 18v-7" /><path d="M10 18v-7" /><path d="M14 18v-7" /><path d="M18 18v-7" /><path d="m12 2 8 5H4z" /></svg>
                         </span>
                         <span>
@@ -86,31 +89,32 @@
                 </div>
 
                 <button type="submit" id="submitButton" disabled
-                        class="w-full py-4 rounded-lg text-lg font-semibold transition bg-gray-100 text-gray-400 cursor-not-allowed">
+                        class="w-full py-4 rounded-full text-base font-semibold uppercase tracking-wide transition bg-gray-200 text-gray-400 cursor-not-allowed">
                     Lanjut ke Pembayaran &rarr;
                 </button>
             </form>
 
             {{-- ===================== RINGKASAN ===================== --}}
-            <aside class="border border-gray-200 rounded-lg overflow-hidden lg:sticky lg:top-24">
-                <div id="summaryPhoto" class="h-44 bg-gray-100 border-b border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400">
+            <aside class="bg-white border border-black/5 rounded-2xl shadow-sm overflow-hidden lg:sticky lg:top-24">
+                <div id="summaryPhoto" class="h-44 bg-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21" /></svg>
                     <span class="text-sm tracking-wider">FOTO KAMAR</span>
                 </div>
                 <div class="p-6">
-                    <p id="summaryRooms" class="text-lg font-semibold text-gray-900">-</p>
+                    <p class="text-xs font-semibold tracking-[0.2em] text-gold uppercase">Ringkasan Pesanan</p>
+                    <p id="summaryRooms" class="font-display mt-1 text-xl font-semibold text-gray-900">-</p>
                     <dl class="mt-4 space-y-3 text-sm">
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Check-in</dt><dd id="summaryCheckIn" class="text-right text-gray-900">-</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Check-out</dt><dd id="summaryCheckOut" class="text-right text-gray-900">-</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Durasi</dt><dd id="summaryDuration" class="text-right text-gray-900">-</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-gray-500">Tamu</dt><dd id="summaryGuests" class="text-right text-gray-900">-</dd></div>
                     </dl>
-                    <div class="mt-5 pt-5 border-t border-gray-200 flex items-end justify-between gap-4">
+                    <div class="mt-5 -mx-6 -mb-6 px-6 py-5 bg-ink text-white flex items-end justify-between gap-4">
                         <div>
-                            <p class="font-medium text-gray-900">Total Harga</p>
-                            <p class="text-xs text-gray-400">Bayar Penuh (Lunas)</p>
+                            <p class="font-medium">Total Harga</p>
+                            <p class="text-xs text-white/60">Bayar Penuh (Lunas)</p>
                         </div>
-                        <p id="summaryTotal" class="text-2xl font-bold text-gray-900">-</p>
+                        <p id="summaryTotal" class="text-2xl font-bold">-</p>
                     </div>
                 </div>
             </aside>
@@ -175,8 +179,9 @@
                 if (!form.querySelector('input[name="payment_method"]:checked')) valid = false;
 
                 submitButton.disabled = !valid;
-                submitButton.className = 'w-full py-4 rounded-lg text-lg font-semibold transition ' +
-                    (valid ? 'bg-gray-900 hover:bg-gray-800 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed');
+                submitButton.className = valid
+                    ? 'btn-gold w-full py-4 text-base'
+                    : 'w-full py-4 rounded-full text-base font-semibold uppercase tracking-wide transition bg-gray-200 text-gray-400 cursor-not-allowed';
                 return valid;
             }
 
