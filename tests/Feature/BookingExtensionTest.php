@@ -54,7 +54,8 @@ class BookingExtensionTest extends TestCase
             ->assertOk()
             ->assertSee('Extend Pemesanan')
             ->assertSee($booking->booking_code)
-            ->assertSee('Budi Santoso');
+            ->assertSee('Budi Santoso')
+            ->assertSee('id="summaryCheckout"', false);
     }
 
     public function test_cash_short_time_extend_updates_checkout_and_creates_paid_history(): void

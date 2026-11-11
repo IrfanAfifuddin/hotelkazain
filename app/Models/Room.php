@@ -34,29 +34,27 @@ class Room extends Model
     {
         $now = Carbon::now('Asia/Jakarta');
 
-        // 1. Check for active booking
+        // 2. Check for recent checkout (automatic Cleaning)
+        // Cleaning takes precedence over manual 'Available' status
+        $recentBooking = $this->bookings()
+            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
+            ->where('check_out_time', '<=', $now)
+            ->where('check_out_time', '>', $now->copy()->subHour())
+            ->latest('check_out_time')
+            ->first();
+
+        if ($recentBooking) {
+            return 'Cleaning';
+        }
+
+        // 3. Check for active booking
         $activeBooking = $this->getActiveBookingAttribute();
         if ($activeBooking) {
             return 'Occupied';
         }
 
-        // 2. Check for recent checkout (automatic Cleaning)
-        // Only return Cleaning if the room is not already marked as Available manually
-        if ($this->room_status !== 'Available') {
-            $recentBooking = $this->bookings()
-                ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
-                ->where('check_out_time', '<=', $now)
-                ->where('check_out_time', '>', $now->copy()->subHour())
-                ->latest('check_out_time')
-                ->first();
-
-            if ($recentBooking) {
-                return 'Cleaning';
-            }
-        }
-
-        // 3. Fallback to manual status if set
-        if (in_array($this->room_status, ['Maintenance', 'Cleaning'])) {
+        // 4. Fallback to manual status if set
+        if (in_array($this->room_status, ['Maintenance', 'Cleaning', 'Occupied'])) {
             return $this->room_status;
         }
 

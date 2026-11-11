@@ -180,7 +180,7 @@
                 document.getElementById('summaryDuration').textContent = type === 'Full Day' ? 'Full Day' : `${duration} Jam`;
                 document.getElementById('summaryAmount').textContent = formatRupiah(amount);
                 document.getElementById('summaryTotal').textContent = formatRupiah(amount);
-                document.getElementById('summaryCheckout').textContent = formatDate(checkout);
+                document.getElementById('summaryCheckout').value = formatDate(checkout);
             }
             document.querySelectorAll('input[name="extension_type"], input[name="duration_hours"][type="radio"]').forEach(input => input.addEventListener('change', updateSummary));
             document.getElementById('extendForm').addEventListener('submit', event => { const button = document.getElementById('submitButton'); if (button.disabled) { event.preventDefault(); return; } button.disabled = true; button.textContent = 'Menyimpan...'; });

@@ -101,6 +101,94 @@ class RoomControllerTest extends TestCase
                 $response->assertSee('value="Occupied"', false);
                 $response->assertSee('value="Cleaning"', false);
             }
+
+            $response->assertSee("onsubmit=\"return confirm('Apakah Anda yakin ingin mengubah status kamar ini?')\"", false);
         }
+    }
+
+    public function test_room_status_cannot_be_changed_to_available_when_active_booking_exists(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        $room = Room::create([
+            'room_number' => '99',
+            'room_type' => 'Deluxe',
+            'room_status' => 'Occupied',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+
+        $customer = Customer::create([
+            'customer_name' => 'Active Guest',
+            'phone_number' => '081234567890',
+            'email' => 'active@example.com',
+        ]);
+
+        Booking::create([
+            'room_id' => $room->id,
+            'customer_id' => $customer->id,
+            'user_id' => $admin->id,
+            'booking_code' => 'BK-TEST-ACTIVE',
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->subHour(),
+            'check_out_time' => now('Asia/Jakarta')->addHours(2),
+            'booking_status' => 'Check-in',
+            'payment_method' => 'Cash',
+            'payment_status' => 'Paid',
+            'total_price' => 150000,
+            'source' => 'Offline',
+        ]);
+
+        $response = $this->actingAs($admin)->patch(route('admin.status-kamar.update', $room), [
+            'room_status' => 'Available',
+        ]);
+
+        $response->assertRedirect(route('admin.status-kamar.index'));
+        $response->assertSessionHasErrors(['room_status']);
+
+        $this->assertEquals('Occupied', $room->fresh()->room_status);
+    }
+
+    public function test_room_status_can_be_changed_to_available_when_booking_has_checked_out(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        $room = Room::create([
+            'room_number' => '98',
+            'room_type' => 'Deluxe',
+            'room_status' => 'Occupied',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+
+        $customer = Customer::create([
+            'customer_name' => 'Past Guest',
+            'phone_number' => '081234567890',
+            'email' => 'past@example.com',
+        ]);
+
+        Booking::create([
+            'room_id' => $room->id,
+            'customer_id' => $customer->id,
+            'user_id' => $admin->id,
+            'booking_code' => 'BK-TEST-PAST',
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->subHours(5),
+            'check_out_time' => now('Asia/Jakarta')->subHours(2),
+            'booking_status' => 'Check-out',
+            'payment_method' => 'Cash',
+            'payment_status' => 'Paid',
+            'total_price' => 150000,
+            'source' => 'Offline',
+        ]);
+
+        $response = $this->actingAs($admin)->patch(route('admin.status-kamar.update', $room), [
+            'room_status' => 'Available',
+        ]);
+
+        $response->assertRedirect(route('admin.status-kamar.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertEquals('Available', $room->fresh()->room_status);
     }
 }

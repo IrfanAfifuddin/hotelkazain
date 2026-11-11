@@ -154,8 +154,8 @@
             const touched = {};
 
             const rules = {
-                customer_name: (v) => v.trim().length >= 3 ? '' : 'Nama lengkap minimal 3 karakter.',
-                phone_number: (v) => /^(\+62|62|0)8\d{7,12}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Nomor telepon tidak valid. Contoh: 08123456789',
+                customer_name: (v) => /^[a-zA-Z\s]+$/.test(v.trim()) ? '' : 'Nama customer hanya boleh berisi huruf dan spasi.',
+                phone_number: (v) => /^(\+62|62|0)8\d{8,12}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Nomor telepon tidak valid (minimal 10 digit). Contoh: 08123456789',
                 email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'Format email tidak valid. Contoh: nama@email.com',
             };
 

@@ -244,6 +244,8 @@
                                     id="modal_customer_name"
                                     placeholder="Contoh: Budi Santoso"
                                     required
+                                    pattern="[A-Za-z\s]+"
+                                    title="Hanya boleh berisi huruf dan spasi"
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>
@@ -251,11 +253,15 @@
                             <div>
                                 <label for="modal_phone_number" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Nomor telepon / WhatsApp <span class="text-[#975b50]">*</span></label>
                                 <input
-                                    type="text"
+                                    type="tel"
                                     name="phone_number"
                                     id="modal_phone_number"
                                     placeholder="Contoh: 081234567890"
                                     required
+                                    minlength="10"
+                                    maxlength="15"
+                                    pattern="[0-9]{10,15}"
+                                    title="Nomor telepon harus berupa angka antara 10 sampai 15 digit"
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>

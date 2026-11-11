@@ -164,13 +164,13 @@
                                     @foreach ($statusOptions as $statusOption)
                                         @php
                                             $isCurrentStatus = $room->current_status === $statusOption['value'];
-                                            // Disable manual override to Available if room should be Occupied
-                                            $shouldDisableAvailable = $statusOption['value'] === 'Available' && $room->current_status === 'Occupied';
-                                            // Disable manual override to Occupied if no active booking
-                                            $shouldDisableOccupied = $statusOption['value'] === 'Occupied' && $room->current_status === 'Available' && !$room->active_booking;
+                                            // Disable tombol Tersedia jika masih ada booking aktif
+                                            $shouldDisableAvailable = $statusOption['value'] === 'Available' && (bool) $room->active_booking;
+                                            // Disable tombol Terisi jika tidak ada booking aktif
+                                            $shouldDisableOccupied = $statusOption['value'] === 'Occupied' && ! (bool) $room->active_booking;
                                             $isDisabled = $isCurrentStatus || $shouldDisableAvailable || $shouldDisableOccupied;
                                         @endphp
-                                        <form action="{{ route($statusRoute, $room) }}" method="POST">
+                                        <form action="{{ route($statusRoute, $room) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengubah status kamar ini?')">
                                             @csrf
                                             @method('PATCH')
                                             <button

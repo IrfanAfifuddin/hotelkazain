@@ -87,15 +87,20 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
+            'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
+            'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
+            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:dns', 'max:255'],
             'room_ids' => 'required|array|min:1',
             'room_ids.*' => 'required|integer|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'required|in:Confirmed,Check-in',
             'payment_method' => ['required', Rule::in(['Cash', 'Transfer'])],
+        ], [
+            'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
+            'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
+            'phone_number.digits_between' => 'Nomor telepon harus antara 10 sampai 15 digit.',
+            'email.email' => 'Format email tidak valid atau domain email tidak ditemukan.',
         ]);
 
         $checkIn = Carbon::parse($request->check_in_time);

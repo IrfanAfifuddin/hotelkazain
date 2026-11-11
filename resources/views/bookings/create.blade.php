@@ -31,11 +31,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-kazain-muted mb-1.5">Nama Customer *</label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="text" name="customer_name" value="{{ old('customer_name') }}" required pattern="[A-Za-z\s]+" title="Hanya boleh berisi huruf dan spasi" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-kazain-muted mb-1.5">Nomor Telepon *</label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="tel" name="phone_number" value="{{ old('phone_number') }}" required minlength="10" maxlength="15" pattern="[0-9]{10,15}" title="Nomor telepon harus berupa angka antara 10 sampai 15 digit" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-kazain-muted mb-1.5">Email *</label>

@@ -275,4 +275,52 @@ class AdminDashboardBookingTest extends TestCase
         $response->assertRedirect(route('admin.pemesanan.index'));
         $response->assertSessionHas('success');
     }
+
+    public function test_booking_fails_when_customer_name_contains_numbers_or_phone_contains_letters_for_both_roles(): void
+    {
+        $invalidPayload = [
+            'customer_name' => '12313',
+            'phone_number' => 'sdassdasd',
+            'email' => 'test@example.com',
+            'room_ids' => [$this->room1->id],
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
+            'booking_status' => 'Check-in',
+            'payment_method' => 'Cash',
+        ];
+
+        // Admin role
+        $adminResponse = $this->actingAs($this->admin)
+            ->postJson(route('admin.pemesanan.store'), $invalidPayload);
+
+        $adminResponse->assertStatus(422);
+        $adminResponse->assertJsonValidationErrors(['customer_name', 'phone_number']);
+
+        // Receptionist role
+        $receptionistResponse = $this->actingAs($this->receptionist)
+            ->postJson(route('receptionist.pemesanan.store'), $invalidPayload);
+
+        $receptionistResponse->assertStatus(422);
+        $receptionistResponse->assertJsonValidationErrors(['customer_name', 'phone_number']);
+    }
+
+    public function test_booking_fails_when_email_format_is_invalid(): void
+    {
+        $payload = [
+            'customer_name' => 'Budi Santoso',
+            'phone_number' => '081234567890',
+            'email' => 'invalid-email-string',
+            'room_ids' => [$this->room1->id],
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
+            'booking_status' => 'Confirmed',
+            'payment_method' => 'Cash',
+        ];
+
+        $response = $this->actingAs($this->admin)
+            ->postJson(route('admin.pemesanan.store'), $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
+    }
 }
