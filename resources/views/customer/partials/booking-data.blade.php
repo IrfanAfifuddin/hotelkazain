@@ -65,9 +65,14 @@
                 .map(([type, qty]) => `${qty} ${type}`)
                 .join(', ');
 
-            // Can't calculate exact total client-side without room details - server will calculate
-            // Display placeholder until server response
-            const total = 0;
+            // Perkiraan total untuk ditampilkan (harga per tipe kamar dari ROOM_TYPES);
+            // total yang ditagih tetap dihitung ulang oleh server.
+            const findRoom = (type) => ROOM_TYPES.find((r) => r.type === type || r.short_name === type);
+            const total = Object.entries(roomQuantities).reduce((sum, [type, qty]) => {
+                const room = findRoom(type);
+                return sum + (room?.prices?.[priceKey] || 0) * qty;
+            }, 0) * (isFull ? nights : 1);
+            const firstRoom = findRoom(Object.keys(roomQuantities)[0]);
 
             return {
                 query: p,
@@ -76,7 +81,7 @@
                 date, time, bookingType, isFull, nights, duration, guests, start, end, total,
                 roomsText: `${totalRooms} kamar (${roomsDescription})`,
                 durationText: isFull ? `Full Day (${nights} malam)` : `${duration} Jam`,
-                image: null,
+                image: firstRoom?.image || null,
             };
         }
 
