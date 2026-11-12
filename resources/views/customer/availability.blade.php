@@ -99,7 +99,6 @@
                         <span class="flex items-center gap-2"><span class="w-5 h-5 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span></span>Hampir Penuh</span>
                         <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-lg bg-[#FEF2F2] flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full bg-[#F87171]"></span></span>Penuh</span>
                         <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-lg bg-ink"></span>Dipilih</span>
-                        <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-lg ring-1 ring-[#A8844F]"></span>Hari ini</span>
                         <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-lg day-past border border-black/5"></span>Sudah lewat</span>
                     </div>
                     <p class="mt-3 text-xs text-gray-400">Status kamar tampil setelah tanggal dipilih.</p>
@@ -448,7 +447,6 @@
                     const date = new Date(viewYear, viewMonth, day);
                     const info = getDayInfo(date);
                     const isSelected = state.selectedDate && dateKey(state.selectedDate) === dateKey(date);
-                    const isToday = dateKey(date) === dateKey(today);
 
                     if (info.status === 'past') {
                         html += `<div class="${cell} day-past text-gray-400 font-medium cursor-not-allowed" aria-label="${day}, sudah lewat" title="Sudah lewat">${day}</div>`;
@@ -466,11 +464,11 @@
                     const dot = info.status === 'almost' ? 'bg-[#F59E0B]' : info.status === 'available' ? 'bg-[#10B981]' : 'bg-transparent';
                     const color = isSelected
                         ? 'bg-ink text-white shadow-md shadow-black/20'
-                        : `text-gray-900 hover:bg-sand ${isToday ? 'ring-1 ring-[#A8844F]' : ''}`;
+                        : 'text-gray-900 hover:bg-sand';
 
                     html += `<button type="button" data-date="${dateKey(date)}" class="${cell} ${color} font-semibold" aria-pressed="${isSelected}" aria-label="${day}, ${label}" title="${label}">
                                 <span>${day}</span>
-                                <span class="mt-0.5 w-1.5 h-1.5 rounded-full ${isSelected && dot !== 'bg-transparent' ? 'bg-[#D9BC8C]' : dot}"></span>
+                                <span class="mt-0.5 w-1.5 h-1.5 rounded-full ${dot}"></span>
                              </button>`;
                 }
 
