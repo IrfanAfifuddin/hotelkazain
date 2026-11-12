@@ -85,11 +85,22 @@
             };
         }
 
-        // Query string pemesanan saja (tanpa data pribadi) untuk diteruskan antarhalaman
+        // Query string untuk tombol kembali ke Cek Ketersediaan (tanpa data pribadi).
+        // Nama parameter sengaja dibedakan (tipe_pemesanan, jam_checkin, durasi_jam) supaya
+        // tidak ikut divalidasi BookingController@availability, yang hanya menerima
+        // booking_type "Short Time"/"Full Day" dan duration_hours 5/8/24.
         function bookingQuery(booking) {
             const q = new URLSearchParams();
-            ['check_in_date', 'check_in_time', 'booking_type', 'duration_hours', 'guests', 'room_quantities'].forEach((k) => {
-                if (booking.query.get(k)) q.set(k, booking.query.get(k));
+            const rename = {
+                check_in_date: 'tanggal',
+                check_in_time: 'jam_checkin',
+                booking_type: 'tipe_pemesanan',
+                duration_hours: 'durasi_jam',
+                guests: 'guests',
+                room_quantities: 'room_quantities',
+            };
+            Object.entries(rename).forEach(([from, to]) => {
+                if (booking.query.get(from)) q.set(to, booking.query.get(from));
             });
             return q;
         }

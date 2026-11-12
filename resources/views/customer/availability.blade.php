@@ -959,20 +959,22 @@
             renderMonthSelect();
 
             // Jika kembali dari halaman Isi Data Diri, pulihkan pilihan sebelumnya
+            // Nama baru (dari tombol kembali) dengan cadangan nama lama
             const prev = new URLSearchParams(window.location.search);
-            const prevDate = prev.get('check_in_date');
+            const prevParam = (baru, lama) => prev.get(baru) ?? prev.get(lama);
+            const prevDate = prevParam('tanggal', 'check_in_date');
             if (prevDate && /^\d{4}-\d{2}-\d{2}$/.test(prevDate)) {
                 const [py, pm, pd] = prevDate.split('-').map(Number);
                 const d = new Date(py, pm - 1, pd);
                 if (getDayInfo(d).status !== 'past' && getDayInfo(d).status !== 'full') {
-                    const type = prev.get('booking_type') || '';
+                    const type = prevParam('tipe_pemesanan', 'booking_type') || '';
                     state.bookingType = type === 'Full Day' ? 'full' : 'short';
                     if (type === 'Short Time 8 Jam') state.duration = 8;
                     if (state.bookingType === 'full') {
-                        state.nights = Math.min(MAX_NIGHTS, Math.max(1, Math.round((parseInt(prev.get('duration_hours') || '24', 10)) / 24)));
+                        state.nights = Math.min(MAX_NIGHTS, Math.max(1, Math.round((parseInt(prevParam('durasi_jam', 'duration_hours') || '24', 10)) / 24)));
                     }
                     state.guests = Math.max(1, parseInt(prev.get('guests') || '1', 10));
-                    const hour = parseInt((prev.get('check_in_time') || '').split(':')[0], 10);
+                    const hour = parseInt((prevParam('jam_checkin', 'check_in_time') || '').split(':')[0], 10);
                     if (state.bookingType === 'short' && !isNaN(hour) && isHourAvailable(d, hour, state.duration)) {
                         state.hour = hour;
                     }
