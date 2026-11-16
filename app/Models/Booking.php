@@ -31,6 +31,7 @@ class Booking extends Model
         'total_price',
         'source',
         'payment_expires_at',
+        'number_of_guests',
     ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class Booking extends Model
         'payment_time' => 'datetime',
         'payment_expires_at' => 'datetime',
         'booking_code_sent_at' => 'datetime',
+        'number_of_guests' => 'integer',
     ];
 
     public function room(): BelongsTo

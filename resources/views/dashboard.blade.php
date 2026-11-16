@@ -148,7 +148,10 @@
                                     : 'border-blue-200 bg-blue-50 text-blue-700';
                             @endphp
                             <tr data-booking-row class="transition hover:bg-[#f7f8f5]">
-                                <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">{{ $booking->customer->customer_name ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">
+                                    {{ $booking->customer->customer_name ?? '-' }}
+                                    <span class="block text-xs font-normal text-kazain-muted">{{ $booking->number_of_guests ?? 1 }} orang</span>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->customer->phone_number ?? '-' }}</td>
                                 <td class="whitespace-nowrap px-6 py-4">
                                     <span class="rounded-lg bg-[#f4f5f1] px-2.5 py-1 font-mono text-xs text-kazain-muted">{{ $booking->room->room_number ?? '-' }}</span>
@@ -301,6 +304,17 @@
                                     <option value="Short Time 5 Jam">Short Time (5 Jam)</option>
                                     <option value="Short Time 8 Jam">Short Time (8 Jam)</option>
                                 </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1.5 block text-xs font-semibold text-kazain-muted">Jumlah Orang <span class="text-[#975b50]">*</span></label>
+                                <input type="hidden" name="number_of_guests" id="modal_number_of_guests" value="1">
+                                <div class="flex items-center gap-3">
+                                    <button type="button" onclick="changeModalGuests(-1)" class="flex h-10 w-10 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 text-base font-semibold text-kazain-text transition hover:bg-gray-100 focus:outline-none">−</button>
+                                    <span class="min-w-8 text-center text-xl font-semibold text-kazain-text" id="modal_guest_count">1</span>
+                                    <button type="button" onclick="changeModalGuests(1)" class="flex h-10 w-10 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 text-base font-semibold text-kazain-text transition hover:bg-gray-100 focus:outline-none">+</button>
+                                    <span class="text-xs text-kazain-muted">orang (maks. 2 / kamar)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -625,6 +639,17 @@
 
     // Multi-room selection state
     let modalSelectedRoomIds = [];
+    let modalGuests = 1;
+
+    function changeModalGuests(delta) {
+        const roomMultiplier = modalSelectedRoomIds.length > 0 ? modalSelectedRoomIds.length : 1;
+        const maxAllowed = Math.max(2, roomMultiplier * 2);
+        modalGuests = Math.max(1, Math.min(maxAllowed, modalGuests + delta));
+        const countEl = document.getElementById('modal_guest_count');
+        const inputEl = document.getElementById('modal_number_of_guests');
+        if (countEl) countEl.textContent = modalGuests;
+        if (inputEl) inputEl.value = modalGuests;
+    }
     let modalRoomPricesMap = {};
 
     // Initialize room prices map on page load
@@ -680,6 +705,7 @@
             summaryEl.textContent = 'Pilih minimal 1 kamar';
         }
 
+        changeModalGuests(0);
         updateRoomCalculations();
     }
 

@@ -34,6 +34,20 @@
             </div>
         </header>
 
+        @if(session('error') || isset($dateError))
+            <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-sm flex items-center gap-3">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                </span>
+                <div>
+                    <p class="font-semibold text-rose-900">Rentang Tanggal Tidak Valid</p>
+                    <p class="mt-0.5 text-rose-700">{{ session('error') ?? $dateError }}</p>
+                </div>
+            </div>
+        @endif
+
         <section class="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
             <div class="overflow-hidden rounded-2xl border border-kazain-border bg-gray-100 shadow-sm" aria-label="Filter periode laporan">
                 <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:px-6">
@@ -42,42 +56,38 @@
                         <p class="mt-1 text-sm text-kazain-muted">Pilih rentang tanggal transaksi yang ingin ditampilkan.</p>
                     </div>
                 </div>
-                <form action="{{ route($salesReportRoute) }}" method="GET" class="flex h-full flex-col justify-between gap-5 p-5 sm:px-6">
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="space-y-1.5">
+                <form action="{{ route($salesReportRoute) }}" method="GET" onsubmit="return validateReportDates(this)" class="flex h-full flex-col justify-between gap-5 p-5 sm:px-6">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+                        <div class="flex-1 space-y-1.5">
                             <label for="start_date" class="text-xs font-semibold uppercase tracking-wide text-kazain-muted">Dari tanggal</label>
                             <input
                                 id="start_date"
                                 type="date"
                                 name="start_date"
                                 value="{{ $startDate ?? '' }}"
-                                onchange="this.form.submit()"
                                 class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10"
                             >
                         </div>
-                        <div class="space-y-1.5">
+                        <div class="flex-1 space-y-1.5">
                             <label for="end_date" class="text-xs font-semibold uppercase tracking-wide text-kazain-muted">Sampai tanggal</label>
                             <input
                                 id="end_date"
                                 type="date"
                                 name="end_date"
                                 value="{{ $endDate ?? '' }}"
-                                onchange="this.form.submit()"
                                 class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:ring-4 focus:ring-kazain-primary/10"
                             >
                         </div>
-                    </div>
-                    <div class="flex gap-2">
                         <button
                             type="submit"
-                            class="min-h-11 flex-1 rounded-xl bg-kazain-primary px-5 text-sm font-semibold text-white transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                            class="min-h-11 flex-none rounded-xl bg-kazain-primary px-5 text-sm font-semibold text-white transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
                         >
-                            Terapkan filter
+                            Cari
                         </button>
                         @if ($startDate || $endDate)
                             <a
                                 href="{{ route($salesReportRoute) }}"
-                                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
+                                class="inline-flex min-h-11 flex-none items-center justify-center rounded-xl border border-kazain-border bg-gray-50 px-4 text-sm font-medium text-kazain-muted transition hover:bg-[#f4f5f1] focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15"
                             >
                                 Reset
                             </a>
@@ -86,107 +96,137 @@
                 </form>
             </div>
 
-            <article class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
-                <div class="flex h-full items-start justify-between gap-4">
-                    <div>
-                        <p class="text-sm font-medium text-kazain-muted">Total Pendapatan (Lunas)</p>
-                        <p class="mt-3 break-words text-2xl font-semibold tracking-tight text-kazain-text sm:text-3xl">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
-                        <div class="mt-4 flex items-start gap-2 border-t border-kazain-border pt-4">
-                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#edf1ec] text-kazain-primary">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-7.5 3.75h7.5m-7.5 3.75h4.5M5.25 3.75h13.5A2.25 2.25 0 0 1 21 6v12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
-                                </svg>
-                            </span>
-                            <p class="text-sm text-kazain-muted">
-                                <span class="font-semibold text-kazain-text">{{ number_format($transactionCount, 0, ',', '.') }}</span>
-                                transaksi lunas pada periode terpilih
-                            </p>
+            @if(!session('error') && !isset($dateError))
+                <article class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+                    <div class="flex h-full items-start justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-medium text-kazain-muted">Total Pendapatan (Lunas)</p>
+                            <p class="mt-3 break-words text-2xl font-semibold tracking-tight text-kazain-text sm:text-3xl">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+                            <div class="mt-4 flex items-start gap-2 border-t border-kazain-border pt-4">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#edf1ec] text-kazain-primary">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-7.5 3.75h7.5m-7.5 3.75h4.5M5.25 3.75h13.5A2.25 2.25 0 0 1 21 6v12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
+                                    </svg>
+                                </span>
+                                <p class="text-sm text-kazain-muted">
+                                    <span class="font-semibold text-kazain-text">{{ number_format($transactionCount, 0, ',', '.') }}</span>
+                                    transaksi lunas pada periode terpilih
+                                </p>
+                            </div>
                         </div>
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#edf1ec] text-kazain-primary">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </span>
                     </div>
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#edf1ec] text-kazain-primary">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                    </span>
-                </div>
-            </article>
+                </article>
+            @endif
         </section>
 
-        <section class="overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-sm">
-            <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <div>
-                    <div class="flex items-center gap-2.5">
-                        <h2 class="text-base font-semibold text-kazain-text">Rincian Transaksi Sukses</h2>
-                    </div>
-                    <p class="mt-1 text-sm text-kazain-muted">Daftar pembayaran yang berhasil diterima.</p>
-                </div>
-            </div>
-            <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel transaksi secara horizontal">
-                <table class="w-full min-w-[1120px] text-left text-sm">
-                    <thead class="bg-[#f7f8f5]">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No.</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Kode booking</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No kamar</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Nama customer</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Tipe kamar</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Durasi</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Metode pembayaran</th>
-                            <th scope="col" class="px-6 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Total harga</th>
-                            <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Tanggal transaksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-kazain-border/70">
-                        @forelse ($bookings as $index => $booking)
-                            @php
-                                $checkIn = $booking->check_in_time;
-                                $checkOut = $booking->check_out_time;
-                                $duration = str_starts_with($booking->booking_type, 'Short Time')
-                                    ? $checkIn->diffInHours($checkOut) . ' Jam'
-                                    : max(1, $checkIn->copy()->startOfDay()->diffInDays($checkOut->copy()->startOfDay())) . ' Malam';
-                                $paymentDate = $booking->payment_time ?? $booking->created_at;
-                                $paymentBadge = $booking->payment_method === 'Cash'
-                                    ? 'bg-[#e8f5ed] text-[#287249] ring-[#bbe4ca]'
-                                    : 'bg-[#eaf1ff] text-[#315eaa] ring-[#c4d8ff]';
-                            @endphp
-                            <tr class="transition hover:bg-[#f7f8f5]">
-                                <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $index + 1 }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">{{ $booking->booking_code }}</td>
-                                <td class="whitespace-nowrap px-6 py-4">
-                                    <span class="inline-flex min-w-8 justify-center rounded-full bg-[#f0f1f4] px-2 py-1 text-xs font-semibold text-kazain-text">{{ $booking->room->room_number ?? '-' }}</span>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-kazain-text">{{ $booking->customer->customer_name ?? '-' }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->room->room_type ?? '-' }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-kazain-text">{{ $duration }}</td>
-                                <td class="whitespace-nowrap px-6 py-4">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $paymentBadge }}">{{ $booking->payment_method ?? 'Cash' }}</span>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-right font-semibold text-kazain-text">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $paymentDate->format('d M Y') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="px-6 py-14 text-center">
-                                    <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf1ec] text-kazain-primary">
-                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-7.5 3.75h7.5m-7.5 3.75h4.5M5.25 3.75h13.5A2.25 2.25 0 0 1 21 6v12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
-                                        </svg>
-                                    </span>
-                                    <p class="mt-3 font-semibold text-kazain-text">Belum ada transaksi</p>
-                                    <p class="mt-1 text-sm text-kazain-muted">Tidak ada transaksi lunas pada rentang tanggal tersebut.</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        @if ($extensions->isNotEmpty())
+        @if(!session('error') && !isset($dateError))
             <section class="overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-sm">
-                <div class="border-b border-kazain-border px-5 py-5 sm:px-6"><h2 class="text-base font-semibold text-kazain-text">Rincian extend lunas</h2><p class="mt-1 text-sm text-kazain-muted">Pembayaran perpanjangan tercatat terpisah dari transaksi awal.</p></div>
-                <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel perpanjangan secara horizontal"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-[#f7f8f5]"><tr><th class="px-6 py-3 text-xs text-kazain-muted">Kode booking</th><th class="px-6 py-3 text-xs text-kazain-muted">Kamar</th><th class="px-6 py-3 text-xs text-kazain-muted">Durasi</th><th class="px-6 py-3 text-xs text-kazain-muted">Metode</th><th class="px-6 py-3 text-right text-xs text-kazain-muted">Nominal</th></tr></thead><tbody class="divide-y divide-kazain-border/70">@foreach ($extensions as $extension)<tr><td class="px-6 py-4 font-semibold text-kazain-text">{{ $extension->booking->booking_code }}</td><td class="px-6 py-4">{{ $extension->booking->room->room_number }}</td><td class="px-6 py-4">{{ $extension->extension_type }} · {{ $extension->duration_hours }} Jam</td><td class="px-6 py-4">{{ $extension->payment_method }}</td><td class="px-6 py-4 text-right font-semibold">Rp {{ number_format($extension->amount, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
+                <div class="flex flex-col gap-4 border-b border-kazain-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <h2 class="text-base font-semibold text-kazain-text">Rincian Transaksi Sukses</h2>
+                        </div>
+                        <p class="mt-1 text-sm text-kazain-muted">Daftar pembayaran yang berhasil diterima.</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel transaksi secara horizontal">
+                    <table class="w-full min-w-[1120px] text-left text-sm">
+                        <thead class="bg-[#f7f8f5]">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No.</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Kode booking</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">No kamar</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Nama customer</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Tipe kamar</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Durasi</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Metode pembayaran</th>
+                                <th scope="col" class="px-6 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Total harga</th>
+                                <th scope="col" class="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-kazain-muted">Tanggal transaksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-kazain-border/70">
+                            @forelse ($bookings as $index => $booking)
+                                @php
+                                    $checkIn = $booking->check_in_time;
+                                    $checkOut = $booking->check_out_time;
+                                    $duration = str_starts_with($booking->booking_type, 'Short Time')
+                                        ? $checkIn->diffInHours($checkOut) . ' Jam'
+                                        : max(1, $checkIn->copy()->startOfDay()->diffInDays($checkOut->copy()->startOfDay())) . ' Malam';
+                                    $paymentDate = $booking->payment_time ?? $booking->created_at;
+                                    $paymentBadge = $booking->payment_method === 'Cash'
+                                        ? 'bg-[#e8f5ed] text-[#287249] ring-[#bbe4ca]'
+                                        : 'bg-[#eaf1ff] text-[#315eaa] ring-[#c4d8ff]';
+                                @endphp
+                                <tr class="transition hover:bg-[#f7f8f5]">
+                                    <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $index + 1 }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">{{ $booking->booking_code }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <span class="inline-flex min-w-8 justify-center rounded-full bg-[#f0f1f4] px-2 py-1 text-xs font-semibold text-kazain-text">{{ $booking->room->room_number ?? '-' }}</span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-kazain-text">{{ $booking->customer->customer_name ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->room->room_type ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-kazain-text">{{ $duration }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $paymentBadge }}">{{ $booking->payment_method ?? 'Cash' }}</span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-right font-semibold text-kazain-text">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $paymentDate->format('d M Y') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="px-6 py-14 text-center">
+                                        <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf1ec] text-kazain-primary">
+                                            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5m-7.5 3.75h7.5m-7.5 3.75h4.5M5.25 3.75h13.5A2.25 2.25 0 0 1 21 6v12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
+                                            </svg>
+                                        </span>
+                                        <p class="mt-3 font-semibold text-kazain-text">Belum ada transaksi</p>
+                                        <p class="mt-1 text-sm text-kazain-muted">Tidak ada transaksi lunas pada rentang tanggal tersebut.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </section>
+
+            @if ($extensions->isNotEmpty())
+                <section class="overflow-hidden rounded-2xl border border-kazain-border bg-kazain-surface shadow-sm">
+                    <div class="border-b border-kazain-border px-5 py-5 sm:px-6"><h2 class="text-base font-semibold text-kazain-text">Rincian extend lunas</h2><p class="mt-1 text-sm text-kazain-muted">Pembayaran perpanjangan tercatat terpisah dari transaksi awal.</p></div>
+                    <div class="overflow-x-auto" tabindex="0" aria-label="Geser tabel perpanjangan secara horizontal"><table class="w-full min-w-[700px] text-left text-sm"><thead class="bg-[#f7f8f5]"><tr><th class="px-6 py-3 text-xs text-kazain-muted">Kode booking</th><th class="px-6 py-3 text-xs text-kazain-muted">Kamar</th><th class="px-6 py-3 text-xs text-kazain-muted">Durasi</th><th class="px-6 py-3 text-xs text-kazain-muted">Metode</th><th class="px-6 py-3 text-right text-xs text-kazain-muted">Nominal</th></tr></thead><tbody class="divide-y divide-kazain-border/70">@foreach ($extensions as $extension)<tr><td class="px-6 py-4 font-semibold text-kazain-text">{{ $extension->booking->booking_code }}</td><td class="px-6 py-4">{{ $extension->booking->room->room_number }}</td><td class="px-6 py-4">{{ $extension->extension_type }} · {{ $extension->duration_hours }} Jam</td><td class="px-6 py-4">{{ $extension->payment_method }}</td><td class="px-6 py-4 text-right font-semibold">Rp {{ number_format($extension->amount, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
+                </section>
+            @endif
+        @else
+            <div class="rounded-2xl border border-kazain-border bg-gray-50 py-20 text-center shadow-sm">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-kazain-border/50">
+                    <svg class="h-8 w-8 text-kazain-muted/40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-base font-semibold text-kazain-text">Data laporan disembunyikan</h3>
+                <p class="mx-auto mt-1 max-w-xs text-sm text-kazain-muted">Masukkan rentang tanggal yang valid untuk melihat rekapitulasi penjualan.</p>
+            </div>
         @endif
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    function validateReportDates(form) {
+        const startDate = form.querySelector('[name="start_date"]')?.value;
+        const endDate = form.querySelector('[name="end_date"]')?.value;
+
+        if (startDate && endDate && startDate > endDate) {
+            alert('Rentang tanggal tidak valid. Tanggal awal tidak boleh lebih besar dari tanggal akhir.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+@endpush

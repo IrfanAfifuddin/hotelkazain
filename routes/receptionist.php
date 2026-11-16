@@ -8,7 +8,7 @@ use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
 // Middleware untuk memastikan hanya Receptionist yang bisa akses
-Route::middleware(['auth', 'role:Receptionist'])->group(function () {
+Route::middleware(['auth', 'role:Receptionist', 'prevent-back-history'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('receptionist.dashboard');
 
     // Manajemen Pemesanan

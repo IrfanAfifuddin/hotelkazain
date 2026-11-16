@@ -22,7 +22,7 @@ class BookingController extends Controller
     {
         $search = $request->query('q');
 
-        $query = Booking::with(['customer', 'room'])->latest();
+        $query = Booking::with(['customer', 'room', 'rooms', 'extensions'])->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -73,7 +73,6 @@ class BookingController extends Controller
     public function create()
     {
         $rooms = Room::query()
-            ->where('room_status', 'Available')
             ->orderBy('room_number')
             ->get();
 
@@ -86,6 +85,9 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+        $roomCount = is_array($request->room_ids) ? count($request->room_ids) : 1;
+        $maxGuests = max(2, $roomCount * 2);
+
         $request->validate([
             'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
             'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
@@ -96,11 +98,16 @@ class BookingController extends Controller
             'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
             'booking_status' => 'required|in:Confirmed,Check-in',
             'payment_method' => ['required', Rule::in(['Cash', 'Transfer'])],
+            'number_of_guests' => ['sometimes', 'required', 'integer', 'min:1', 'max:'.$maxGuests],
         ], [
             'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
             'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
             'phone_number.digits_between' => 'Nomor telepon harus antara 10 sampai 15 digit.',
             'email.email' => 'Format email tidak valid atau domain email tidak ditemukan.',
+            'number_of_guests.required' => 'Jumlah orang wajib diisi.',
+            'number_of_guests.integer' => 'Jumlah orang harus berupa angka.',
+            'number_of_guests.min' => 'Jumlah orang minimal 1 orang.',
+            'number_of_guests.max' => "Jumlah orang maksimal {$maxGuests} orang (maksimal 2 orang per kamar).",
         ]);
 
         $checkIn = Carbon::parse($request->check_in_time);
@@ -116,15 +123,11 @@ class BookingController extends Controller
         }
 
         // Validasi Ketat Double Booking untuk semua kamar yang dipilih
+        // Menggunakan scope activeOverlapping untuk konsistensi dengan AvailabilityService & BookingService
         $roomIds = array_unique($request->room_ids);
-        $conflicts = Booking::whereIn('room_id', $roomIds)
-            ->whereIn('booking_status', ['Pending', 'Confirmed', 'Check-in'])
-            ->where(function ($query) use ($checkIn, $checkOut) {
-                $query->where(function ($q) use ($checkIn, $checkOut) {
-                    $q->where('check_in_time', '<', $checkOut)
-                        ->where('check_out_time', '>', $checkIn);
-                });
-            })
+        $conflicts = Booking::query()
+            ->activeOverlapping($checkIn, $checkOut)
+            ->whereIn('room_id', $roomIds)
             ->pluck('room_id')
             ->unique();
 
@@ -185,6 +188,7 @@ class BookingController extends Controller
                 'payment_expires_at' => null,
                 'total_price' => (int) $totalPrice,
                 'source' => 'Offline',
+                'number_of_guests' => (int) ($request->number_of_guests ?? 1),
             ]);
 
             // Simpan pivot records untuk semua kamar
@@ -237,42 +241,133 @@ class BookingController extends Controller
      */
     public function edit(Booking $booking)
     {
+        $booking->load(['customer', 'rooms']);
         $rooms = Room::orderBy('room_number')->get();
 
         return view('bookings.edit', compact('booking', 'rooms'));
     }
 
     /**
-     * Update data pemesanan & sinkronisasi status kamar otomatis.
+     * Update data pemesanan lengkap & sinkronisasi status kamar otomatis.
      */
     public function update(Request $request, Booking $booking)
     {
+        $booking->load(['customer', 'rooms']);
+        $roomCount = $booking->rooms()->count();
+        $maxGuests = max(2, $roomCount * 2);
+
         $request->validate([
+            'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
+            'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
+            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:dns', 'max:255'],
+            'room_ids' => 'required|array|min:1',
+            'room_ids.*' => 'required|integer|exists:rooms,id',
+            'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
+            'check_in_time' => ['required', 'date', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d H:i')],
+            'check_out_time' => ['required', 'date', 'after:check_in_time'],
             'booking_status' => 'required|in:Pending,Confirmed,Check-in,Check-out,Cancelled',
             'payment_status' => 'required|in:Pending,Paid,Failed,Cancelled',
+            'payment_method' => ['required', Rule::in(['Cash', 'Transfer'])],
+            'number_of_guests' => ['sometimes', 'required', 'integer', 'min:1', 'max:'.$maxGuests],
+        ], [
+            'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
+            'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
+            'phone_number.digits_between' => 'Nomor telepon harus antara 10-15 digit.',
         ]);
 
         return DB::transaction(function () use ($request, $booking) {
             $oldStatus = $booking->booking_status;
             $newStatus = $request->booking_status;
+            $oldRoomIds = $booking->rooms()->pluck('room_id')->toArray();
+            $newRoomIds = array_map('intval', $request->room_ids);
 
-            $booking->update([
-                'booking_status' => $newStatus,
-                'payment_status' => $request->payment_status,
-                'payment_time' => ($request->payment_status === 'Paid' && ! $booking->payment_time) ? now() : $booking->payment_time,
+            // Update customer info
+            $booking->customer->update([
+                'customer_name' => $request->customer_name,
+                'phone_number' => $request->phone_number,
+                'email' => $request->email,
             ]);
 
-            // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking (multi-room)
-            $roomIds = $booking->rooms()->pluck('room_id')->toArray();
+            // Parse dates
+            $checkIn = Carbon::parse($request->check_in_time);
+            $checkOut = Carbon::parse($request->check_out_time);
+            $bookingType = $request->booking_type;
+            $durationHours = match ($bookingType) {
+                'Short Time 5 Jam' => 5,
+                'Short Time 8 Jam' => 8,
+                default => 0,
+            };
 
+            // Calculate nights for Full Day
+            $nights = $bookingType === 'Full Day' ? $checkIn->diffInDays($checkOut) : 0;
+
+            // Check room availability for new time slot (excluding current booking)
+            $overlappingRooms = Room::query()
+                ->whereIn('id', $newRoomIds)
+                ->whereHas('bookings', function ($query) use ($checkIn, $checkOut, $booking) {
+                    $query->activeOverlapping($checkIn, $checkOut)
+                        ->where('id', '!=', $booking->id);
+                })
+                ->get();
+
+            if ($overlappingRooms->isNotEmpty()) {
+                $roomNumbers = $overlappingRooms->pluck('room_number')->join(', ');
+                throw ValidationException::withMessages([
+                    'room_ids' => ["Kamar No. {$roomNumbers} tidak tersedia untuk slot waktu tersebut."],
+                ]);
+            }
+
+            // Calculate new prices
+            $totalPrice = 0;
+            $roomPrices = [];
+            $rooms = Room::whereIn('id', $newRoomIds)->get();
+            foreach ($rooms as $room) {
+                $roomPrice = str_starts_with($bookingType, 'Short Time')
+                    ? (int) $room->{'price_'.$durationHours.'_hours'}
+                    : (int) $room->full_day_price * max(1, $nights);
+                $totalPrice += $roomPrice;
+                $roomPrices[$room->id] = $roomPrice;
+            }
+
+            $updateData = [
+                'booking_type' => $bookingType,
+                'check_in_time' => $checkIn,
+                'check_out_time' => $checkOut,
+                'booking_status' => $newStatus,
+                'payment_status' => $request->payment_status,
+                'payment_method' => $request->payment_method,
+                'payment_time' => ($request->payment_status === 'Paid' && ! $booking->payment_time) ? now() : $booking->payment_time,
+                'total_price' => $totalPrice,
+                'number_of_guests' => (int) $request->number_of_guests,
+            ];
+
+            $booking->update($updateData);
+
+            // Sync rooms with new prices
+            $booking->rooms()->sync($roomPrices);
+
+            // Handle room status sync for old rooms that are no longer booked
+            $removedRoomIds = array_diff($oldRoomIds, $newRoomIds);
+            if (! empty($removedRoomIds)) {
+                // Only set to Available if not occupied by other active bookings
+                foreach ($removedRoomIds as $roomId) {
+                    $hasActiveBooking = Booking::query()
+                        ->activeOverlapping(now('Asia/Jakarta'), now('Asia/Jakarta'))
+                        ->whereHas('rooms', fn ($q) => $q->where('rooms.id', $roomId))
+                        ->exists();
+                    if (! $hasActiveBooking) {
+                        Room::where('id', $roomId)->update(['room_status' => 'Available']);
+                    }
+                }
+            }
+
+            // Sinkronisasi Otomatis Status Kamar Berdasarkan Status Booking (multi-room)
             if ($newStatus === 'Check-in') {
-                Room::whereIn('id', $roomIds)->update(['room_status' => 'Occupied']);
+                Room::whereIn('id', $newRoomIds)->update(['room_status' => 'Occupied']);
             } elseif ($newStatus === 'Check-out') {
-                // Checkout → Available langsung
-                Room::whereIn('id', $roomIds)->update(['room_status' => 'Available']);
+                Room::whereIn('id', $newRoomIds)->update(['room_status' => 'Available']);
             } elseif (in_array($newStatus, ['Cancelled', 'Pending']) && $oldStatus === 'Check-in') {
-                // Cancel dari Check-in → Available
-                Room::whereIn('id', $roomIds)->update(['room_status' => 'Available']);
+                Room::whereIn('id', $newRoomIds)->update(['room_status' => 'Available']);
             }
 
             $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';

@@ -21,6 +21,15 @@ class ReportController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
+        if ($startDate && $endDate && $startDate > $endDate) {
+            $dateError = 'Rentang tanggal tidak valid. Tanggal awal tidak boleh lebih besar dari tanggal akhir.';
+            $bookings = collect();
+            $extensions = collect();
+            $totalRevenue = 0;
+
+            return view('admin.reports.index', compact('bookings', 'extensions', 'totalRevenue', 'startDate', 'endDate', 'dateError'));
+        }
+
         $query = $this->buildReportQuery($startDate, $endDate);
         $bookings = $query->get();
         $extensions = $this->buildExtensionReportQuery($startDate, $endDate)->get();
@@ -36,6 +45,11 @@ class ReportController extends Controller
     {
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
+
+        if ($startDate && $endDate && $startDate > $endDate) {
+            return redirect()->route('admin.reports.index', $request->query())
+                ->with('error', 'Rentang tanggal tidak valid. Tanggal awal tidak boleh lebih besar dari tanggal akhir.');
+        }
 
         $query = $this->buildReportQuery($startDate, $endDate);
         $bookings = $query->get();

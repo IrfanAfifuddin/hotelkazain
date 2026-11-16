@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reception;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Room;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
@@ -31,11 +32,12 @@ class DashboardController extends Controller
         $todayCheckOutCount = Booking::whereDate('check_out_time', now('Asia/Jakarta')->toDateString())
             ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
             ->count();
+        $now = Carbon::now('Asia/Jakarta');
         $recentBookings = Booking::with(['customer', 'room'])
-            ->whereNotIn('booking_status', ['Check-out', 'Cancelled'])
-            ->where('check_out_time', '>', now())
+            ->where('check_in_time', '<=', $now)
+            ->where('check_out_time', '>=', $now)
+            ->whereNotIn('booking_status', ['Cancelled'])
             ->orderBy('check_in_time', 'desc')
-            ->take(5)
             ->get();
 
         return view('receptionist.dashboard', compact(

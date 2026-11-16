@@ -75,17 +75,18 @@
                 {{-- Metode pembayaran --}}
                 <div class="bg-white border border-black/5 rounded-2xl shadow-sm p-6">
                     <p class="text-xs font-semibold tracking-[0.2em] text-gold uppercase">Pembayaran</p>
-                    <p class="font-display mt-1 text-xl font-semibold text-gray-900">Metode Pembayaran <span class="font-sans text-base text-gray-400">*</span></p>
-                    <label class="mt-4 flex items-center gap-4 border-2 border-gray-200 rounded-2xl p-5 cursor-pointer transition hover:border-gray-300 has-[:checked]:border-gray-900 has-[:checked]:bg-sand">
-                        <input type="radio" name="payment_method" value="Virtual Account" class="w-4 h-4 accent-[#A8844F]">
-                        <span class="w-11 h-11 shrink-0 rounded-full bg-white border border-black/5 flex items-center justify-center text-gold">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 22h18" /><path d="M6 18v-7" /><path d="M10 18v-7" /><path d="M14 18v-7" /><path d="M18 18v-7" /><path d="m12 2 8 5H4z" /></svg>
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-gray-900">Transfer / Virtual Account</span>
-                            <span class="block text-sm text-gray-500">Transfer via m-banking, internet banking, atau ATM</span>
-                        </span>
-                        </label>
+                    <p class="font-display mt-1 text-xl font-semibold text-gray-900">Metode Pembayaran</p>
+                    <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
+                        <div class="p-2 bg-white rounded-full border shadow-sm">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 22h18" /><path d="M6 18v-7" /><path d="M10 18v-7" /><path d="M14 18v-7" /><path d="M18 18v-7" /><path d="m12 2 8 5H4z" /></svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800">Virtual Account</p>
+                            <p class="text-xs text-gray-500">Bayar via m-banking, internet banking, atau ATM</p>
+                        </div>
+                    </div>
+                    <!-- Hidden input agar tetap terkirim ke request Controller -->
+                    <input type="hidden" name="payment_method" value="Virtual Account">
                 </div>
 
                 <button type="submit" id="submitButton" disabled
@@ -176,7 +177,7 @@
                     if (message) valid = false;
                 });
                 if (!form.elements.agree_terms.checked) valid = false;
-                if (!form.querySelector('input[name="payment_method"]:checked')) valid = false;
+                if (!form.querySelector('input[name="payment_method"]').value) valid = false;
 
                 submitButton.disabled = !valid;
                 submitButton.className = valid
@@ -219,7 +220,7 @@
                             check_in_date: booking.date,
                             check_in_time: booking.time,
                             duration_hours: booking.duration,
-                            payment_method: form.querySelector('input[name="payment_method"]:checked').value,
+                            payment_method: form.querySelector('input[name="payment_method"]').value,
                             agree_terms: form.elements.agree_terms.checked,
                         }),
                     });

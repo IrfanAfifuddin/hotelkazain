@@ -13,7 +13,7 @@ Route::post('/login', [AuthController::class, 'processLogin']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ROUTE DASHBOARD — redirect berdasarkan role
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 });
 

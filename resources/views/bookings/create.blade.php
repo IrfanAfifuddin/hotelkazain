@@ -140,9 +140,10 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="rounded-xl border border-kazain-border bg-kazain-surface p-4">
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-kazain-muted">Jumlah Orang</p>
+                        <input type="hidden" name="number_of_guests" id="number_of_guests" value="{{ old('number_of_guests', 1) }}">
                         <div class="flex items-center justify-between">
                             <button type="button" onclick="changeQuantity('guest', -1)" class="flex h-9 w-9 items-center justify-center rounded-lg border border-kazain-border bg-gray-50 text-kazain-text transition hover:bg-gray-100">−</button>
-                            <span class="text-3xl font-semibold text-kazain-text" id="guest_count">1</span>
+                            <span class="text-3xl font-semibold text-kazain-text" id="guest_count">{{ old('number_of_guests', 1) }}</span>
                             <button type="button" onclick="changeQuantity('guest', 1)" class="flex h-9 w-9 items-center justify-center rounded-lg border border-kazain-border bg-gray-50 text-kazain-text transition hover:bg-gray-100">+</button>
                         </div>
                         <p class="mt-2 text-center text-xs text-kazain-muted">orang</p>
@@ -229,7 +230,7 @@
 <script>
     let currentDurationType = 'fullday'; // fullday or shorttime
     let currentHourDuration = null; // 5 or 8 (for shorttime)
-    let guestCount = 1;
+    let guestCount = {{ (int) old('number_of_guests', 1) }};
     let roomCount = 1;
     let selectedRoomIds = [];
     let roomPricesMap = {}; // Map room IDs to their prices
@@ -430,8 +431,12 @@
 
     function changeQuantity(type, delta) {
         if (type === 'guest') {
-            guestCount = Math.max(1, Math.min(10, guestCount + delta));
+            const roomMultiplier = selectedRoomIds.length > 0 ? selectedRoomIds.length : roomCount;
+            const maxAllowed = Math.max(2, roomMultiplier * 2);
+            guestCount = Math.max(1, Math.min(maxAllowed, guestCount + delta));
             document.getElementById('guest_count').textContent = guestCount;
+            const guestInput = document.getElementById('number_of_guests');
+            if (guestInput) guestInput.value = guestCount;
         } else {
             roomCount = Math.max(1, Math.min(5, roomCount + delta));
             document.getElementById('room_count').textContent = roomCount;

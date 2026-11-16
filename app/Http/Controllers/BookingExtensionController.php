@@ -81,7 +81,10 @@ class BookingExtensionController extends Controller
             }, 0);
 
         DB::transaction(function () use ($booking, $validated, $duration, $amount, $checkoutBefore, $checkoutAfter): void {
-            $booking->update(['check_out_time' => $checkoutAfter]);
+            $booking->update([
+                'check_out_time' => $checkoutAfter,
+                'total_price' => $booking->total_price + $amount,
+            ]);
 
             BookingExtension::create([
                 'booking_id' => $booking->id,

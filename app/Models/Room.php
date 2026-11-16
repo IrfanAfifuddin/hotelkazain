@@ -53,8 +53,8 @@ class Room extends Model
             return 'Occupied';
         }
 
-        // 4. Fallback to manual status if set
-        if (in_array($this->room_status, ['Maintenance', 'Cleaning', 'Occupied'])) {
+        // 4. Fallback to manual status if set (only Maintenance/Cleaning override computed)
+        if (in_array($this->room_status, ['Maintenance', 'Cleaning'])) {
             return $this->room_status;
         }
 

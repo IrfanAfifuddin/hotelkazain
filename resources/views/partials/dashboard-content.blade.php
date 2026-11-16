@@ -1,21 +1,16 @@
     @php
-        $availableRooms = \App\Models\Room::query()->where('room_status', 'Available')->count();
-        $occupiedRooms = \App\Models\Room::query()->where('room_status', 'Occupied')->count();
-        $today = now('Asia/Jakarta')->toDateString();
-        $checkInsToday = \App\Models\Booking::query()
-            ->whereDate('check_in_time', $today)
-            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
-            ->count();
-        $checkOutsToday = \App\Models\Booking::query()
-            ->whereDate('check_out_time', $today)
-            ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
-            ->count();
-        $recentBookings = \App\Models\Booking::query()->with(['customer', 'room'])->latest()->limit(5)->get();
         $isAdmin = auth()->user()->role === 'Admin';
         $bookingIndexRoute = $isAdmin ? 'admin.pemesanan.index' : 'receptionist.pemesanan.index';
         $bookingCreateRoute = $isAdmin ? 'admin.pemesanan.create' : 'receptionist.pemesanan.create';
         $roomStatusRoute = $isAdmin ? 'admin.status-kamar.index' : 'receptionist.status-kamar.index';
         $greeting = now()->hour < 11 ? 'pagi' : (now()->hour < 15 ? 'siang' : (now()->hour < 18 ? 'sore' : 'malam'));
+        
+        // Use data passed from controller (computed status based on actual time overlap)
+        $availableRooms = $availableCount ?? \App\Models\Room::query()->where('room_status', 'Available')->count();
+        $occupiedRooms = $occupiedCount ?? \App\Models\Room::query()->where('room_status', 'Occupied')->count();
+        $checkInsToday = $todayCheckInCount ?? 0;
+        $checkOutsToday = $todayCheckOutCount ?? 0;
+        $recentBookings = $recentBookings ?? \App\Models\Booking::query()->with(['customer', 'room'])->latest()->limit(5)->get();
     @endphp
 
     <div class="mx-auto max-w-7xl space-y-7">
@@ -130,7 +125,10 @@
                                     class="transition-colors hover:bg-[#fafbf9]"
                                 >
                                     <td class="whitespace-nowrap px-6 py-4 font-semibold text-kazain-text">{{ $booking->booking_code }}</td>
-                                    <td class="px-6 py-4 text-kazain-muted">{{ $booking->customer?->customer_name ?? '-' }}</td>
+                                    <td class="px-6 py-4 text-kazain-muted">
+                                        {{ $booking->customer?->customer_name ?? '-' }}
+                                        <span class="block text-xs text-kazain-muted">{{ $booking->number_of_guests ?? 1 }} orang</span>
+                                    </td>
                                     <td class="px-6 py-4 text-kazain-muted">{{ $booking->room?->room_number ?? '-' }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->check_in_time->format('d M Y, H:i') }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-kazain-muted">{{ $booking->check_out_time->format('d M Y, H:i') }}</td>

@@ -44,9 +44,7 @@ class AvailabilityService
             ->map(function (Room $room) use ($bookedRoomIds): array {
                 $hasActiveBooking = in_array($room->id, $bookedRoomIds, true);
 
-                // Use computed status for customer-facing availability
-                $computedStatus = $room->computed_status;
-                $isAvailable = $computedStatus === 'Available' && ! $hasActiveBooking;
+                $isAvailable = ! $hasActiveBooking && $room->room_status !== 'Maintenance';
 
                 // Convert DB type to display name
                 $shortName = $room->room_type === 'King' ? 'King Bed' : $room->room_type.' Bed';
@@ -55,7 +53,7 @@ class AvailabilityService
                     'room_id' => $room->id,
                     'room_number' => $room->room_number,
                     'room_type' => $shortName,
-                    'room_status' => $hasActiveBooking ? 'Booked' : $computedStatus,
+                    'room_status' => $hasActiveBooking ? 'Booked' : $room->computed_status,
                     'is_available' => $isAvailable,
                     'price_5_hours' => $room->price_5_hours,
                     'price_8_hours' => $room->price_8_hours,

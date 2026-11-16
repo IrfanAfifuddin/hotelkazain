@@ -51,11 +51,32 @@ class AdminDashboardBookingTest extends TestCase
         $this->room2 = Room::create([
             'room_number' => '102',
             'room_type' => 'Twin',
-            'room_status' => 'Occupied',
+            'room_status' => 'Available',
             'price_5_hours' => 150000,
             'price_8_hours' => 200000,
             'full_day_price' => 350000,
         ]);
+
+        // Create an active booking for room2 so it shows as Occupied via time-overlap
+        $customer = Customer::create([
+            'customer_name' => 'Existing Guest',
+            'phone_number' => '081111111111',
+            'email' => 'guest@example.com',
+        ]);
+        Booking::create([
+            'booking_code' => 'KZN-EXISTING',
+            'customer_id' => $customer->id,
+            'room_id' => $this->room2->id,
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->subHour(),
+            'check_out_time' => now('Asia/Jakarta')->addHours(3),
+            'booking_status' => 'Check-in',
+            'payment_status' => 'Paid',
+            'total_price' => 150000,
+            'source' => 'Offline',
+            'payment_method' => 'Cash',
+            'number_of_guests' => 1,
+        ])->rooms()->attach($this->room2->id, ['price' => 150000]);
     }
 
     public function test_admin_dashboard_displays_tambah_pemesanan_button_and_modal(): void
@@ -192,7 +213,8 @@ class AdminDashboardBookingTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors('payment_method');
-        $this->assertDatabaseCount('bookings', 0);
+        // 1 existing booking from setUp (room2)
+        $this->assertDatabaseCount('bookings', 1);
     }
 
     public function test_prevent_double_booking_overlap_returns_json_422(): void

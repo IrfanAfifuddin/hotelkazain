@@ -45,7 +45,9 @@ class BookingService
                 $selectedRooms = collect([]);
                 foreach ($roomQuantities as $roomType => $quantity) {
                     $quantity = (int) $quantity;
-                    if ($quantity <= 0) continue;
+                    if ($quantity <= 0) {
+                        continue;
+                    }
 
                     // Convert display name ("King Bed") to DB name ("King")
                     $dbType = str_replace(' Bed', '', $roomType);
@@ -53,7 +55,7 @@ class BookingService
                     // Find available rooms of this type for the requested time
                     $availableRooms = Room::query()
                         ->where('room_type', $dbType)
-                        ->where('room_status', 'Available')
+                        ->where('room_status', '!=', 'Maintenance')
                         ->whereDoesntHave('bookings', function ($query) use ($checkIn, $checkOut) {
                             $query->activeOverlapping($checkIn, $checkOut);
                         })
@@ -87,11 +89,11 @@ class BookingService
                     ->lockForUpdate()
                     ->get();
 
-                // Validate all rooms available
-                $unavailableRooms = $rooms->filter(fn ($room) => $room->room_status !== 'Available');
+                // Validate all rooms available (not under maintenance)
+                $unavailableRooms = $rooms->filter(fn ($room) => $room->room_status === 'Maintenance');
                 if ($unavailableRooms->isNotEmpty()) {
                     throw ValidationException::withMessages([
-                        'room_ids' => ['Kamar yang dipilih tidak tersedia.'],
+                        'room_ids' => ['Kamar yang dipilih sedang dalam perbaikan (Maintenance).'],
                     ]);
                 }
             }
@@ -158,6 +160,7 @@ class BookingService
                 'payment_expires_at' => now()->addMinutes(20),
                 'total_price' => $totalPrice,
                 'source' => 'Website',
+                'number_of_guests' => (int) ($data['number_of_guests'] ?? $data['guests'] ?? 1),
             ]);
 
             // Save pivot records
