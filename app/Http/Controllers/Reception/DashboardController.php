@@ -25,7 +25,6 @@ class DashboardController extends Controller
         $availableCount = $availableRooms->count();
         $occupiedCount = $rooms->filter(fn ($r) => $r->computed_status === 'Occupied')->count();
         $cleaningCount = $rooms->filter(fn ($r) => $r->computed_status === 'Cleaning')->count();
-        $maintenanceCount = $rooms->filter(fn ($r) => $r->computed_status === 'Maintenance')->count();
         $todayCheckInCount = Booking::whereDate('check_in_time', now('Asia/Jakarta')->toDateString())
             ->whereIn('booking_status', ['Confirmed', 'Check-in'])
             ->count();
@@ -40,12 +39,11 @@ class DashboardController extends Controller
             ->orderBy('check_in_time', 'desc')
             ->get();
 
-        return view('receptionist.dashboard', compact(
+        return view('dashboard', compact(
             'availableRooms',
             'availableCount',
             'occupiedCount',
             'cleaningCount',
-            'maintenanceCount',
             'todayCheckInCount',
             'todayCheckOutCount',
             'recentBookings'

@@ -494,7 +494,11 @@
             const hours = parseInt(currentHourDuration);
             checkOutDate.setHours(checkOutDate.getHours() + hours);
         } else if (currentDurationType === 'fullday') {
-            checkOutDate.setDate(checkOutDate.getDate() + 1);
+            // Full Day: check-out pukul 12:00 — hari yang sama bila check-in sebelum pukul 12:00,
+            // keesokan hari bila check-in pada/di atas pukul 12:00
+            if (checkInDate.getHours() >= 12) {
+                checkOutDate.setDate(checkOutDate.getDate() + 1);
+            }
             checkOutDate.setHours(12, 0, 0, 0);
         }
         

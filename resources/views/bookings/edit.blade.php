@@ -290,8 +290,11 @@
                     } else if (bookingType === 'Short Time 8 Jam') {
                         checkOutDate.setHours(checkOutDate.getHours() + 8);
                     } else {
-                        // Full Day: check-out next day at 12:00
-                        checkOutDate.setDate(checkOutDate.getDate() + 1);
+                        // Full Day: check-out pukul 12:00 — hari yang sama bila check-in sebelum pukul 12:00,
+                        // keesokan hari bila check-in pada/di atas pukul 12:00
+                        if (checkInDate.getHours() >= 12) {
+                            checkOutDate.setDate(checkOutDate.getDate() + 1);
+                        }
                         checkOutDate.setHours(12, 0, 0, 0);
                     }
 

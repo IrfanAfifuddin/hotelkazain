@@ -9,7 +9,6 @@
         $availableCount = $availableCount;
         $occupiedCount = $occupiedCount;
         $cleaningCount = $cleaningCount;
-        $maintenanceCount = $maintenanceCount;
         $todayCheckInCount = $todayCheckInCount;
         $todayCheckOutCount = $todayCheckOutCount;
         $recentBookings = $recentBookings;
@@ -48,7 +47,7 @@
         </header>
 
         {{-- Statistik Cards --}}
-        <section class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-6" aria-label="Ringkasan hotel">
+        <section class="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-5" aria-label="Ringkasan hotel">
 
             {{-- Total Kamar Tersedia --}}
             <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
@@ -71,14 +70,6 @@
                 <div>
                     <p class="text-sm font-medium text-kazain-muted">Dibersihkan</p>
                     <p id="stat-cleaning" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $cleaningCount }}</p>
-                </div>
-            </a>
-
-            {{-- Kamar Maintenance --}}
-            <a href="{{ route($roomStatusRoute) }}" class="group min-w-0 rounded-2xl border border-kazain-border bg-gray-100 p-4 shadow-sm transition hover:border-kazain-primary/30 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/15 sm:p-6">
-                <div>
-                    <p class="text-sm font-medium text-kazain-muted">Maintenance</p>
-                    <p id="stat-maintenance" class="mt-3 text-3xl font-semibold tracking-tight text-kazain-text">{{ $maintenanceCount }}</p>
                 </div>
             </a>
 
@@ -292,18 +283,43 @@
                         </h4>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label for="modal_booking_type" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe durasi pemesanan <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="booking_type"
-                                    id="modal_booking_type"
-                                    required
-                                    onchange="updateRoomCalculations()"
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Full Day" selected>Full Day (Sampai 12:00 Hari Berikutnya)</option>
-                                    <option value="Short Time 5 Jam">Short Time (5 Jam)</option>
-                                    <option value="Short Time 8 Jam">Short Time (8 Jam)</option>
-                                </select>
+                                <label class="mb-1.5 block text-xs font-semibold text-kazain-muted">Tipe durasi pemesanan <span class="text-[#975b50]">*</span></label>
+                                <input type="hidden" name="booking_type" id="modal_booking_type" value="Full Day">
+                                <div class="grid grid-cols-1 gap-2 sm:grid-cols-3" role="group" aria-label="Tipe durasi pemesanan">
+                                    <button
+                                        type="button"
+                                        data-option-group="booking_type"
+                                        data-option-value="Full Day"
+                                        onclick="selectBookingType('Full Day')"
+                                        aria-pressed="true"
+                                        class="flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-xl border border-kazain-primary bg-kazain-primary px-3 py-2 text-left text-white shadow-sm transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <span class="text-sm font-semibold">Full Day</span>
+                                        <span class="text-[11px] leading-tight opacity-75">Sampai 12:00 hari berikutnya</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-option-group="booking_type"
+                                        data-option-value="Short Time 5 Jam"
+                                        onclick="selectBookingType('Short Time 5 Jam')"
+                                        aria-pressed="false"
+                                        class="flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-left text-kazain-text transition hover:border-kazain-primary/40 hover:bg-gray-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <span class="text-sm font-semibold">Short Time 5 Jam</span>
+                                        <span class="text-[11px] leading-tight opacity-75">Durasi singkat 5 jam</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-option-group="booking_type"
+                                        data-option-value="Short Time 8 Jam"
+                                        onclick="selectBookingType('Short Time 8 Jam')"
+                                        aria-pressed="false"
+                                        class="flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-left text-kazain-text transition hover:border-kazain-primary/40 hover:bg-gray-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <span class="text-sm font-semibold">Short Time 8 Jam</span>
+                                        <span class="text-[11px] leading-tight opacity-75">Durasi singkat 8 jam</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
@@ -397,29 +413,81 @@
                         </h4>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label for="modal_payment_method" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="payment_method"
-                                    id="modal_payment_method"
-                                    required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Cash" selected>Cash / Tunai</option>
-                                    <option value="Transfer">Transfer Bank</option>
-                                </select>
+                                <label class="mb-1.5 block text-xs font-semibold text-kazain-muted">Metode pembayaran <span class="text-[#975b50]">*</span></label>
+                                <input type="hidden" name="payment_method" id="modal_payment_method" value="Cash">
+                                <div class="grid gap-2" role="group" aria-label="Metode pembayaran">
+                                    <button
+                                        type="button"
+                                        data-option-group="payment_method"
+                                        data-option-value="Cash"
+                                        onclick="selectPaymentMethod('Cash')"
+                                        aria-pressed="true"
+                                        class="flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-kazain-primary bg-kazain-primary px-3.5 py-2 text-left text-white shadow-sm transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0-8.25a60.07 60.07 0 0 1 15.797-2.101c.727-.198 1.453.342 1.453 1.096V6m-18 8.25h16.5m0 0a2.25 2.25 0 0 0 2.25-2.25V6m0 8.25a2.25 2.25 0 0 1-2.25 2.25m-16.5 0a2.25 2.25 0 0 0 2.25-2.25V6" />
+                                        </svg>
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-semibold">Cash / Tunai</span>
+                                            <span class="block text-[11px] leading-tight opacity-75">Dibayar langsung di resepsionis</span>
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-option-group="payment_method"
+                                        data-option-value="Transfer"
+                                        onclick="selectPaymentMethod('Transfer')"
+                                        aria-pressed="false"
+                                        class="flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2 text-left text-kazain-text transition hover:border-kazain-primary/40 hover:bg-gray-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l8 5H4Z" />
+                                        </svg>
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-semibold">Transfer Bank</span>
+                                            <span class="block text-[11px] leading-tight opacity-75">Transfer bank / virtual account</span>
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
-                                <label for="modal_booking_status" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pemesanan <span class="text-[#975b50]">*</span></label>
-                                <select
-                                    name="booking_status"
-                                    id="modal_booking_status"
-                                    required
-                                    class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
-                                >
-                                    <option value="Check-in" selected>Check-in (Tamu Langsung Masuk)</option>
-                                    <option value="Confirmed">Confirmed (Reservasi)</option>
-                                </select>
+                                <label class="mb-1.5 block text-xs font-semibold text-kazain-muted">Status pemesanan <span class="text-[#975b50]">*</span></label>
+                                <input type="hidden" name="booking_status" id="modal_booking_status" value="Check-in">
+                                <div class="grid gap-2" role="group" aria-label="Status pemesanan">
+                                    <button
+                                        type="button"
+                                        data-option-group="booking_status"
+                                        data-option-value="Check-in"
+                                        onclick="selectBookingStatus('Check-in')"
+                                        aria-pressed="true"
+                                        class="flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-kazain-primary bg-kazain-primary px-3.5 py-2 text-left text-white shadow-sm transition hover:bg-kazain-primary-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-4 5-5-5-5m5 5H3" />
+                                        </svg>
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-semibold">Check-in</span>
+                                            <span class="block text-[11px] leading-tight opacity-75">Tamu langsung masuk kamar</span>
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-option-group="booking_status"
+                                        data-option-value="Confirmed"
+                                        onclick="selectBookingStatus('Confirmed')"
+                                        aria-pressed="false"
+                                        class="flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2 text-left text-kazain-text transition hover:border-kazain-primary/40 hover:bg-gray-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-kazain-primary/20"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4m8-4v4M3 10h18M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Zm6 11 2 2 4-4" />
+                                        </svg>
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-semibold">Confirmed</span>
+                                            <span class="block text-[11px] leading-tight opacity-75">Reservasi / dipesan lebih dulu</span>
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -543,6 +611,37 @@
 
         const noMatchesRow = document.getElementById('noRecentBookingsMatch');
         noMatchesRow.classList.toggle('hidden', bookingRows.length === 0 || visibleRows > 0);
+    }
+
+    // ===== Tombol pilihan (Tipe Durasi, Metode Pembayaran, Status Pemesanan) =====
+    function markSelectedOption(groupName, selectedValue) {
+        document.querySelectorAll(`[data-option-group="${groupName}"]`).forEach(btn => {
+            const isSelected = btn.dataset.optionValue === selectedValue;
+            btn.classList.toggle('border-kazain-primary', isSelected);
+            btn.classList.toggle('bg-kazain-primary', isSelected);
+            btn.classList.toggle('text-white', isSelected);
+            btn.classList.toggle('shadow-sm', isSelected);
+            btn.classList.toggle('border-kazain-border', !isSelected);
+            btn.classList.toggle('bg-kazain-surface', !isSelected);
+            btn.classList.toggle('text-kazain-text', !isSelected);
+            btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        });
+    }
+
+    function selectBookingType(value) {
+        document.getElementById('modal_booking_type').value = value;
+        markSelectedOption('booking_type', value);
+        updateRoomCalculations();
+    }
+
+    function selectPaymentMethod(value) {
+        document.getElementById('modal_payment_method').value = value;
+        markSelectedOption('payment_method', value);
+    }
+
+    function selectBookingStatus(value) {
+        document.getElementById('modal_booking_status').value = value;
+        markSelectedOption('booking_status', value);
     }
 
     // Buka Modal Tambah Pemesanan
@@ -746,8 +845,11 @@
                 } else if (bookingType === 'Short Time 8 Jam') {
                     checkOutDate.setHours(checkOutDate.getHours() + 8);
                 } else {
-                    // Full Day: check-in besok jam 12:00
-                    checkOutDate.setDate(checkOutDate.getDate() + 1);
+                    // Full Day: check-out pukul 12:00 — hari yang sama bila check-in sebelum pukul 12:00,
+                    // keesokan hari bila check-in pada/di atas pukul 12:00
+                    if (checkInDate.getHours() >= 12) {
+                        checkOutDate.setDate(checkOutDate.getDate() + 1);
+                    }
                     checkOutDate.setHours(12, 0, 0, 0);
                 }
 
@@ -815,7 +917,12 @@
             // Reset form fields
             form.reset();
             modalSelectedRoomIds = [];
-            
+
+            // Sinkronkan tombol pilihan ke nilai default (form.reset() mengembalikan hidden input ke nilai awalnya)
+            selectBookingType('Full Day');
+            selectPaymentMethod('Cash');
+            selectBookingStatus('Check-in');
+
             // Reset display fields
             document.getElementById('modal-selected-rooms-summary').textContent = 'Pilih minimal 1 kamar';
             document.getElementById('modal_check_out_preview').value = '-';
@@ -963,14 +1070,12 @@
             const newAvailable = newDoc.getElementById('stat-available')?.textContent;
             const newOccupied = newDoc.getElementById('stat-occupied')?.textContent;
             const newCleaning = newDoc.getElementById('stat-cleaning')?.textContent;
-            const newMaintenance = newDoc.getElementById('stat-maintenance')?.textContent;
             const newCheckin = newDoc.getElementById('stat-checkin')?.textContent;
             const newCheckout = newDoc.getElementById('stat-checkout')?.textContent;
             
             if (newAvailable) document.getElementById('stat-available').textContent = newAvailable;
             if (newOccupied) document.getElementById('stat-occupied').textContent = newOccupied;
             if (newCleaning) document.getElementById('stat-cleaning').textContent = newCleaning;
-            if (newMaintenance) document.getElementById('stat-maintenance').textContent = newMaintenance;
             if (newCheckin) document.getElementById('stat-checkin').textContent = newCheckin;
             if (newCheckout) document.getElementById('stat-checkout').textContent = newCheckout;
             

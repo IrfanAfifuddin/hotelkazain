@@ -118,8 +118,13 @@ class BookingController extends Controller
         } elseif ($request->booking_type === 'Short Time 8 Jam') {
             $checkOut = (clone $checkIn)->addHours(8);
         } else {
-            // Full Day dihitung dari check-in sampai jam 12 siang hari berikutnya
-            $checkOut = (clone $checkIn)->addDay()->startOfDay()->addHours(12);
+            // Full Day: check-out pukul 12:00 — hari yang sama bila check-in sebelum pukul 12:00,
+            // keesokan hari bila check-in pada/di atas pukul 12:00
+            $checkOut = clone $checkIn;
+            if ($checkIn->hour >= 12) {
+                $checkOut->addDay();
+            }
+            $checkOut->setTime(12, 0);
         }
 
         // Validasi Ketat Double Booking untuk semua kamar yang dipilih
