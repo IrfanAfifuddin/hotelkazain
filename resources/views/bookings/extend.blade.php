@@ -4,8 +4,8 @@
 
 @php
     $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-    $checkout = $booking->check_out_time->copy()->timezone('Asia/Jakarta');
-    
+    $checkout = $booking->check_out_time->copy()->shiftTimezone('Asia/Jakarta');
+
     // Calculate total prices untuk multi-room
     $total5Hours = $booking->rooms->sum(fn($r) => $r->price_5_hours);
     $total8Hours = $booking->rooms->sum(fn($r) => $r->price_8_hours);
@@ -172,7 +172,13 @@
                 const duration = type === 'Full Day' ? 24 : Number(selectedDuration.value);
                 const amount = type === 'Full Day' ? prices.full : duration === 5 ? prices.five : prices.eight;
                 const checkout = new Date(currentCheckOut);
-                if (type === 'Full Day') { checkout.setDate(checkout.getDate() + 1); checkout.setHours(12, 0, 0, 0); } else { checkout.setHours(checkout.getHours() + duration); }
+                if (type === 'Full Day') {
+                    checkout.setUTCDate(checkout.getUTCDate() + 1);
+                    checkout.setUTCHours(5, 0, 0, 0);
+                } else {
+                    checkout.setTime(checkout.getTime() + duration * 60 * 60 * 1000);
+                }
+
                 durationInputs.forEach(input => { input.disabled = type === 'Full Day'; });
                 document.getElementById('fullDayDurationInput').disabled = type !== 'Full Day';
                 document.getElementById('durationSection').classList.toggle('hidden', type === 'Full Day');

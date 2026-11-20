@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RoomController extends Controller
 {
@@ -50,47 +52,34 @@ class RoomController extends Controller
      * Perbarui status kamar secara manual (Misal: selesai dibersihkan jadi Available).
      * Validasi: tidak boleh mengubah ke Available jika masih ada booking aktif atau cleaning belum selesai.
      */
-    public function updateStatus(Request $request, Room $room)
+    public function updateStatus(Request $request, Room $room): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'room_status' => 'required|in:Available,Occupied,Cleaning',
         ]);
 
-        $requestedStatus = $request->room_status;
+        $requestedStatus = $validated['room_status'];
+        $activeBooking = $room->active_booking;
 
-        // Cek apakah ada booking aktif (Confirmed/Check-in) yang masih berlangsung (check-in <= now < check-out)
-        $activeBooking = $room->bookings()
-            ->whereIn('booking_status', ['Confirmed', 'Check-in'])
-            ->where('check_in_time', '<=', now('Asia/Jakarta'))
-            ->where('check_out_time', '>', now('Asia/Jakarta'))
-            ->latest('check_in_time')
-            ->first();
-
-        // Prevent manual override to Available jika masih ada booking aktif
         if ($requestedStatus === 'Available' && $activeBooking) {
-            $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-
-            return redirect()->route($prefix.'.status-kamar.index')
-                ->withErrors(['room_status' => 'Kamar tidak bisa dijadikan Tersedia karena masih ada tamu yang menginap (booking aktif: '.$activeBooking->customer->customer_name.', check-out: '.Carbon::parse($activeBooking->check_out_time)->format('d/m/Y H:i').').'])
-                ->withInput();
+            return $this->statusUpdateRejected(
+                $request,
+                'Tidak dapat mengubah status menjadi Tersedia karena masih ada tamu / booking aktif.',
+            );
         }
 
-        // Prevent manual override to Occupied jika tidak ada booking aktif
         if ($requestedStatus === 'Occupied' && ! $activeBooking) {
-            $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-
-            return redirect()->route($prefix.'.status-kamar.index')
-                ->withErrors(['room_status' => 'Kamar tidak bisa dijadikan Terisi karena tidak ada booking aktif.'])
-                ->withInput();
+            return $this->statusUpdateRejected(
+                $request,
+                'Tidak dapat mengubah status menjadi Terisi karena tidak ada booking aktif.',
+            );
         }
 
-        // Prevent manual override to Cleaning jika masih ada booking aktif
         if ($requestedStatus === 'Cleaning' && $activeBooking) {
-            $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
-
-            return redirect()->route($prefix.'.status-kamar.index')
-                ->withErrors(['room_status' => 'Kamar tidak bisa dijadikan Cleaning karena masih ada tamu yang menginap.'])
-                ->withInput();
+            return $this->statusUpdateRejected(
+                $request,
+                'Kamar tidak dapat diubah menjadi Cleaning karena masih ada tamu / booking aktif.',
+            );
         }
 
         $room->update([
@@ -100,6 +89,19 @@ class RoomController extends Controller
         $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
 
         return redirect()->route($prefix.'.status-kamar.index')->with('success', 'Status Kamar '.$room->room_number.' berhasil diperbarui.');
+    }
+
+    private function statusUpdateRejected(Request $request, string $message): RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            throw ValidationException::withMessages(['room_status' => $message]);
+        }
+
+        $prefix = auth()->user()->role === 'Admin' ? 'admin' : 'receptionist';
+
+        return redirect()->route($prefix.'.status-kamar.index')
+            ->withErrors(['room_status' => $message])
+            ->withInput();
     }
 
     /**

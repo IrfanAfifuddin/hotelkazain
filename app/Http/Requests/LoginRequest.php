@@ -21,6 +21,21 @@ class LoginRequest extends FormRequest
     private const DECAY_SECONDS = 120;
 
     /**
+     * Maximum number of characters allowed in a password.
+     *
+     * Kept below Bcrypt's 72-byte limit so passwords are never silently truncated.
+     */
+    private const MAX_PASSWORD_LENGTH = 64;
+
+    /**
+     * Allowed password characters: printable ASCII, including spaces.
+     *
+     * This rejects control characters (including null bytes) and non-ASCII input
+     * before it reaches the hasher, preventing runtime errors during authentication.
+     */
+    private const PASSWORD_PATTERN = '/\A[\x20-\x7E]+\z/';
+
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -37,7 +52,28 @@ class LoginRequest extends FormRequest
     {
         return [
             'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'password' => [
+                'bail',
+                'required',
+                'string',
+                'max:'.self::MAX_PASSWORD_LENGTH,
+                'regex:'.self::PASSWORD_PATTERN,
+            ],
+        ];
+    }
+
+    /**
+     * Get custom validation messages for the login request.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'password.required' => 'Password wajib diisi.',
+            'password.string' => 'Password harus berupa teks.',
+            'password.max' => 'Password melebihi batas maksimal '.self::MAX_PASSWORD_LENGTH.' karakter yang diizinkan.',
+            'password.regex' => 'Password mengandung karakter yang tidak diizinkan. Gunakan huruf, angka, spasi, dan simbol standar.',
         ];
     }
 

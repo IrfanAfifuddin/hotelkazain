@@ -149,6 +149,140 @@ class RoomControllerTest extends TestCase
         $this->assertEquals('Occupied', $room->fresh()->room_status);
     }
 
+    public function test_admin_sees_error_when_marking_room_occupied_without_active_booking(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        $room = Room::create([
+            'room_number' => '97',
+            'room_type' => 'Deluxe',
+            'room_status' => 'Available',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->followingRedirects()
+            ->patch(route('admin.status-kamar.update', $room), [
+                'room_status' => 'Occupied',
+            ]);
+
+        $response->assertOk()
+            ->assertSee('Tidak dapat mengubah status menjadi Terisi karena tidak ada booking aktif.');
+        $this->assertSame('Available', $room->fresh()->room_status);
+    }
+
+    public function test_receptionist_sees_error_when_marking_room_occupied_without_active_booking(): void
+    {
+        $receptionist = User::factory()->create(['role' => 'Receptionist']);
+        $room = Room::create([
+            'room_number' => '96',
+            'room_type' => 'Deluxe',
+            'room_status' => 'Available',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+
+        $response = $this->actingAs($receptionist)
+            ->followingRedirects()
+            ->patch(route('receptionist.status-kamar.update', $room), [
+                'room_status' => 'Occupied',
+            ]);
+
+        $response->assertOk()
+            ->assertSee('Tidak dapat mengubah status menjadi Terisi karena tidak ada booking aktif.');
+        $this->assertSame('Available', $room->fresh()->room_status);
+    }
+
+    public function test_admin_sees_error_when_marking_occupied_room_available_with_active_booking(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        $room = $this->createRoomWithActiveBooking('95', $admin);
+
+        $response = $this->actingAs($admin)
+            ->followingRedirects()
+            ->patch(route('admin.status-kamar.update', $room), [
+                'room_status' => 'Available',
+            ]);
+
+        $response->assertOk()
+            ->assertSee('Tidak dapat mengubah status menjadi Tersedia karena masih ada tamu / booking aktif.');
+        $this->assertSame('Occupied', $room->fresh()->room_status);
+    }
+
+    public function test_receptionist_sees_error_when_marking_occupied_room_available_with_active_booking(): void
+    {
+        $receptionist = User::factory()->create(['role' => 'Receptionist']);
+        $room = $this->createRoomWithActiveBooking('94', $receptionist);
+
+        $response = $this->actingAs($receptionist)
+            ->followingRedirects()
+            ->patch(route('receptionist.status-kamar.update', $room), [
+                'room_status' => 'Available',
+            ]);
+
+        $response->assertOk()
+            ->assertSee('Tidak dapat mengubah status menjadi Tersedia karena masih ada tamu / booking aktif.');
+        $this->assertSame('Occupied', $room->fresh()->room_status);
+    }
+
+    public function test_status_update_returns_json_validation_error_for_json_requests(): void
+    {
+        $admin = User::factory()->create(['role' => 'Admin']);
+        $room = Room::create([
+            'room_number' => '93',
+            'room_type' => 'Deluxe',
+            'room_status' => 'Available',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->patchJson(route('admin.status-kamar.update', $room), [
+                'room_status' => 'Occupied',
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['room_status'])
+            ->assertJsonPath('errors.room_status.0', 'Tidak dapat mengubah status menjadi Terisi karena tidak ada booking aktif.');
+        $this->assertSame('Available', $room->fresh()->room_status);
+    }
+
+    private function createRoomWithActiveBooking(string $roomNumber, User $user): Room
+    {
+        $room = Room::create([
+            'room_number' => $roomNumber,
+            'room_type' => 'Deluxe',
+            'room_status' => 'Occupied',
+            'price_5_hours' => 100000,
+            'price_8_hours' => 150000,
+            'full_day_price' => 200000,
+        ]);
+        $customer = Customer::create([
+            'customer_name' => 'Active Guest '.$roomNumber,
+            'phone_number' => '081234567890',
+            'email' => 'active'.$roomNumber.'@gmail.com',
+        ]);
+        Booking::create([
+            'room_id' => $room->id,
+            'customer_id' => $customer->id,
+            'user_id' => $user->id,
+            'booking_code' => 'BK-TEST-'.$roomNumber,
+            'booking_type' => 'Short Time 5 Jam',
+            'check_in_time' => now('Asia/Jakarta')->subHour(),
+            'check_out_time' => now('Asia/Jakarta')->addHours(2),
+            'booking_status' => 'Check-in',
+            'payment_method' => 'Cash',
+            'payment_status' => 'Paid',
+            'total_price' => 150000,
+            'source' => 'Offline',
+        ]);
+
+        return $room;
+    }
+
     public function test_room_status_can_be_changed_to_available_when_booking_has_checked_out(): void
     {
         $admin = User::factory()->create(['role' => 'Admin']);

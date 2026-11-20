@@ -22,7 +22,17 @@ class EmailDomainIsAllowed implements ValidationRule
 
         $domain = Str::lower(Str::afterLast($value, '@'));
 
-        if (in_array($domain, config('booking.blocked_email_domains', []), true)) {
+        // Cek daftar domain yang eksplisit diblokir
+        $blockedDomains = config('booking.blocked_email_domains', []);
+        if (in_array($domain, $blockedDomains, true)) {
+            $fail('Domain email tidak valid atau tidak aktif.');
+
+            return;
+        }
+
+        // Jika policy default dinonaktifkan, blok domain yang tidak terdaftar
+        $defaultBlock = config('booking.default_block_email_domain', true);
+        if ($defaultBlock && ! in_array($domain, $blockedDomains, true)) {
             $fail('Domain email tidak valid atau tidak aktif.');
         }
     }

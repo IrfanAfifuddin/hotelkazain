@@ -55,6 +55,7 @@ class BookingExtensionTest extends TestCase
             ->assertSee('Extend Pemesanan')
             ->assertSee($booking->booking_code)
             ->assertSee('Budi Santoso')
+            ->assertSee($booking->check_out_time->copy()->shiftTimezone('Asia/Jakarta')->format('d M Y, H:i'))
             ->assertSee('id="summaryCheckout"', false);
     }
 
@@ -75,10 +76,87 @@ class BookingExtensionTest extends TestCase
             'extension_type' => 'Short Time',
             'duration_hours' => 5,
             'amount' => 150000,
+            'check_out_before' => '2026-10-21 10:00:00',
+            'check_out_after' => '2026-10-21 15:00:00',
             'payment_method' => 'Cash',
             'payment_status' => 'Paid',
         ]);
+        $this->assertDatabaseHas('bookings', [
+            'id' => $booking->id,
+            'check_out_time' => '2026-10-21 15:00:00',
+            'total_price' => 300000,
+        ]);
         $this->assertSame('2026-10-21 15:00:00', $booking->fresh()->check_out_time->format('Y-m-d H:i:s'));
+    }
+
+    public function test_receptionist_can_extend_short_time_booking_and_history_uses_updated_checkout(): void
+    {
+        $receptionist = User::create([
+            'user_name' => 'Receptionist Hotel',
+            'username' => 'receptionist_hotel',
+            'password' => 'password',
+            'role' => 'Receptionist',
+        ]);
+        $booking = $this->activeBooking();
+
+        $response = $this->actingAs($receptionist)
+            ->post(route('receptionist.pemesanan.extend.store', $booking), [
+                'extension_type' => 'Short Time',
+                'duration_hours' => 5,
+                'payment_method' => 'Cash',
+            ]);
+
+        $response->assertRedirect(route('receptionist.pemesanan.index'));
+        $this->assertDatabaseHas('bookings', [
+            'id' => $booking->id,
+            'check_out_time' => '2026-10-21 15:00:00',
+            'total_price' => 300000,
+        ]);
+        $this->assertDatabaseHas('booking_extensions', [
+            'booking_id' => $booking->id,
+            'check_out_before' => '2026-10-21 10:00:00',
+            'check_out_after' => '2026-10-21 15:00:00',
+        ]);
+
+        $response = $this->actingAs($receptionist)
+            ->get(route('receptionist.pemesanan.index'));
+
+        $response->assertOk()
+            ->assertSee('21 Oct 2026 15:00')
+            ->assertSee('Extend 1x');
+
+        $this->actingAs($receptionist)
+            ->get(route('receptionist.pemesanan.extend.create', $booking))
+            ->assertOk()
+            ->assertSee('21 Oct 2026, 15:00 WIB');
+    }
+
+    public function test_transfer_short_time_extend_stays_pending_without_payment_time(): void
+    {
+        $booking = $this->activeBooking();
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.pemesanan.extend.store', $booking), [
+                'extension_type' => 'Short Time',
+                'duration_hours' => 5,
+                'payment_method' => 'Transfer',
+            ]);
+
+        $response->assertRedirect(route('admin.pemesanan.index'));
+        $this->assertDatabaseHas('booking_extensions', [
+            'booking_id' => $booking->id,
+            'payment_method' => 'Transfer',
+            'payment_status' => 'Pending',
+            'payment_time' => null,
+            'check_out_after' => '2026-10-21 15:00:00',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.reports.index'));
+
+        $response->assertOk()
+            ->assertDontSee('KZN-100001')
+            ->assertDontSee('Menunggu');
     }
 
     public function test_extend_is_rejected_when_it_overlaps_next_booking(): void

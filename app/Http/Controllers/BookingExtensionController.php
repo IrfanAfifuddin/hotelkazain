@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\BookingExtension;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,31 +41,28 @@ class BookingExtensionController extends Controller
             throw ValidationException::withMessages(['duration_hours' => 'Durasi Full Day harus 24 jam.']);
         }
 
-        $checkoutBefore = Carbon::parse($booking->check_out_time, 'Asia/Jakarta');
+        $checkoutBefore = $booking->check_out_time->copy();
         $checkoutAfter = $validated['extension_type'] === 'Full Day'
             ? $checkoutBefore->copy()->addDay()->startOfDay()->addHours(12)
             : $checkoutBefore->copy()->addHours($duration);
 
-        // Check conflict untuk semua rooms dalam multi-room booking
-        $roomIds = $booking->rooms()->pluck('room_id')->toArray();
-        $conflict = Booking::query()
-            ->whereIn('room_id', $roomIds)
-            ->where('id', '!=', $booking->id)
-            ->whereIn('booking_status', ['Pending', 'Confirmed', 'Check-in'])
-            ->where('check_in_time', '<', $checkoutAfter)
-            ->where('check_out_time', '>', $checkoutBefore)
-            ->exists();
+        // Periksa kamar utama dan semua kamar pivot dengan aturan overlap yang sama.
+        $roomIds = $booking->rooms->pluck('id')
+            ->push($booking->room_id)
+            ->filter()
+            ->unique()
+            ->map(fn (int|string $roomId): int => (int) $roomId)
+            ->all();
+        $conflictingRoomIds = array_values(array_intersect(
+            $roomIds,
+            Booking::overlappingRoomIds($checkoutBefore, $checkoutAfter, $booking->id),
+        ));
 
-        if ($conflict) {
+        if ($conflictingRoomIds !== []) {
             throw ValidationException::withMessages(['duration_hours' => 'Kamar tidak tersedia untuk durasi perpanjangan tersebut karena berbenturan dengan pemesanan lain.']);
         }
 
         // Calculate total extension amount untuk semua rooms (multi-room support)
-        $extensionRate = match ([$validated['extension_type'], $duration]) {
-            ['Short Time', 5] => 5 / 5,
-            ['Short Time', 8] => 8 / 8,
-            default => 24 / 24,
-        };
 
         $amount = $booking->rooms()
             ->get()
@@ -80,7 +76,10 @@ class BookingExtensionController extends Controller
                 return $sum + $roomPrice;
             }, 0);
 
-        DB::transaction(function () use ($booking, $validated, $duration, $amount, $checkoutBefore, $checkoutAfter): void {
+        $paymentStatus = $validated['payment_method'] === 'Cash' ? 'Paid' : 'Pending';
+        $paymentTime = $paymentStatus === 'Paid' ? now('Asia/Jakarta') : null;
+
+        DB::transaction(function () use ($booking, $validated, $duration, $amount, $checkoutBefore, $checkoutAfter, $paymentStatus, $paymentTime): void {
             $booking->update([
                 'check_out_time' => $checkoutAfter,
                 'total_price' => $booking->total_price + $amount,
@@ -94,8 +93,8 @@ class BookingExtensionController extends Controller
                 'check_out_before' => $checkoutBefore,
                 'check_out_after' => $checkoutAfter,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => $validated['payment_method'] === 'Cash' ? 'Paid' : 'Pending',
-                'payment_time' => $validated['payment_method'] === 'Cash' ? now('Asia/Jakarta') : null,
+                'payment_status' => $paymentStatus,
+                'payment_time' => $paymentTime,
             ]);
         });
 

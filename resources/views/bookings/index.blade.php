@@ -243,9 +243,9 @@
                                 {{ $b->booking_type }}
                                 <span class="block text-[11px] text-kazain-muted/80">{{ $b->number_of_guests ?? 1 }} orang</span>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted">{{ \Carbon\Carbon::parse($b->check_in_time)->format('d M Y H:i') }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted">{{ $b->check_in_time->copy()->shiftTimezone('Asia/Jakarta')->format('d M Y H:i') }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-xs text-kazain-muted">
-                                {{ \Carbon\Carbon::parse($b->check_out_time)->format('d M Y H:i') }}
+                                {{ $b->check_out_time->copy()->shiftTimezone('Asia/Jakarta')->format('d M Y H:i') }}
                                 @if($b->extensions && $b->extensions->isNotEmpty())
                                     <span class="block text-[10px] text-emerald-600 font-medium">Extend {{ $b->extensions->count() }}x</span>
                                 @endif

@@ -70,11 +70,11 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-kazain-muted mb-1.5">Waktu Check-in <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" name="check_in_time" id="edit_check_in_time" value="{{ old('check_in_time', $booking->check_in_time->format('Y-m-d\TH:i') ?? '') }}" min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" required onchange="updateEditCalculations()" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="datetime-local" name="check_in_time" id="edit_check_in_time" value="{{ old('check_in_time', $booking->check_in_time->format('Y-m-d\TH:i') ?? '') }}" required onchange="updateEditCalculations()" class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-kazain-muted mb-1.5">Waktu Check-out <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" name="check_out_time" id="edit_check_out_time" value="{{ old('check_out_time', $booking->check_out_time->format('Y-m-d\TH:i') ?? '') }}" min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
+                        <input type="datetime-local" name="check_out_time" id="edit_check_out_time" value="{{ old('check_out_time', $booking->check_out_time->format('Y-m-d\TH:i') ?? '') }}" required class="min-h-11 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3.5 py-2.5 text-sm text-kazain-text outline-none transition focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10">
                     </div>
                 </div>
             </div>

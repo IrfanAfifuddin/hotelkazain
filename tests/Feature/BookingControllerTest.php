@@ -6,7 +6,6 @@ use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -82,6 +81,22 @@ class BookingControllerTest extends TestCase
             '10 digit diterima' => ['0812345678', true],
             '15 digit diterima' => ['081234567890123', true],
             '16 digit ditolak' => ['0812345678901234', false],
+        ];
+    }
+
+    public static function bookingStaffStoreRoutes(): array
+    {
+        return [
+            'admin' => ['Admin', 'admin.pemesanan.store'],
+            'receptionist' => ['Receptionist', 'receptionist.pemesanan.store'],
+        ];
+    }
+
+    public static function bookingStaffAvailabilityRoutes(): array
+    {
+        return [
+            'admin' => ['Admin', 'admin.pemesanan.available-rooms'],
+            'receptionist' => ['Receptionist', 'receptionist.pemesanan.available-rooms'],
         ];
     }
 
@@ -237,12 +252,14 @@ class BookingControllerTest extends TestCase
         $this->assertDatabaseCount('bookings', 1);
     }
 
-    public function test_store_rejects_booking_that_overlaps_an_existing_booking(): void
+    #[DataProvider('bookingStaffStoreRoutes')]
+    public function test_store_rejects_booking_that_overlaps_an_existing_booking(string $role, string $routeName): void
     {
         $this->createExistingBooking($this->room, '2027-01-18 10:00:00', '2027-01-18 15:00:00');
+        $staff = $this->createStaff($role);
 
-        $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.pemesanan.store'), $this->storePayload([
+        $response = $this->actingAs($staff)
+            ->postJson(route($routeName), $this->storePayload([
                 'booking_type' => 'Short Time 5 Jam',
                 'check_in_time' => '2027-01-18 12:00:00',
             ]));
@@ -334,6 +351,73 @@ class BookingControllerTest extends TestCase
         $this->assertDatabaseCount('bookings', 1);
     }
 
+    public function test_update_rejects_email_used_by_another_customer_with_validation_message(): void
+    {
+        $booking = $this->createExistingBooking($this->room, '2027-01-18 10:00:00', '2027-01-18 15:00:00');
+        $otherCustomer = Customer::create([
+            'customer_name' => 'Customer Lain',
+            'phone_number' => '081222222222',
+            'email' => 'sudah-ada@gmail.com',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->putJson(route('admin.pemesanan.update', $booking), [
+                'customer_name' => 'Nama Diperbarui',
+                'phone_number' => '081234567891',
+                'email' => $otherCustomer->email,
+                'room_ids' => [$this->room->id],
+                'booking_type' => 'Short Time 5 Jam',
+                'check_in_time' => '2027-01-18 10:00:00',
+                'check_out_time' => '2027-01-18 15:00:00',
+                'booking_status' => 'Confirmed',
+                'payment_status' => 'Paid',
+                'payment_method' => 'Cash',
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'email' => 'Email sudah digunakan oleh data customer lain. Gunakan email lain.',
+            ]);
+
+        $this->assertSame('existing0@gmail.com', $booking->customer->fresh()->email);
+        $this->assertSame('Customer Lain', $otherCustomer->fresh()->customer_name);
+        $this->assertDatabaseCount('customers', 2);
+    }
+
+    public function test_update_allows_editing_booking_after_check_in_time(): void
+    {
+        $booking = $this->createExistingBooking($this->room, '2026-11-18 10:00:00', '2026-11-18 15:00:00');
+
+        $response = $this->actingAs($this->admin)
+            ->putJson(route('admin.pemesanan.update', $booking), [
+                'customer_name' => 'Nama Diperbarui',
+                'phone_number' => '081234567891',
+                'email' => 'existing0@gmail.com',
+                'room_ids' => [$this->room->id],
+                'booking_type' => 'Short Time 5 Jam',
+                'check_in_time' => '2026-11-18 10:00:00',
+                'check_out_time' => '2026-11-18 15:00:00',
+                'booking_status' => 'Check-out',
+                'payment_status' => 'Paid',
+                'payment_method' => 'Cash',
+            ]);
+
+        $response->assertRedirect(route('admin.pemesanan.index'));
+
+        $this->assertDatabaseHas('customers', [
+            'id' => $booking->customer_id,
+            'customer_name' => 'Nama Diperbarui',
+            'phone_number' => '081234567891',
+            'email' => 'existing0@gmail.com',
+        ]);
+        $this->assertDatabaseHas('bookings', [
+            'id' => $booking->id,
+            'check_in_time' => '2026-11-18 10:00:00',
+            'check_out_time' => '2026-11-18 15:00:00',
+            'booking_status' => 'Check-out',
+        ]);
+    }
+
     public function test_update_excludes_current_booking_from_overlap_check(): void
     {
         $booking = $this->createExistingBooking($this->room, '2027-01-18 10:00:00', '2027-01-18 15:00:00');
@@ -418,7 +502,8 @@ class BookingControllerTest extends TestCase
         ]);
     }
 
-    public function test_available_rooms_endpoint_reflects_requested_time_range(): void
+    #[DataProvider('bookingStaffAvailabilityRoutes')]
+    public function test_available_rooms_endpoint_reflects_requested_time_range(string $role, string $routeName): void
     {
         $overlappingRoom = Room::create([
             'room_number' => '102',
@@ -431,8 +516,9 @@ class BookingControllerTest extends TestCase
 
         $this->createExistingBooking($this->room, '2027-01-18 08:00:00', '2027-01-18 10:00:00');
         $this->createExistingBooking($overlappingRoom, '2027-01-18 14:00:00', '2027-01-18 19:00:00');
+        $staff = $this->createStaff($role);
 
-        $response = $this->actingAs($this->admin)->getJson(route('admin.pemesanan.available-rooms', [
+        $response = $this->actingAs($staff)->getJson(route($routeName, [
             'check_in_time' => '2027-01-18 12:00:00',
             'booking_type' => 'Short Time 5 Jam',
         ]));
@@ -444,6 +530,37 @@ class BookingControllerTest extends TestCase
             ->assertJsonPath('rooms.1.room_number', '102')
             ->assertJsonPath('rooms.1.is_available', false)
             ->assertJsonPath('rooms.1.status', 'Booked');
+    }
+
+    #[DataProvider('bookingStaffAvailabilityRoutes')]
+    public function test_available_rooms_endpoint_allows_back_to_back_schedule(string $role, string $routeName): void
+    {
+        $this->createExistingBooking($this->room, '2027-01-18 10:00:00', '2027-01-18 15:00:00');
+        $staff = $this->createStaff($role);
+
+        $response = $this->actingAs($staff)->getJson(route($routeName, [
+            'check_in_time' => '2027-01-18 15:00:00',
+            'booking_type' => 'Short Time 5 Jam',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('rooms.0.room_number', '101')
+            ->assertJsonPath('rooms.0.is_available', true)
+            ->assertJsonPath('rooms.0.status', 'Available');
+    }
+
+    private function createStaff(string $role): User
+    {
+        if ($role === 'Admin') {
+            return $this->admin;
+        }
+
+        return User::create([
+            'user_name' => 'Receptionist Test',
+            'username' => 'receptionist_'.strtolower((string) User::count()),
+            'password' => bcrypt('password'),
+            'role' => $role,
+        ]);
     }
 
     /**

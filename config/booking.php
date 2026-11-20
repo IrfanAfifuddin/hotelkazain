@@ -18,4 +18,16 @@ return [
         'moal.com',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Email Domain Policy
+    |--------------------------------------------------------------------------
+    |
+    | Fallback policy when an email domain is not explicitly listed in
+    | blocked_email_domains. Set to true to block unlisted domains,
+    | false to allow all unlisted domains.
+    |
+    */
+    'default_block_email_domain' => false,
+
 ];

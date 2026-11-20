@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -18,16 +19,16 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'username' => 'required|string|unique:users,username',
-            'user_name' => 'required|string|max:255',
-            'password' => 'required|string|min:6',
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'alpha_dash', 'max:64', Rule::unique('users', 'username')],
+            'user_name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string', 'min:6', 'max:128'],
         ]);
 
         User::create([
-            'username' => $request->username,
-            'user_name' => $request->user_name,
-            'password' => Hash::make($request->password),
+            'username' => $validated['username'],
+            'user_name' => $validated['user_name'],
+            'password' => Hash::make($validated['password']),
             'role' => 'Receptionist',
         ]);
 
@@ -36,19 +37,19 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'username' => 'required|string|unique:users,username,'.$user->user_id.',user_id',
-            'user_name' => 'required|string|max:255',
-            'password' => 'nullable|string|min:6',
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'alpha_dash', 'max:64', Rule::unique('users', 'username', $user->user_id, 'user_id')],
+            'user_name' => ['required', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'min:6', 'max:128'],
         ]);
 
         $data = [
-            'username' => $request->username,
-            'user_name' => $request->user_name,
+            'username' => $validated['username'],
+            'user_name' => $validated['user_name'],
         ];
 
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $data['password'] = Hash::make($validated['password']);
         }
 
         $user->update($data);

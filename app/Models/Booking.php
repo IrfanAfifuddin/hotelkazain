@@ -67,7 +67,7 @@ class Booking extends Model
                             ->where(function (Builder $query): void {
                                 $query
                                     ->whereNull('payment_expires_at')
-                                    ->orWhere('payment_expires_at', '>', now());
+                                    ->orWhere('payment_expires_at', '>', now('Asia/Jakarta'));
                             });
                     });
             });
