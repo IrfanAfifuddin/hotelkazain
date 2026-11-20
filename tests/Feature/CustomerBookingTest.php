@@ -8,6 +8,7 @@ use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class CustomerBookingTest extends TestCase
@@ -62,7 +63,7 @@ class CustomerBookingTest extends TestCase
             ->assertJsonMissingPath('data.payment.order_id');
 
         $booking = Booking::query()->where('customer_id', Customer::query()
-            ->where('email', 'andi@example.com')
+            ->where('email', 'andi@gmail.com')
             ->value('id'))->firstOrFail();
 
         $this->assertMatchesRegularExpression('/^KZN-\d{6}$/', $booking->booking_code);
@@ -72,7 +73,7 @@ class CustomerBookingTest extends TestCase
         $this->assertSame('2026-10-15 10:20:00', $booking->payment_expires_at->format('Y-m-d H:i:s'));
 
         $this->assertDatabaseHas('customers', [
-            'email' => 'andi@example.com',
+            'email' => 'andi@gmail.com',
         ]);
         $this->assertDatabaseHas('bookings', [
             'id' => $booking->id,
@@ -103,6 +104,68 @@ class CustomerBookingTest extends TestCase
         $this->assertDatabaseCount('bookings', 0);
     }
 
+    #[TestWith(['invalid-email-string'])]
+    #[TestWith(['user@'])]
+    #[TestWith(['user@domain-tidak-ada-xyz123.com'])]
+    #[TestWith(['user@mial.com'])]
+    #[TestWith(['user@moal.com'])]
+    public function test_customer_booking_rejects_invalid_email_without_saving_data(string $email): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        Http::preventStrayRequests();
+        $room = $this->createRoom('107', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
+            'email' => $email,
+        ]));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'email' => 'Domain email tidak valid atau tidak aktif.',
+            ]);
+
+        $this->assertDatabaseCount('customers', 0);
+        $this->assertDatabaseCount('bookings', 0);
+    }
+
+    #[TestWith(['081234567'])]
+    #[TestWith(['0812345678901234'])]
+    public function test_customer_booking_rejects_phone_number_outside_10_to_15_digits(string $phoneNumber): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        Http::preventStrayRequests();
+        $room = $this->createRoom('107', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
+            'phone_number' => $phoneNumber,
+        ]));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'phone_number' => 'Nomor telepon harus antara 10 sampai 15 digit.',
+            ]);
+
+        $this->assertDatabaseCount('customers', 0);
+        $this->assertDatabaseCount('bookings', 0);
+    }
+
+    #[TestWith(['0812345678'])]
+    #[TestWith(['081234567890123'])]
+    public function test_customer_booking_accepts_phone_number_with_10_or_15_digits(string $phoneNumber): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
+        $this->fakeMidtransPayment();
+        $room = $this->createRoom('107', 'King');
+
+        $response = $this->postJson('/bookings', $this->bookingPayload($room, [
+            'phone_number' => $phoneNumber,
+        ]));
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('customers', ['phone_number' => $phoneNumber]);
+    }
+
     public function test_booking_conflict_is_rejected(): void
     {
         $this->travelTo(now()->setDate(2026, 10, 15)->setTime(10, 0));
@@ -111,7 +174,7 @@ class CustomerBookingTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Existing Customer',
             'phone_number' => '081234567899',
-            'email' => 'existing@example.com',
+            'email' => 'existing@gmail.com',
         ]);
 
         Booking::create([
@@ -134,7 +197,7 @@ class CustomerBookingTest extends TestCase
         $response = $this->postJson('/bookings', $this->bookingPayload($room, [
             'customer_name' => 'Budi',
             'phone_number' => '081234567891',
-            'email' => 'budi@example.com',
+            'email' => 'budi@gmail.com',
             'booking_type' => 'Short Time 5 Jam',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '15:00',
@@ -145,7 +208,7 @@ class CustomerBookingTest extends TestCase
             ->assertJsonPath('errors.room_ids.0', 'Kamar No. 103 tidak tersedia untuk slot waktu tersebut.');
 
         $this->assertDatabaseCount('bookings', 1);
-        $this->assertDatabaseMissing('customers', ['email' => 'budi@example.com']);
+        $this->assertDatabaseMissing('customers', ['email' => 'budi@gmail.com']);
     }
 
     public function test_expired_pending_booking_does_not_block_room_availability(): void
@@ -157,7 +220,7 @@ class CustomerBookingTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Expired Guest',
             'phone_number' => '081234567899',
-            'email' => 'expired@example.com',
+            'email' => 'expired@gmail.com',
         ]);
 
         Booking::create([
@@ -305,7 +368,7 @@ class CustomerBookingTest extends TestCase
             'room_ids' => [$room->id],
             'customer_name' => 'Andi',
             'phone_number' => '081234567890',
-            'email' => 'andi@example.com',
+            'email' => 'andi@gmail.com',
             'booking_type' => 'Full Day',
             'check_in_date' => '2026-10-16',
             'check_in_time' => '14:00',

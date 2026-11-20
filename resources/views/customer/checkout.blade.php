@@ -50,7 +50,7 @@
                                     <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">{!! $field['icon'] !!}</svg>
                                     <input id="{{ $field['name'] }}" name="{{ $field['name'] }}" type="{{ $field['type'] }}"
                                            placeholder="{{ $field['placeholder'] }}" autocomplete="{{ $field['autocomplete'] }}" required
-                                           @if ($field['type'] === 'tel') inputmode="tel" maxlength="16" @endif
+                                           @if ($field['type'] === 'tel') inputmode="tel" minlength="10" maxlength="15" pattern="[0-9]{10,15}" title="Nomor telepon harus berupa angka antara 10 sampai 15 digit" @endif
                                            class="w-full pl-11 pr-4 py-3 bg-[#FCFAF7] border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#A8844F]/40 focus:border-[#A8844F] transition">
                                 </div>
                                 <p data-error-for="{{ $field['name'] }}" class="hidden mt-1.5 text-sm text-red-600"></p>
@@ -160,7 +160,7 @@
 
             const rules = {
                 customer_name: (v) => /^[a-zA-Z\s]+$/.test(v.trim()) ? '' : 'Nama customer hanya boleh berisi huruf dan spasi.',
-                phone_number: (v) => /^(\+62|62|0)8\d{8,12}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Nomor telepon tidak valid (minimal 10 digit). Contoh: 08123456789',
+                phone_number: (v) => /^\d{10,15}$/.test(v.replace(/[\s-]/g, '')) ? '' : 'Nomor telepon harus antara 10 sampai 15 digit. Contoh: 08123456789',
                 email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : 'Format email tidak valid. Contoh: nama@email.com',
             };
 

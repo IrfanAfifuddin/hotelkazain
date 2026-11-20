@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\EmailDomainIsAllowed;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -22,7 +23,7 @@ class StoreCustomerBookingRequest extends FormRequest
             'room_quantities.*' => ['integer', 'min:1', 'max:12'],
             'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
             'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
-            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:dns', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', new EmailDomainIsAllowed],
             'booking_type' => ['required', 'in:Short Time 5 Jam,Short Time 8 Jam,Full Day'],
             'check_in_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'check_in_time' => ['required', 'date_format:H:i'],
@@ -100,7 +101,7 @@ class StoreCustomerBookingRequest extends FormRequest
             'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
             'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
             'phone_number.digits_between' => 'Nomor telepon harus antara 10 sampai 15 digit.',
-            'email.email' => 'Format email tidak valid atau domain email tidak ditemukan.',
+            'email.email' => 'Domain email tidak valid atau tidak aktif.',
         ];
     }
 }

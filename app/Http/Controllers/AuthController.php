@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
@@ -25,14 +26,13 @@ class AuthController extends Controller
     /**
      * Proses login: validasi username + password, cek role.
      */
-    public function processLogin(Request $request)
+    public function processLogin(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
+        $request->ensureIsNotRateLimited();
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($request->only('username', 'password'))) {
+            $request->clearRateLimiter();
+
             // Cek apakah role adalah Admin atau Receptionist
             $user = Auth::user();
             if (! in_array($user->role, ['Admin', 'Receptionist'])) {
@@ -49,6 +49,8 @@ class AuthController extends Controller
 
             return redirect()->intended('/dashboard');
         }
+
+        $request->hitRateLimiter();
 
         return back()->withErrors([
             'username' => 'Username atau Password Salah',
@@ -75,7 +77,18 @@ class AuthController extends Controller
                 ->orderBy('check_in_time', 'desc');
         }])->get();
 
-        $availableRooms = $rooms->filter(fn ($r) => $r->computed_status === 'Available')->sortBy('room_number');
+        $now = Carbon::now('Asia/Jakarta');
+        $defaultCheckOut = (clone $now);
+        if ($now->hour >= 12) {
+            $defaultCheckOut->addDay();
+        }
+        $defaultCheckOut->setTime(12, 0);
+        $unavailableRoomIds = Booking::overlappingRoomIds($now, $defaultCheckOut);
+
+        $availableRooms = $rooms
+            ->filter(fn ($r) => $r->computed_status === 'Available'
+                && ! in_array($r->id, $unavailableRoomIds, true))
+            ->sortBy('room_number');
 
         $availableCount = $availableRooms->count();
         $occupiedCount = $rooms->filter(fn ($r) => $r->computed_status === 'Occupied')->count();
@@ -86,7 +99,6 @@ class AuthController extends Controller
         $todayCheckOutCount = Booking::whereDate('check_out_time', now('Asia/Jakarta')->toDateString())
             ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
             ->count();
-        $now = Carbon::now('Asia/Jakarta');
         $recentBookings = Booking::with(['customer', 'room'])
             ->where('check_in_time', '<=', $now)
             ->where('check_out_time', '>=', $now)
@@ -103,6 +115,15 @@ class AuthController extends Controller
             'todayCheckOutCount',
             'recentBookings'
         ));
+    }
+
+    /**
+     * Tolak akses GET ke logout dengan 405 sambil tetap menjalankan middleware web,
+     * sehingga status autentikasi pengguna dapat dibaca oleh halaman error.
+     */
+    public function rejectGetLogout(): never
+    {
+        abort(405, 'Metode Tidak Diizinkan');
     }
 
     /**

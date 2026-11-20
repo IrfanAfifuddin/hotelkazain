@@ -62,7 +62,7 @@ class CustomerPaymentTest extends TestCase
             'booking_status' => 'Confirmed',
             'payment_status' => 'Paid',
         ]);
-        Mail::assertSent(PaymentConfirmationMail::class, fn (PaymentConfirmationMail $mail): bool => $mail->hasTo('andi@example.com'));
+        Mail::assertSent(PaymentConfirmationMail::class, fn (PaymentConfirmationMail $mail): bool => $mail->hasTo('andi@gmail.com'));
 
         $this->postJson('/payments/midtrans/notifications', $notification)->assertOk();
 
@@ -227,7 +227,7 @@ class CustomerPaymentTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Andi',
             'phone_number' => '081234567890',
-            'email' => 'andi@example.com',
+            'email' => 'andi@gmail.com',
         ]);
 
         return Booking::create([

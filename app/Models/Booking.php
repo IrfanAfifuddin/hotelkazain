@@ -73,6 +73,38 @@ class Booking extends Model
             });
     }
 
+    /**
+     * Dapatkan seluruh ID kamar yang memiliki pemesanan aktif pada rentang waktu tertentu.
+     *
+     * Pemesanan multi-kamar menyimpan kamar tambahan pada tabel pivot `booking_rooms`,
+     * sehingga kamar utama (`bookings.room_id`) dan kamar tambahan harus ikut diperiksa.
+     *
+     * @return array<int, int>
+     */
+    public static function overlappingRoomIds(
+        CarbonInterface $start,
+        CarbonInterface $end,
+        ?int $excludingBookingId = null,
+    ): array {
+        $bookings = self::query()
+            ->activeOverlapping($start, $end)
+            ->when($excludingBookingId !== null, fn (Builder $query): Builder => $query->whereKeyNot($excludingBookingId))
+            ->with('rooms')
+            ->get(['id', 'room_id']);
+
+        return $bookings
+            ->flatMap(function (self $booking): array {
+                return array_filter([
+                    $booking->room_id,
+                    ...$booking->rooms->pluck('id')->all(),
+                ]);
+            })
+            ->map(fn (int|string $roomId): int => (int) $roomId)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function extensions(): HasMany
     {
         return $this->hasMany(BookingExtension::class);

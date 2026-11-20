@@ -261,12 +261,13 @@
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label for="modal_email" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Email customer <span class="font-normal">(opsional)</span></label>
+                                <label for="modal_email" class="mb-1.5 block text-xs font-semibold text-kazain-muted">Email customer <span class="text-[#975b50]">*</span></label>
                                 <input
                                     type="email"
                                     name="email"
                                     id="modal_email"
                                     placeholder="Contoh: budi@gmail.com"
+                                    required
                                     class="min-h-10 w-full rounded-xl border border-kazain-border bg-kazain-surface px-3 py-2 text-sm text-kazain-text outline-none transition placeholder:text-kazain-muted/70 focus:border-kazain-primary focus:bg-gray-50 focus:ring-4 focus:ring-kazain-primary/10"
                                 >
                             </div>

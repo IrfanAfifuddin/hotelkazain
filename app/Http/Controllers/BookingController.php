@@ -6,12 +6,15 @@ use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Room;
+use App\Rules\EmailDomainIsAllowed;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -80,6 +83,69 @@ class BookingController extends Controller
     }
 
     /**
+     * Kembalikan daftar kamar beserta ketersediaannya untuk rentang waktu yang dipilih.
+     */
+    public function availableRooms(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'check_in_time' => ['required', 'date'],
+            'check_out_time' => ['sometimes', 'nullable', 'date', 'after:check_in_time'],
+            'booking_type' => ['required', 'in:Short Time 5 Jam,Short Time 8 Jam,Full Day'],
+            'exclude_booking_id' => ['sometimes', 'nullable', 'integer', 'exists:bookings,id'],
+        ]);
+
+        $checkIn = Carbon::parse($validated['check_in_time']);
+        $checkOut = isset($validated['check_out_time'])
+            ? Carbon::parse($validated['check_out_time'])
+            : $this->calculateCheckOutTime($checkIn, $validated['booking_type']);
+
+        $unavailableRoomIds = Booking::overlappingRoomIds(
+            $checkIn,
+            $checkOut,
+            $validated['exclude_booking_id'] ?? null,
+        );
+
+        $rooms = Room::query()
+            ->orderBy('room_number')
+            ->get([
+                'id',
+                'room_number',
+                'room_type',
+                'room_status',
+                'price_5_hours',
+                'price_8_hours',
+                'full_day_price',
+            ])
+            ->map(function (Room $room) use ($unavailableRoomIds): array {
+                $isMaintenance = $room->room_status === 'Maintenance';
+                $isBooked = in_array($room->id, $unavailableRoomIds, true);
+
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'room_type' => $room->room_type,
+                    'status' => match (true) {
+                        $isMaintenance => 'Maintenance',
+                        $isBooked => 'Booked',
+                        default => 'Available',
+                    },
+                    'is_available' => ! $isMaintenance && ! $isBooked,
+                    'is_maintenance' => $isMaintenance,
+                    'is_booked' => $isBooked,
+                    'price_5_hours' => (int) $room->price_5_hours,
+                    'price_8_hours' => (int) $room->price_8_hours,
+                    'full_day_price' => (int) $room->full_day_price,
+                ];
+            });
+
+        return response()->json([
+            'check_in_time' => $checkIn->toDateTimeString(),
+            'check_out_time' => $checkOut->toDateTimeString(),
+            'rooms' => $rooms->values()->all(),
+        ]);
+    }
+
+    /**
      * Simpan pemesanan baru dengan pencegahan double booking yang ketat.
      * Mendukung single room dan multiple room bookings.
      */
@@ -91,7 +157,7 @@ class BookingController extends Controller
         $request->validate([
             'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
             'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
-            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:dns', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', new EmailDomainIsAllowed],
             'room_ids' => 'required|array|min:1',
             'room_ids.*' => 'required|integer|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
@@ -103,7 +169,7 @@ class BookingController extends Controller
             'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
             'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
             'phone_number.digits_between' => 'Nomor telepon harus antara 10 sampai 15 digit.',
-            'email.email' => 'Format email tidak valid atau domain email tidak ditemukan.',
+            'email.email' => 'Domain email tidak valid atau tidak aktif.',
             'number_of_guests.required' => 'Jumlah orang wajib diisi.',
             'number_of_guests.integer' => 'Jumlah orang harus berupa angka.',
             'number_of_guests.min' => 'Jumlah orang minimal 1 orang.',
@@ -111,33 +177,22 @@ class BookingController extends Controller
         ]);
 
         $checkIn = Carbon::parse($request->check_in_time);
+        $checkOut = $this->calculateCheckOutTime($checkIn, $request->booking_type);
 
-        // Tentukan check_out_time berdasarkan booking_type
-        if ($request->booking_type === 'Short Time 5 Jam') {
-            $checkOut = (clone $checkIn)->addHours(5);
-        } elseif ($request->booking_type === 'Short Time 8 Jam') {
-            $checkOut = (clone $checkIn)->addHours(8);
-        } else {
-            // Full Day: check-out pukul 12:00 — hari yang sama bila check-in sebelum pukul 12:00,
-            // keesokan hari bila check-in pada/di atas pukul 12:00
-            $checkOut = clone $checkIn;
-            if ($checkIn->hour >= 12) {
-                $checkOut->addDay();
-            }
-            $checkOut->setTime(12, 0);
-        }
+        // Validasi ketat double booking untuk semua kamar yang dipilih.
+        // Termasuk kamar tambahan pada pivot booking_rooms, bukan hanya bookings.room_id.
+        $roomIds = array_values(array_unique(array_map('intval', $request->room_ids)));
+        $conflictingRoomIds = array_values(array_intersect(
+            $roomIds,
+            Booking::overlappingRoomIds($checkIn, $checkOut),
+        ));
 
-        // Validasi Ketat Double Booking untuk semua kamar yang dipilih
-        // Menggunakan scope activeOverlapping untuk konsistensi dengan AvailabilityService & BookingService
-        $roomIds = array_unique($request->room_ids);
-        $conflicts = Booking::query()
-            ->activeOverlapping($checkIn, $checkOut)
-            ->whereIn('room_id', $roomIds)
-            ->pluck('room_id')
-            ->unique();
+        if ($conflictingRoomIds !== []) {
+            $conflictRoomNumbers = Room::whereIn('id', $conflictingRoomIds)
+                ->orderBy('room_number')
+                ->pluck('room_number')
+                ->join(', ');
 
-        if ($conflicts->count() > 0) {
-            $conflictRoomNumbers = Room::whereIn('id', $conflicts)->pluck('room_number')->join(', ');
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => "Kamar {$conflictRoomNumbers} sudah dipesan atau tidak tersedia pada rentang waktu tersebut.",
@@ -264,7 +319,7 @@ class BookingController extends Controller
         $request->validate([
             'customer_name' => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:255'],
             'phone_number' => ['required', 'numeric', 'digits_between:10,15'],
-            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:dns', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', new EmailDomainIsAllowed],
             'room_ids' => 'required|array|min:1',
             'room_ids.*' => 'required|integer|exists:rooms,id',
             'booking_type' => 'required|in:Short Time 5 Jam,Short Time 8 Jam,Full Day',
@@ -277,7 +332,8 @@ class BookingController extends Controller
         ], [
             'customer_name.regex' => 'Nama customer hanya boleh berisi huruf dan spasi.',
             'phone_number.numeric' => 'Nomor telepon harus berupa angka.',
-            'phone_number.digits_between' => 'Nomor telepon harus antara 10-15 digit.',
+            'phone_number.digits_between' => 'Nomor telepon harus antara 10 sampai 15 digit.',
+            'email.email' => 'Domain email tidak valid atau tidak aktif.',
         ]);
 
         return DB::transaction(function () use ($request, $booking) {
@@ -306,17 +362,18 @@ class BookingController extends Controller
             // Calculate nights for Full Day
             $nights = $bookingType === 'Full Day' ? $checkIn->diffInDays($checkOut) : 0;
 
-            // Check room availability for new time slot (excluding current booking)
-            $overlappingRooms = Room::query()
-                ->whereIn('id', $newRoomIds)
-                ->whereHas('bookings', function ($query) use ($checkIn, $checkOut, $booking) {
-                    $query->activeOverlapping($checkIn, $checkOut)
-                        ->where('id', '!=', $booking->id);
-                })
-                ->get();
+            // Check room availability for new time slot (excluding current booking).
+            // Pivot room (booking_rooms) juga diperiksa agar multi-room tidak lolos validasi.
+            $conflictingRoomIds = array_values(array_intersect(
+                $newRoomIds,
+                Booking::overlappingRoomIds($checkIn, $checkOut, $booking->id),
+            ));
 
-            if ($overlappingRooms->isNotEmpty()) {
-                $roomNumbers = $overlappingRooms->pluck('room_number')->join(', ');
+            if ($conflictingRoomIds !== []) {
+                $roomNumbers = Room::whereIn('id', $conflictingRoomIds)
+                    ->orderBy('room_number')
+                    ->pluck('room_number')
+                    ->join(', ');
                 throw ValidationException::withMessages([
                     'room_ids' => ["Kamar No. {$roomNumbers} tidak tersedia untuk slot waktu tersebut."],
                 ]);
@@ -379,6 +436,30 @@ class BookingController extends Controller
 
             return redirect()->route($prefix.'.pemesanan.index')->with('success', 'Data pemesanan berhasil diperbarui.');
         });
+    }
+
+    /**
+     * Hitung waktu check-out berdasarkan tipe pemesanan.
+     */
+    private function calculateCheckOutTime(Carbon $checkIn, string $bookingType): Carbon
+    {
+        $checkOut = clone $checkIn;
+
+        if ($bookingType === 'Short Time 5 Jam') {
+            return $checkOut->addHours(5);
+        }
+
+        if ($bookingType === 'Short Time 8 Jam') {
+            return $checkOut->addHours(8);
+        }
+
+        // Full Day: pukul 12:00 hari yang sama bila check-in sebelum 12:00,
+        // atau pukul 12:00 keesokan hari bila check-in pada/di atas 12:00.
+        if ($checkIn->hour >= 12) {
+            $checkOut->addDay();
+        }
+
+        return $checkOut->setTime(12, 0);
     }
 
     /**

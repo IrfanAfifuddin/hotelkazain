@@ -22,7 +22,7 @@ class RoomControllerTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Test Customer',
             'phone_number' => '081234567890',
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
 
         // Create 12 rooms
@@ -121,7 +121,7 @@ class RoomControllerTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Active Guest',
             'phone_number' => '081234567890',
-            'email' => 'active@example.com',
+            'email' => 'active@gmail.com',
         ]);
 
         Booking::create([
@@ -164,7 +164,7 @@ class RoomControllerTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Past Guest',
             'phone_number' => '081234567890',
-            'email' => 'past@example.com',
+            'email' => 'past@gmail.com',
         ]);
 
         Booking::create([

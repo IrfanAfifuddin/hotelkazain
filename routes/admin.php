@@ -16,6 +16,7 @@ Route::middleware(['auth', 'role:Admin', 'prevent-back-history'])->group(functio
     // Manajemen Pemesanan (Menggunakan prefix 'admin' agar unik)
     Route::get('/pemesanan', [BookingController::class, 'index'])->name('admin.pemesanan.index');
     Route::get('/pemesanan/create', [BookingController::class, 'create'])->name('admin.pemesanan.create');
+    Route::get('/pemesanan/kamar-tersedia', [BookingController::class, 'availableRooms'])->name('admin.pemesanan.available-rooms');
     Route::post('/pemesanan', [BookingController::class, 'store'])->name('admin.pemesanan.store');
     Route::get('/pemesanan/{booking}/payment', [PaymentController::class, 'show'])->name('admin.pemesanan.payment.show');
     Route::post('/pemesanan/{booking}/payment', [PaymentController::class, 'createSnapTransaction'])->name('admin.pemesanan.payment.create');

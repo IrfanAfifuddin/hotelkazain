@@ -41,7 +41,7 @@ class BookingExtensionTest extends TestCase
         $this->customer = Customer::create([
             'customer_name' => 'Budi Santoso',
             'phone_number' => '081234567890',
-            'email' => 'budi@example.com',
+            'email' => 'budi@gmail.com',
         ]);
     }
 

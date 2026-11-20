@@ -61,7 +61,7 @@ class AdminDashboardBookingTest extends TestCase
         $customer = Customer::create([
             'customer_name' => 'Existing Guest',
             'phone_number' => '081111111111',
-            'email' => 'guest@example.com',
+            'email' => 'guest@gmail.com',
         ]);
         Booking::create([
             'booking_code' => 'KZN-EXISTING',
@@ -112,7 +112,7 @@ class AdminDashboardBookingTest extends TestCase
         $payload = [
             'customer_name' => 'Ahmad Dani',
             'phone_number' => '081987654321',
-            'email' => 'ahmad@example.com',
+            'email' => 'ahmad@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -171,13 +171,13 @@ class AdminDashboardBookingTest extends TestCase
         $existingCustomer = Customer::create([
             'customer_name' => 'Pelanggan Lama',
             'phone_number' => '081122334455',
-            'email' => 'lama@example.com',
+            'email' => 'lama@gmail.com',
         ]);
 
         $payload = [
             'customer_name' => 'Pelanggan Lama Updated',
             'phone_number' => '081122334455',
-            'email' => 'lama@example.com',
+            'email' => 'lama@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Full Day',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -203,7 +203,7 @@ class AdminDashboardBookingTest extends TestCase
         $response = $this->actingAs($this->admin)->postJson(route('admin.pemesanan.store'), [
             'customer_name' => 'Ahmad Dani',
             'phone_number' => '081987654321',
-            'email' => 'ahmad@example.com',
+            'email' => 'ahmad@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -228,7 +228,7 @@ class AdminDashboardBookingTest extends TestCase
             'customer_id' => Customer::create([
                 'customer_name' => 'Tamu Pertama',
                 'phone_number' => '082222222222',
-                'email' => 'tamu1@example.com',
+                'email' => 'tamu1@gmail.com',
             ])->id,
             'booking_code' => 'KZN-EXIST-01',
             'booking_type' => 'Short Time 5 Jam',
@@ -245,7 +245,7 @@ class AdminDashboardBookingTest extends TestCase
         $payloadOverlap = [
             'customer_name' => 'Tamu Kedua',
             'phone_number' => '083333333333',
-            'email' => 'tamu2@example.com',
+            'email' => 'tamu2@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => (clone $checkIn)->addHours(2)->format('Y-m-d H:i:s'),
@@ -283,7 +283,7 @@ class AdminDashboardBookingTest extends TestCase
         $payload = [
             'customer_name' => 'Siti Aminah',
             'phone_number' => '085566778899',
-            'email' => 'siti@example.com',
+            'email' => 'siti@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 8 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -303,7 +303,7 @@ class AdminDashboardBookingTest extends TestCase
         $invalidPayload = [
             'customer_name' => '12313',
             'phone_number' => 'sdassdasd',
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -326,12 +326,12 @@ class AdminDashboardBookingTest extends TestCase
         $receptionistResponse->assertJsonValidationErrors(['customer_name', 'phone_number']);
     }
 
-    public function test_booking_fails_when_email_format_is_invalid(): void
+    public function test_booking_fails_when_email_format_is_invalid_for_both_roles(): void
     {
         $payload = [
             'customer_name' => 'Budi Santoso',
             'phone_number' => '081234567890',
-            'email' => 'invalid-email-string',
+            'email' => 'budi@domain-tidak-ada-xyz123.com',
             'room_ids' => [$this->room1->id],
             'booking_type' => 'Short Time 5 Jam',
             'check_in_time' => now('Asia/Jakarta')->addHour()->format('Y-m-d H:i:s'),
@@ -339,10 +339,33 @@ class AdminDashboardBookingTest extends TestCase
             'payment_method' => 'Cash',
         ];
 
-        $response = $this->actingAs($this->admin)
-            ->postJson(route('admin.pemesanan.store'), $payload);
+        $roles = [
+            'Admin' => [$this->admin, 'admin.pemesanan.store'],
+            'Receptionist' => [$this->receptionist, 'receptionist.pemesanan.store'],
+        ];
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['email']);
+        $invalidEmails = [
+            'budi@domain-tidak-ada-xyz123.com',
+            'budi@mial.com',
+            'budi@moal.com',
+        ];
+
+        foreach ($invalidEmails as $email) {
+            $payload['email'] = $email;
+
+            foreach ($roles as [$user, $routeName]) {
+                $response = $this->actingAs($user)
+                    ->postJson(route($routeName), $payload);
+
+                $response->assertUnprocessable()
+                    ->assertJsonValidationErrors([
+                        'email' => 'Domain email tidak valid atau tidak aktif.',
+                    ]);
+            }
+
+            $this->assertDatabaseMissing('customers', ['email' => $email]);
+        }
+
+        $this->assertDatabaseCount('bookings', 1);
     }
 }

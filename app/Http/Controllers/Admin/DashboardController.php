@@ -20,7 +20,18 @@ class DashboardController extends Controller
                 ->orderBy('check_in_time', 'desc');
         }])->get();
 
-        $availableRooms = $rooms->filter(fn ($r) => $r->computed_status === 'Available')->sortBy('room_number');
+        $now = Carbon::now('Asia/Jakarta');
+        $defaultCheckOut = (clone $now);
+        if ($now->hour >= 12) {
+            $defaultCheckOut->addDay();
+        }
+        $defaultCheckOut->setTime(12, 0);
+        $unavailableRoomIds = Booking::overlappingRoomIds($now, $defaultCheckOut);
+
+        $availableRooms = $rooms
+            ->filter(fn ($r) => $r->computed_status === 'Available'
+                && ! in_array($r->id, $unavailableRoomIds, true))
+            ->sortBy('room_number');
 
         $availableCount = $availableRooms->count();
         $occupiedCount = $rooms->filter(fn ($r) => $r->computed_status === 'Occupied')->count();
@@ -31,7 +42,6 @@ class DashboardController extends Controller
         $todayCheckOutCount = Booking::whereDate('check_out_time', now('Asia/Jakarta')->toDateString())
             ->whereIn('booking_status', ['Confirmed', 'Check-in', 'Check-out'])
             ->count();
-        $now = Carbon::now('Asia/Jakarta');
         $recentBookings = Booking::with(['customer', 'room'])
             ->where('check_in_time', '<=', $now)
             ->where('check_out_time', '>=', $now)

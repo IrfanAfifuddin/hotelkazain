@@ -14,6 +14,7 @@ Route::middleware(['auth', 'role:Receptionist', 'prevent-back-history'])->group(
     // Manajemen Pemesanan
     Route::get('/pemesanan', [BookingController::class, 'index'])->name('receptionist.pemesanan.index');
     Route::get('/pemesanan/create', [BookingController::class, 'create'])->name('receptionist.pemesanan.create');
+    Route::get('/pemesanan/kamar-tersedia', [BookingController::class, 'availableRooms'])->name('receptionist.pemesanan.available-rooms');
     Route::post('/pemesanan', [BookingController::class, 'store'])->name('receptionist.pemesanan.store');
     Route::get('/pemesanan/{booking}/payment', [PaymentController::class, 'show'])->name('receptionist.pemesanan.payment.show');
     Route::post('/pemesanan/{booking}/payment', [PaymentController::class, 'createSnapTransaction'])->name('receptionist.pemesanan.payment.create');

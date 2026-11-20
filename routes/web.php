@@ -10,6 +10,9 @@ Route::redirect('/customer', '/')->name('customer.legacy-home');
 // ROUTE AUTENTIKASI
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'processLogin']);
+// Logout wajib POST untuk perlindungan CSRF. Route GET eksplisit memastikan akses
+// GET tetap melewati middleware web sehingga halaman 405 dapat membaca role pengguna.
+Route::get('/logout', [AuthController::class, 'rejectGetLogout']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ROUTE DASHBOARD — redirect berdasarkan role

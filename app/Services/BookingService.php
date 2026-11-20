@@ -29,17 +29,20 @@ class BookingService
     public function createBooking(array $data): array
     {
         return DB::transaction(function () use ($data): array {
+            $checkIn = CarbonImmutable::parse($data['check_in_date'].' '.$data['check_in_time']);
+            $nights = $data['booking_type'] === 'Full Day'
+                ? intdiv((int) $data['duration_hours'], 24)
+                : 0;
+            $checkOut = $data['booking_type'] === 'Full Day'
+                ? $checkIn->addDays($nights)->setTime(12, 0)
+                : $checkIn->addHours((int) $data['duration_hours']);
+
+            $conflictingRoomIds = Booking::overlappingRoomIds($checkIn, $checkOut);
+
             // Handle both room_ids (legacy) and room_quantities (new)
             if (isset($data['room_quantities']) && is_array($data['room_quantities'])) {
                 // New multi-room with auto-assignment mode
                 $roomQuantities = $data['room_quantities'];
-                $checkIn = CarbonImmutable::parse($data['check_in_date'].' '.$data['check_in_time']);
-                $nights = $data['booking_type'] === 'Full Day'
-                    ? intdiv((int) $data['duration_hours'], 24)
-                    : 0;
-                $checkOut = $data['booking_type'] === 'Full Day'
-                    ? $checkIn->addDays($nights)->setTime(12, 0)
-                    : $checkIn->addHours((int) $data['duration_hours']);
 
                 // Get available rooms for each type
                 $selectedRooms = collect([]);
@@ -56,9 +59,7 @@ class BookingService
                     $availableRooms = Room::query()
                         ->where('room_type', $dbType)
                         ->where('room_status', '!=', 'Maintenance')
-                        ->whereDoesntHave('bookings', function ($query) use ($checkIn, $checkOut) {
-                            $query->activeOverlapping($checkIn, $checkOut);
-                        })
+                        ->when($conflictingRoomIds !== [], fn ($query) => $query->whereNotIn('id', $conflictingRoomIds))
                         ->orderBy('room_number')
                         ->limit($quantity)
                         ->get();
@@ -81,7 +82,7 @@ class BookingService
                 $rooms = $selectedRooms->shuffle()->values(); // Randomize for variety
             } else {
                 // Legacy mode: room_ids provided directly
-                $roomIds = $data['room_ids'];
+                $roomIds = array_map('intval', $data['room_ids']);
 
                 // Fetch and lock rooms
                 $rooms = Room::query()
@@ -96,25 +97,10 @@ class BookingService
                         'room_ids' => ['Kamar yang dipilih sedang dalam perbaikan (Maintenance).'],
                     ]);
                 }
-            }
 
-            $checkIn = CarbonImmutable::parse($data['check_in_date'].' '.$data['check_in_time']);
-            $nights = $data['booking_type'] === 'Full Day'
-                ? intdiv((int) $data['duration_hours'], 24)
-                : 0;
-            $checkOut = $data['booking_type'] === 'Full Day'
-                ? $checkIn->addDays($nights)->setTime(12, 0)
-                : $checkIn->addHours((int) $data['duration_hours']);
-
-            // Check overlapping bookings for all rooms (if using room_ids mode)
-            if (isset($data['room_ids'])) {
-                $roomIds = $data['room_ids'];
-                $overlappingRooms = Room::query()
-                    ->whereIn('id', $roomIds)
-                    ->whereHas('bookings', function ($query) use ($checkIn, $checkOut) {
-                        $query->activeOverlapping($checkIn, $checkOut);
-                    })
-                    ->get();
+                // Check overlapping bookings for all rooms, including pivot rooms
+                $conflictingRoomIds = array_values(array_intersect($roomIds, $conflictingRoomIds));
+                $overlappingRooms = $rooms->whereIn('id', $conflictingRoomIds);
 
                 if ($overlappingRooms->isNotEmpty()) {
                     $roomNumbers = $overlappingRooms->pluck('room_number')->join(', ');

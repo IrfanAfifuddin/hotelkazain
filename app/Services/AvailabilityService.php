@@ -23,12 +23,7 @@ class AvailabilityService
             $bookingType === 'Full Day' => $start->addDays(intdiv((int) $durationHours, 24))->setTime(12, 0),
             default => $start->addHours((int) $durationHours),
         };
-        $bookedRoomIds = Booking::query()
-            ->activeOverlapping($start, $end)
-            ->distinct()
-            ->pluck('room_id')
-            ->map(fn (int|string $roomId): int => (int) $roomId)
-            ->all();
+        $bookedRoomIds = Booking::overlappingRoomIds($start, $end);
 
         $rooms = Room::query()
             ->orderBy('room_number')
@@ -46,6 +41,13 @@ class AvailabilityService
 
                 $isAvailable = ! $hasActiveBooking && $room->room_status !== 'Maintenance';
 
+                // Status ditentukan dari rentang waktu yang diminta, bukan kondisi kamar saat ini.
+                $roomStatus = match (true) {
+                    $room->room_status === 'Maintenance' => 'Maintenance',
+                    $hasActiveBooking => 'Booked',
+                    default => 'Available',
+                };
+
                 // Convert DB type to display name
                 $shortName = $room->room_type === 'King' ? 'King Bed' : $room->room_type.' Bed';
 
@@ -53,7 +55,7 @@ class AvailabilityService
                     'room_id' => $room->id,
                     'room_number' => $room->room_number,
                     'room_type' => $shortName,
-                    'room_status' => $hasActiveBooking ? 'Booked' : $room->computed_status,
+                    'room_status' => $roomStatus,
                     'is_available' => $isAvailable,
                     'price_5_hours' => $room->price_5_hours,
                     'price_8_hours' => $room->price_8_hours,
